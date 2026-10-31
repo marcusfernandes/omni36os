@@ -139,7 +139,32 @@ def game_pids():
             if "omni_ui.py" in c or "power_button" in c or not c:
                 continue
             out.append(p)
+    if out:                              # port que se solta (systemd-run, setsid): quem desenha também conta
+        out += [p for p in gpu_users() if p not in out]
     return out
+
+
+def gpu_users():
+    """Processos com a GPU aberta (/dev/mali0, /dev/dri), fora o Omni36OS."""
+    me, found = os.getpid(), []
+    for p in os.listdir("/proc"):
+        if not p.isdigit() or int(p) == me:
+            continue
+        try:
+            fds = os.listdir(f"/proc/{p}/fd")
+        except OSError:
+            continue
+        for fd in fds:
+            try:
+                t = os.readlink(f"/proc/{p}/fd/{fd}")
+            except OSError:
+                continue
+            if t == "/dev/mali0" or t.startswith("/dev/dri/"):
+                c = cmdline(int(p))
+                if "omni_ui.py" not in c and "power_button" not in c:
+                    found.append(int(p))
+                break
+    return found
 
 
 def ui_env():
@@ -190,7 +215,7 @@ def tap(key):
         return
     if key == "fps":
         # ciclo: desligado -> FPS -> FPS + frequência do processador e da GPU -> desligado
-        put(HUD_FLAG, {"0": "1", "1": "2"}.get(read_flag(HUD_FLAG), "0"))
+        put(HUD_FLAG, {"0": "1", "1": "2", "2": "3", "3": "4"}.get(read_flag(HUD_FLAG), "0"))   # FPS, +CPU, +GPU, +RAM, esconde
     elif key == "captura":
         put(SHOT_FLAG, int(time.time() * 1000))
     elif key == "limite":

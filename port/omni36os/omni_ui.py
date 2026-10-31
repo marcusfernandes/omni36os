@@ -483,6 +483,13 @@ DANGER = {
 }
 ONOFF = {True: "Ligado", False: "Desligado"}
 HUD_FLAG, CAP_FLAG, SHOT_FLAG = "/dev/shm/omni36os-hud", "/dev/shm/omni36os-fpscap", "/dev/shm/omni36os-shot"
+HUD_NAMES = {"1": "FPS", "2": "FPS e CPU", "3": "FPS, CPU e GPU", "4": "FPS, CPU, GPU e RAM"}   # 0: escondido
+
+
+def hud_step(cur, d):
+    """Carrossel do contador (o mesmo do FN + X): 0 escondido, 1 a 4 mostram mais a cada passo."""
+    cur = int(cur) if cur in ("0", "1", "2", "3", "4") else 0
+    return str((cur + (1 if d > 0 else -1)) % 5)
 
 
 def flag(path):
@@ -3110,7 +3117,7 @@ class App:
 
     def hud_label(self):
         cur = flag(HUD_FLAG) if not FAKE else getattr(self, "fake_hud", "0")
-        return "Contador: " + {"1": "FPS", "2": "FPS, CPU e GPU"}.get(cur, "escondido")
+        return "Contador: " + HUD_NAMES.get(cur, "escondido")
 
     def cap_label(self):
         on = (flag(CAP_FLAG) not in ("", "0")) if not FAKE else getattr(self, "fake_cap", False)
@@ -3120,14 +3127,12 @@ class App:
         """Esquerda/direita no menu de energia: muda o contador ou o limite sem voltar ao jogo."""
         if FAKE:
             if what == "hud":
-                self.fake_hud = {"0": "1", "1": "2", "2": "0"}[getattr(self, "fake_hud", "0")] if d > 0 else \
-                    {"0": "2", "1": "0", "2": "1"}[getattr(self, "fake_hud", "0")]
+                self.fake_hud = hud_step(getattr(self, "fake_hud", "0"), d)
             else:
                 self.fake_cap = not getattr(self, "fake_cap", False)
             return
         if what == "hud":
-            cur = flag(HUD_FLAG) if flag(HUD_FLAG) in ("1", "2") else "0"
-            put_flag(HUD_FLAG, ({"0": "1", "1": "2", "2": "0"} if d > 0 else {"0": "2", "1": "0", "2": "1"})[cur])
+            put_flag(HUD_FLAG, hud_step(flag(HUD_FLAG), d))
         elif what == "cap":
             put_flag(CAP_FLAG, "0" if flag(CAP_FLAG) not in ("", "0") else omni_combos.CAP_FPS)
 
@@ -3138,7 +3143,7 @@ class App:
             self.toast = (f"Teste: {what}", "ok", self.t + 3)
             return
         if what == "hud":
-            put_flag(HUD_FLAG, {"0": "1", "1": "2"}.get(flag(HUD_FLAG), "0"))   # mesmo ciclo do FN + X
+            put_flag(HUD_FLAG, hud_step(flag(HUD_FLAG), 1))   # mesmo ciclo do FN + X
         elif what == "cap":
             put_flag(CAP_FLAG, "0" if flag(CAP_FLAG) not in ("", "0") else omni_combos.CAP_FPS)
         elif what == "shot":

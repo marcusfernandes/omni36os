@@ -225,6 +225,23 @@ static long read_num(const char *path, long dflt)
     return any ? (neg ? -v : v) : dflt;
 }
 
+/* RAM usada em MB: MemTotal - MemAvailable (1ª e 3ª linhas do /proc/meminfo) */
+static int ram_used(void)
+{
+    char b[256];
+    long v[3] = {0, 0, 0};
+    int line = 0;
+    if (read_small("/proc/meminfo", b, sizeof b) <= 0)
+        return 0;
+    for (char *p = b; *p && line < 3; p++) {
+        if (*p >= '0' && *p <= '9')
+            v[line] = v[line] * 10 + (*p - '0');
+        else if (*p == '\n')
+            line++;
+    }
+    return v[2] > 0 ? (int)((v[0] - v[2]) / 1024) : 0;
+}
+
 static double now(void)
 {
     struct timespec t;
@@ -243,7 +260,7 @@ static const unsigned char *glyph(char c)
         {14, 17, 17, 15, 1, 2, 12}};
     static const struct { char c; unsigned char b[7]; } X[] = {
         {'A', {14, 17, 17, 31, 17, 17, 17}}, {'C', {14, 17, 16, 16, 16, 17, 14}},
-        {'F', {31, 16, 16, 30, 16, 16, 16}}, {'G', {14, 17, 16, 23, 17, 17, 15}}, {'L', {16, 16, 16, 16, 16, 16, 31}},
+        {'F', {31, 16, 16, 30, 16, 16, 16}}, {'G', {14, 17, 16, 23, 17, 17, 15}}, {'L', {16, 16, 16, 16, 16, 16, 31}}, {'M', {17, 27, 21, 21, 17, 17, 17}},
         {'P', {30, 17, 17, 30, 16, 16, 16}}, {'R', {30, 17, 17, 30, 20, 18, 17}},
         {'S', {15, 16, 16, 14, 1, 1, 30}}, {'T', {31, 4, 4, 4, 4, 4, 4}},
         {'U', {17, 17, 17, 17, 17, 17, 14}}, {'V', {17, 17, 17, 17, 17, 10, 4}},
@@ -301,8 +318,8 @@ static float text(const char *s, float x, float y, float px, const float *c)
 
 static struct {
     double t0, last_frame, flags_at, sens_at, toast_until;
-    int frames, fps, temp, bat, charging, show, clk, cpu, gpu, cap;
-    double clk_at;
+    int frames, fps, temp, bat, charging, show, lvl, cpu, gpu, ram, cap;
+    double lvl_at;
     long shot_seen;
     int shot_init;
 } H = {.fps = -1};
@@ -318,12 +335,14 @@ static void poll_flags(double t)
     if (t - H.flags_at < 0.5)
         return;
     H.flags_at = t;
-    H.show = read_small("/dev/shm/omni36os-hud", b, sizeof b) > 0 && (b[0] == '1' || b[0] == '2');
-    H.clk = H.show && b[0] == '2';
-    if (H.clk && t - H.clk_at >= 1.0) {          /* MHz atuais (o processador Automático muda) */
-        H.clk_at = t;
+    /* carrossel: 1 FPS, 2 +CPU, 3 +GPU, 4 +RAM (MB usados); 0 ou nada: escondido */
+    H.lvl = read_small("/dev/shm/omni36os-hud", b, sizeof b) > 0 && b[0] >= '1' && b[0] <= '4' ? b[0] - '0' : 0;
+    H.show = H.lvl > 0;
+    if (H.lvl >= 2 && t - H.lvl_at >= 1.0) {     /* MHz atuais (o processador Automático muda) */
+        H.lvl_at = t;
         H.cpu = (int)(read_num("/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq", 0) / 1000);
         H.gpu = (int)(read_num("/sys/class/devfreq/ff400000.gpu/cur_freq", 0) / 1000000);
+        H.ram = ram_used();
     }
     H.cap = (int)read_num("/dev/shm/omni36os-fpscap", 0);
     if (t - H.sens_at >= 2.0 || H.sens_at == 0) {
@@ -428,13 +447,16 @@ static void build(int W, int Hh)
                   text_w(H.charging ? "~" : "]", px) + px * 2 + text_w(c, px) + pad;
         if (H.cap > 0)
             w += gap + text_w("-", px) + px;
-        char d[16], e[16];                          /* 2º estágio: CPU e GPU (MHz) na mesma pílula */
-        if (H.clk) {
-            snprintf(d, sizeof d, "%d", H.cpu);
-            snprintf(e, sizeof e, "%d", H.gpu);
-            w += (gap * 2 + px) * 2 + text_w("CPU", px) + px * 3 + text_w(d, px) +
-                 text_w("GPU", px) + px * 3 + text_w(e, px);
-        }
+        char d[16], e[16], m[16];                   /* níveis 2 a 4: CPU, GPU (MHz) e RAM (MB) na mesma pílula */
+        snprintf(d, sizeof d, "%d", H.cpu);
+        snprintf(e, sizeof e, "%d", H.gpu);
+        snprintf(m, sizeof m, "%d", H.ram);
+        if (H.lvl >= 2)
+            w += gap * 2 + px + text_w("CPU", px) + px * 3 + text_w(d, px);
+        if (H.lvl >= 3)
+            w += gap * 2 + px + text_w("GPU", px) + px * 3 + text_w(e, px);
+        if (H.lvl >= 4)
+            w += gap * 2 + px + text_w("RAM", px) + px * 3 + text_w(m, px);
         quad(x, y, w, h, BG);                       /* desenhado à parte, com cantos redondos */
         float cx = x + pad, ty = y + pad;
         cx = text(a, cx, ty, px, fc) + px * 2;
@@ -450,15 +472,14 @@ static void build(int W, int Hh)
         cx += px + gap;
         cx = text(H.charging ? "~" : "]", cx, ty, px, bc) + px * 2;
         cx = text(c, cx, ty, px, bc) - px + gap;
-        if (H.clk) {
+        static const char *lab[3] = {"CPU", "GPU", "RAM"};
+        const char *val[3] = {d, e, m};
+        for (int k = 0; k < 3 && H.lvl >= k + 2; k++) {
+            const float *vc = k == 2 && H.ram >= 850 ? RED : k == 2 && H.ram >= 700 ? YELLOW : WHITE;
             quad(cx, y + pad - px, px, h - 2 * pad + 2 * px, LINE);
             cx += px + gap;
-            cx = text("CPU", cx, ty, px, DIM) + px * 2;
-            cx = text(d, cx, ty, px, WHITE) - px + gap;
-            quad(cx, y + pad - px, px, h - 2 * pad + 2 * px, LINE);
-            cx += px + gap;
-            cx = text("GPU", cx, ty, px, DIM) + px * 2;
-            text(e, cx, ty, px, WHITE);
+            cx = text(lab[k], cx, ty, px, DIM) + px * 2;
+            cx = text(val[k], cx, ty, px, vc) - px + gap;
         }
     }
     if (now() < H.toast_until) {
