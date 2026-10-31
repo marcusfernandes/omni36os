@@ -4,6 +4,18 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ("1.15.20", "31/10/2026", [
+        'Botões no padrão: A, B, X e Y fazem o que está escrito neles (o dArkOSen vinha com A e B trocados). Quem quiser trocar usa Controles > Inverter botões.',
+        'Aplicativos ganha GeForce NOW (jogos da nuvem) e Moonlight (jogos do seu PC pela rede de casa). Cada um tem Instalar/Atualizar; no GeForce NOW dá para escolher se o FN fica com o sistema ou com ele.',
+        'Menu de power num jogo abre na hora. Esquerda/direita mudam o contador, o limite de 30 FPS e o modo mouse sem fechar o menu. Novo: Digitar texto, com o teclado do Omni36OS.',
+        'Modo mouse (FN + R3 ou menu de power): analógico direito move, A ou R3 clicam, B é o clique direito, analógico esquerdo rola.',
+        'Contador em carrossel no FN + X: FPS; + CPU; + GPU; + RAM usada; esconde.',
+        'Power em ports que rodam à parte (como o Gran Turismo) congela o jogo direito: o menu não pisca mais.',
+        'Processador e GPU em Automático: sem leitura de FPS, ficam no máximo sem overclock.',
+        'Runtimes do PortMaster já vêm na imagem e se atualizam sozinhos quando o Wi-Fi conecta.',
+        'Calibrar a bateria: um botão só, que alterna Iniciar/Parar.',
+        'Ports novos aparecem na lista sem reabrir o Omni36OS.',
+    ]),
     ("1.15.19", "31/10/2026", [
         'Processador e GPU em Automático (Desempenho): no jogo começam no mínimo e sobem um degrau por vez só até o jogo chegar em 60 FPS (ou 30, com o limite do FN + B). A carga da GPU decide quem sobe primeiro. Teto de 1296/520 MHz, ou tudo com o overclock desbloqueado. Imagens novas já vêm assim.',
         'Contador de FPS também em jogos 32 bits (Asphalt e outros), com captura de tela e limite de FPS.',

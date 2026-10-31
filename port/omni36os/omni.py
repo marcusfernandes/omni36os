@@ -1061,6 +1061,24 @@ def ensure_swap_xy(_args=None):
     _pm_xy(get_swap_xy())
 
 
+BUTTONS_DEFAULT_FLAG = "/etc/omni36os/botoes-padrao"   # existe = o padrão já foi aplicado uma vez
+
+
+def ensure_default_buttons(_args=None):
+    """Padrão do Omni36OS (1.15.20): A, B, X e Y como estão escritos nos botões. O dArkOSen vem com
+    A/B trocados; aqui desfaz uma única vez (imagem nova ou atualização). Depois vale a escolha do
+    usuário em Controles > Inverter botões."""
+    if os.path.exists(BUTTONS_DEFAULT_FLAG):
+        return None
+    out = []
+    if get_swap_ab():
+        out.append(set_swap_ab({"on": False}))
+    if get_swap_xy():
+        out.append(set_swap_xy({"on": False}))
+    write_text(BUTTONS_DEFAULT_FLAG, "1\n")
+    return "; ".join(out) or "já no padrão"
+
+
 # --- Conflitos com outros scripts ---
 
 def usb_net_active(_args=None):
