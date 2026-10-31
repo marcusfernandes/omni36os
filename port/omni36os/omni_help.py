@@ -4,6 +4,11 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ("1.15.24", "31/10/2026", [
+        'Capa e descrição dos ports pela pasta infos, dentro de ports, com o nome do jogo: para abismo.sh, abismo.txt (descrição) e abismo.png, .jpg ou .webp (capa). Um abismo.json opcional traz nome, estúdio, ano e gêneros.',
+        'R36XX: o modo pendrive avisa que o Wi-Fi embutido divide a porta OTG e o PC pode não ver o console; o log do pendrive grava o modelo.',
+        'Créditos e textos citam só o dArkOSen como base; o File Browser aparece como Omni36OS.',
+    ]),
     ("1.15.23", "31/10/2026", [
         'Modo pendrive vale um boot só: ao ejetar no PC, tirar o cabo ou apertar B, o console devolve o cartão e reinicia sozinho no modo normal, com o Wi-Fi. Qualquer reinício no meio também volta ao normal.',
         'Modo pendrive: o log (/home/ark/usb-disco.log) registra o estado da porta USB enquanto espera o PC, para achar a causa quando o PC não mostra o disco.',
