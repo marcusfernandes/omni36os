@@ -32,7 +32,6 @@ mountpoint -q /roms2 || PART=roms   # sem segundo cartão, o PC recebe a partiç
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 log() { echo "$(/bin/date '+%F %T') $*" >> $LOG; }
-WAIT_MAX=${WAIT_MAX:-180}   # s esperando o PC antes de voltar sozinho ao modo normal
 say() { printf '\033[H\033[2J\n\n  %b\n' "$*" > $TTY 2>/dev/null; }
 mode() { tr -d '\0' < /proc/device-tree/usb@ff300000/dr_mode; }
 dtb_mode() { fdtget -t s $DTB /usb@ff300000 dr_mode; }
@@ -176,14 +175,6 @@ daemon() {
         given=1; idle=0; last=$(irqs); rm -f /run/usb-disco.back; watch_pad
       fi
       prev=$n
-      # reserva: nenhum PC pegou o disco em WAIT_MAX s (cabo errado, PC que não reconhece) →
-      # volta ao modo normal sozinho, com o Wi-Fi (o DTB já está como antes)
-      if [ $tick -ge $WAIT_MAX ]; then
-        log "reserva: nenhum PC em ${WAIT_MAX}s (porta=${s:-?}); voltando ao modo normal"
-        say "Nenhum PC reconheceu o console.\n\n  Voltando ao modo normal (com Wi-Fi)..."
-        systemctl stop omni36os-launcher 2>/dev/null
-        sync; sleep 3; reboot; exit 0
-      fi
       continue
     fi
     n=$(irqs)

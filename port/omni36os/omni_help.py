@@ -286,7 +286,7 @@ O Omni36OS avisa quando um cartão passa de 90% de uso ou tem menos de 1 GB livr
 Modo pendrive:
 Liga o modo pendrive: com o cabo de dados no PC, a partição ROMS2 (cartão 2) ou ROMS (cartão 1, escolha em "Partição no PC") aparece como um pendrive para copiar ports.
 Ligar reinicia o aparelho como pendrive. Enquanto estiver ligado, o Wi-Fi não funciona, porque usa a mesma porta. Se a rede USB estiver ligada, ela desliga sozinha.
-Ao conectar o PC, o Omni36OS fecha para soltar a partição. Ao ejetar no PC, tirar o cabo ou apertar B (ou Select + Start), o console devolve a partição e reinicia sozinho no modo normal, com o Wi-Fi. O modo vale só para aquele boot: qualquer reinício volta ao normal. Se nenhum PC reconhecer o console em 3 minutos, ele volta sozinho ao modo normal.
+Ao conectar o PC, o Omni36OS fecha para soltar a partição. Ao ejetar no PC, tirar o cabo ou apertar B (ou Select + Start), o console devolve a partição e reinicia sozinho no modo normal, com o Wi-Fi. O modo vale só para aquele boot: qualquer reinício volta ao normal.
 "Restaurar boot" volta o arquivo de boot original se algo der errado.
 "Limpar lixo do Mac" apaga os arquivos ._ e .DS_Store que o macOS cria ao copiar. Eles aparecem como ports fantasmas na biblioteca. A busca leva até um minuto.
 "Montar pendrive" monta um pendrive ligado no OTG em /mnt/usbdrive (FAT, exFAT ou NTFS). Com ele montado, o mesmo botão vira "Desmontar pendrive": use antes de tirar. Com essa opção escolhida, o painel da esquerda diz se o pendrive foi reconhecido, qual é e se já está montado.
