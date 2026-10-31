@@ -54,9 +54,11 @@ echo "== refazendo o roms.tar (só ports, PortMaster e backup)"
 T=$(mktemp -d)
 tar -xf "$R/roms.tar" -C "$T" roms/ports roms/backup roms/tools/PortMaster roms/tools/PortMaster.sh
 mkdir -p "$T/roms/themes" "$T/roms/bios"
-# runtimes mais usados do PortMaster já no cartão (Mono, GameMaker, Godot/FRT 3.x-4.x, Weston/Mesa):
-# os ports que pedem um deles abrem sem baixar nada. Lista e cópia em $RUNTIMES (fora do repositório).
+# runtimes do PortMaster já no cartão (lista em port/omni36os/runtimes.txt): os ports que pedem um
+# deles abrem sem baixar nada. A pasta $RUNTIMES (fora do repositório) é posta em dia aqui, pelo
+# índice do PortMaster; no console, a atualização do Omni mantém em dia (omni_runtimes.py).
 RUNTIMES=${RUNTIMES:-$BASE/runtimes}         # roda com sudo: $HOME seria o do root
+python3 -B "$REPO/port/omni36os/omni_runtimes.py" --dest "$RUNTIMES" || echo "   AVISO: runtimes incompletos"
 if compgen -G "$RUNTIMES/*.squashfs" >/dev/null; then
   mkdir -p "$T/roms/tools/PortMaster/libs"
   cp "$RUNTIMES"/*.squashfs "$T/roms/tools/PortMaster/libs/"

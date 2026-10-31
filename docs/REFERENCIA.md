@@ -19,7 +19,7 @@ Repositório público: https://github.com/mpjsilva/omni36os (GPL-3.0). Autor dos
 | `~/Apps/Omni36OS/cartao/{BOOT,ROOTFS,EASYROMS}` | Cópia do cartão do console. Arquivos de sistema (fora do launcher) são editados **aqui** (ROOTFS é do root: `SUDO_ASKPASS=/usr/bin/ksshaskpass sudo -A`) |
 | `~/Apps/Omni36OS/scripts/cartao.sh` | `cartao.sh launcher` copia o launcher do repositório para a cópia do cartão; `cartao.sh enviar` grava a diferença no SD (só quando pedido) |
 | `~/Apps/Omni36OS/dArkOSen_R36_10152026.img` | Imagem original do dArkOSen: base da imagem do Omni36OS (nunca é alterada) |
-| `~/Apps/Omni36OS/runtimes` | 14 runtimes do PortMaster (604 MB) que entram na imagem (Mono, gmtoolkit, FRT 3.x–4.x, Weston, Mesa) |
+| `~/Apps/Omni36OS/runtimes` | Runtimes do PortMaster que entram na imagem (~1,3 GB). Lista em `port/omni36os/runtimes.txt`; o `gerar-imagem.sh` põe a pasta em dia |
 | `~/Apps/Omni36OS/telas` | Gerador das telas de boot/boas-vindas/desligar (`telas/out` entra na imagem) |
 | `~/Apps/Omni36OS/output` | Imagens geradas (`Omni36OS-X.Y.Z.img.xz`), logs da geração e notas de release |
 | `~/Apps/Omni36OS/prints` | Capturas que o usuário quer mostrar (abrir a mais recente) |
@@ -133,6 +133,9 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
 - Backup = snapshot (`omni_backup.py`, manifesto `snapshot=1`): /opt/omni36os inteiro, configs, /etc/omni36os, Wi-Fi,
   hostname, authorized_keys, ALSA, brilho. Importar apaga o que surgiu depois nas mesmas pastas e pede reinício.
   Backups antigos (sem snapshot=1) só mesclam.
+- Runtimes entregues pelo Omni: `runtimes.txt` + `omni_runtimes.py` (índice = `ports.json` da release mais nova do
+  PortMaster-New, seção `utils`). No console, thread no `omni_atalho.py`: 2 min após abrir/atualizar e a cada 6 h, para
+  se um jogo abrir; md5 local em `libs/.omni36os-md5.json`. Runtime novo = linha no `runtimes.txt` + versão nova.
 - Adaptador Realtek liga como disco (`0bda:1a2b`) e o udev troca para Wi-Fi (`0bda:c820`); a troca às vezes se perde
   → `omni_sistema.wifi_dongle_fix()` ao abrir o menu. O driver deixa a interface "up" sem rede: conectado = carrier + IPv4.
 - Bluetooth do adaptador (hci0) não funciona: firmware não carrega (btusb e rtk_btusb disputam); serviço desligado.

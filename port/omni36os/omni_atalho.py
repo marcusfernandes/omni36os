@@ -29,6 +29,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import omni_audio          # noqa: E402
 import omni_combos as oc   # noqa: E402
 import omni_cpuauto        # noqa: E402
+import omni_runtimes       # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PAD = "/dev/input/by-path/platform-odroidgo3-joypad-event-joystick"
@@ -395,6 +396,7 @@ def main():
     except Exception as e:
         print(f"apelido: {e}", file=sys.stderr, flush=True)
     signal.signal(signal.SIGHUP, lambda *_: apply_flags())
+    omni_runtimes.Runner(lambda: bool(game_pids()))   # runtimes do PortMaster em dia, em segundo plano
     fd = open_pad()
     gate = FnGate(fd)
     down, since, waiting = set(), None, None
