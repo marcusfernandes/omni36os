@@ -8,9 +8,10 @@
 4. DuckDuckGo (último recurso): só quando as de cima não trouxeram capa ou descrição. A capa vem da
    busca de imagens; a descrição, da resposta instantânea (quando o DuckDuckGo tem uma).
 
-Antes de tudo vale a pasta "info" do port (<pasta do port>/info/): info.json com os campos
-da ficha (nome, descricao, estudio, lancamento, generos, porter, pronto, capa); sem JSON, a
-primeira imagem (png/jpg) vira a capa e o primeiro .txt a descrição. Lida do cartão, sem internet, e manda
+Antes de tudo vale a pasta "infos" da pasta ports, uma para todos os jogos, com o nome do .sh:
+para abismo.sh, infos/abismo.txt (descrição), infos/abismo.png, .jpg ou .webp (capa) e, se
+quiser, infos/abismo.json (nome, descricao, estudio, lancamento, generos, porter, pronto).
+Reserva antiga: a pasta "info" dentro da pasta do port. Lida do cartão, sem internet, e manda
 sobre as outras camadas.
 
 Cada camada completa o que as de cima não trouxeram. Erro de rede não grava nada (tenta de
@@ -113,10 +114,10 @@ def cached(name):
 
 # --- 0. pasta "info" do port ---
 
-IMG_EXT = (".png", ".jpg", ".jpeg")
+IMG_EXT = (".png", ".jpg", ".jpeg", ".webp")
 
 
-SKIP_DIRS = {"images", "videos", "manuals", "portmaster", "autoinstall", "info"}
+SKIP_DIRS = {"images", "videos", "manuals", "portmaster", "autoinstall", "info", "infos"}
 
 
 def port_dir(path):
@@ -159,7 +160,48 @@ def es_image(path):
 FIELDS = ("nome", "descricao", "estudio", "lancamento", "generos", "porter", "pronto")
 
 
+def infos(path):
+    """Ficha de ports/infos/<nome do .sh>.{txt,png,jpg,jpeg,webp,json} (sem diferença de maiúsculas)."""
+    base, sh = os.path.split(path or "")
+    stem = os.path.splitext(sh)[0].lower()
+    try:
+        d = next((os.path.join(base, x) for x in os.listdir(base) if x.lower() == "infos"), None)
+        files = {f.lower(): f for f in os.listdir(d)} if d and os.path.isdir(d) else {}
+    except OSError:
+        files = {}
+    out = {}
+    js = files.get(stem + ".json")
+    if js:
+        try:
+            with open(os.path.join(d, js), encoding="utf-8") as fh:
+                data = json.load(fh)
+            out = {k: data[k] for k in FIELDS if data.get(k) not in (None, "")}
+            if isinstance(out.get("generos"), list):
+                out["generos"] = ", ".join(out["generos"])
+        except (OSError, ValueError, AttributeError):
+            out = {}
+    txt = files.get(stem + ".txt")
+    if txt and "descricao" not in out:
+        try:
+            with open(os.path.join(d, txt), encoding="utf-8", errors="replace") as fh:
+                out["descricao"] = re.sub(r"\s+", " ", fh.read(4000)).strip()
+        except OSError:
+            pass
+    img = next((files[stem + e] for e in IMG_EXT if stem + e in files), None)
+    if img:
+        out["capa"] = os.path.join(d, img)
+    return out
+
+
 def local(path):
+    """ports/infos primeiro; o que faltar vem da reserva antiga, a pasta info do port."""
+    out = infos(path)
+    for k, v in _local_old(path).items():
+        out.setdefault(k, v)
+    return out
+
+
+def _local_old(path):
     """Ficha da pasta info do port: info.json (campos de FIELDS + "capa"), o .txt como reserva
     da descrição e a primeira imagem como reserva da capa. JSON com erro é ignorado."""
     d = port_dir(path)

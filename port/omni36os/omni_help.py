@@ -208,7 +208,7 @@ Geral > "Verificar tudo" junta numa lista só os alertas de todos os cards.
 # Ports (card do centro)
 O console liga nos cards e entrega o destaque no Ports, no centro: A abre a biblioteca. É uma lista só, com os favoritos primeiro e o resto por nome. Cima/baixo escolhem o port, esquerda/direita pulam de 10 em 10 e L1/R1 pulam de letra. Ao lado aparece a ficha do jogo (capa, estúdio, data, gêneros e descrição); A abre o port e, ao fechar, a lista volta no mesmo lugar.
 B volta para os cards. O botão de power abre Energia: suspender, reiniciar ou desligar.
-A capa e a descrição vêm da pasta info do port (info.json, imagem e .txt) e, com o Wi-Fi conectado, do PortMaster, da Steam, da Wikipédia e do DuckDuckGo, buscados uma vez e guardados no cartão. Ferramentas > Busca automática liga e desliga a busca.
+A capa e a descrição vêm da pasta infos, dentro de ports, com o nome do jogo: para abismo.sh, abismo.txt (descrição) e abismo.png, .jpg ou .webp (capa). Depois, com o Wi-Fi conectado, do PortMaster, da Steam, da Wikipédia e do DuckDuckGo, buscados uma vez e guardados no cartão. Ferramentas > Busca automática liga e desliga a busca.
 
 # Tela e som
 "Brilho, contraste e volume" abre um painel com as três barras: cima/baixo escolhe, esquerda/direita ajusta na hora, A confirma e B desfaz o que mudou.

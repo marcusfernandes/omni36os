@@ -46,7 +46,7 @@ Repositório público: https://github.com/mpjsilva/omni36os (GPL-3.0). Autor dos
 | `omni_sistema.py` | Ferramentas do sistema reescritas (Wi-Fi, rede USB, calibração de bateria, DTB, segurança, adaptador Realtek preso) |
 | `omni_checks.py` | Diagnóstico de cada card por regras fixas (níveis ok/info/aviso/problema) |
 | `omni_games.py`, `ports.py` | Lista de ports (dois cartões), gamelist, comando de lançamento, histórico |
-| `omni_meta.py` | Ficha do port: pasta info → PortMaster → Steam → Wikipédia → DuckDuckGo; cache em `~/.config/omni36os/steam`. Força IPv4 no `getaddrinfo` (roteador sem resposta AAAA) |
+| `omni_meta.py` | Ficha do port: `ports/infos/<nome do .sh>.txt/.png/.jpg/.webp/.json` → pasta info do port → PortMaster → Steam → Wikipédia → DuckDuckGo; cache em `~/.config/omni36os/steam`. Força IPv4 no `getaddrinfo` (roteador sem resposta AAAA) |
 | `omni_update.py` | Atualização pelo GitHub (maior tag `omni-vX.Y.Z`), com volta automática se a nova não abrir |
 | `omni_painel.py` | Tela certa no primeiro boot (ver abaixo) |
 | `omni_atalho.py` | Serviço root: atalhos FN nos jogos, contador de FPS, guarda da bateria (avisos 30/15%, desliga em 10%) |
