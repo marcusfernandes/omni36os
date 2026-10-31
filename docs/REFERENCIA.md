@@ -156,3 +156,14 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
 - Tudo em pt-BR; textos de interface começam com maiúscula (inclusive "4 Jogos").
 - Identidade visual: cards e páginas com vidro, pílula de estado no topo, ícones Tabler, fonte Poppins.
 - Mostrar no simulador antes de mexer no console/imagem/cartão quando a mudança for visual e o usuário pedir.
+
+## OpenNOW-4Handhelds (GeForce NOW)
+
+github.com/OpenCloudGaming/OpenNOW-4Handhelds — cliente GeForce NOW (Rust + SDL2, vídeo pela Rockchip MPP). Port no formato PortMaster: `OpenNOW.sh` + `opennow/` em /roms/ports.
+
+- Testado no Omni36OS (v0.1.1-beta1): todas as bibliotecas resolvem (MPP vem no zip; librga no sistema).
+- Pede `/dev/vpu_service` gravável (o .sh faz `sudo -n chmod`; o usuário ark tem sudo sem senha).
+- Atualizar sem apagar `opennow/stream.json` (configurações) nem `opennow/data/` (login).
+- Precisa de conta GeForce NOW e Wi-Fi bom (5 GHz recomendado).
+- Uso no Omni: aparece como port comum. Durante o streaming o Automático fica no mínimo (sem FPS do HUD, o jogo roda na nuvem), o que é o ideal.
+- FN abre o menu da sessão no OpenNOW: o FnGate só segura o FN quando há atalho; o atalho FN do Omni pode competir com ele.
