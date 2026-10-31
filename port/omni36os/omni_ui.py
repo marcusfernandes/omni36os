@@ -777,8 +777,8 @@ class App:
         self.t_start = time.monotonic()
         self.refresh_at = None
         cached = self.load_state()
-        if HUB == "jogo" and not FAKE:   # power num jogo: menu na hora, verificações depois (só se ficar aqui)
-            self.loading = False
+        self.fast = HUB == "jogo" and not FAKE   # power num jogo: menu na hora, verificações depois
+        if self.fast:
             self.refresh_at = time.monotonic() + 4
             self.warm_later, self.warm = self.warm, []
         elif cached:
@@ -4728,14 +4728,14 @@ class App:
         if self.results and self.warm:
             self.load_label = "Montando o menu..."
             self.load_done = self.load_total - len(self.warm)
-        elif self.results:
+        elif self.results or self.fast:
             self.load_done = self.load_total
         frac = self.load_done / max(1, self.load_total)
         self.load_shown = approach(self.load_shown, frac, dt, 10)
         self.draw_welcome()
         # a única diferença para a tela do boot: o anel girando em volta do ícone
         g.arc(W / 2, 170, 100, 4, self.t * 300 % 360, self.t * 300 % 360 + 260, alpha(BOOT_CIANO, 230))
-        if self.results and not self.warm and self.load_shown > 0.98:
+        if (self.results or self.fast) and not self.warm and self.load_shown > 0.98:
             self.loading = False
             self.deliver = None           # a entrega do Ports começa agora, com o menu na tela
             self.warm = getattr(self, "warm_later", None) or self.warm
