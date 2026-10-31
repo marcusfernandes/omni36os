@@ -777,7 +777,11 @@ class App:
         self.t_start = time.monotonic()
         self.refresh_at = None
         cached = self.load_state()
-        if cached:
+        if HUB == "jogo" and not FAKE:   # power num jogo: menu na hora, verificações depois (só se ficar aqui)
+            self.loading = False
+            self.refresh_at = time.monotonic() + 4
+            self.warm_later, self.warm = self.warm, []
+        elif cached:
             self._all_checked(cached)
             self.refresh_at = time.monotonic() + 4      # refaz as verificações depois que o menu abrir
             self.warm_later, self.warm = self.warm, []   # as páginas se montam com o menu parado
@@ -1437,6 +1441,11 @@ class App:
                 prev = [i for i in items[:k] if first(i) != cur]
                 nxt = next((i for i in items if prev and first(i) == first(prev[-1])), items[0])
             pk["sel"] = nxt
+            return
+        row = pk["rows"][pk["sel"]]
+        if cmd in ("left", "right") and pk.get("on_lr"):   # opções de ligar/desligar: muda sem fechar
+            if row.get("lr"):
+                pk["on_lr"](row, 1 if cmd == "right" else -1)
             return
         step = {"up": -1, "down": 1, "left": -6, "right": 6, "l1": -6, "r1": 6}.get(cmd)
         if cmd in ("up", "down"):         # passou do fim volta ao começo (e vice-versa)
@@ -3049,11 +3058,8 @@ class App:
                 {"name": "Reiniciar o console", "icon": "refresh", "do": "reboot"},
                 {"name": "Desligar o console", "icon": "power", "do": "poweroff"}]
         if HUB == "jogo" or os.environ.get("OMNI_JOGO") == "1":   # aberto por cima de um jogo
-            hud, cap = flag(HUD_FLAG), flag(CAP_FLAG) not in ("", "0")
-            rows = [{"name": {"1": "Contador: mostrar também CPU e GPU", "2": "Esconder o contador de FPS"}.get(
-                         hud, "Mostrar o contador de FPS"), "icon": "gauge", "do": "hud"},
-                    {"name": "Tirar o limite de 30 FPS" if cap else "Limitar a 30 FPS", "icon": "battery-2",
-                     "do": "cap"},
+            rows = [{"name": self.hud_label(), "icon": "gauge", "do": "hud", "lr": True},
+                    {"name": self.cap_label(), "icon": "battery-2", "do": "cap", "lr": True},
                     {"name": "Captura de tela", "icon": "device-tv", "do": "shot"},
                     {"name": "Fechar o jogo", "icon": "x", "do": "close"}] + rows
         if button:
@@ -3084,6 +3090,12 @@ class App:
             if r["do"] != "cancel" and not FAKE:
                 omni.power({"what": r["do"]})
         self.show_list("Energia", "power", rows, go, "Escolher")
+        if self.picker and rows[0 if not button else 1].get("lr"):
+            def lr(r, d):
+                self.game_toggle(r["do"], d)
+                r["name"] = self.hud_label() if r["do"] == "hud" else self.cap_label()
+            self.picker["on_lr"] = lr
+            self.picker["hints"] = [("UD", "Escolher"), ("LR", "Mudar")]
         if self.picker and button:
             self.picker["on_back"] = back
             for path in (POWER_PRESS, POWER_PENDING):   # o menu está na tela: outro toque desliga
@@ -3095,6 +3107,29 @@ class App:
                         os.remove(path)
                 except OSError:
                     pass
+
+    def hud_label(self):
+        cur = flag(HUD_FLAG) if not FAKE else getattr(self, "fake_hud", "0")
+        return "Contador: " + {"1": "FPS", "2": "FPS, CPU e GPU"}.get(cur, "escondido")
+
+    def cap_label(self):
+        on = (flag(CAP_FLAG) not in ("", "0")) if not FAKE else getattr(self, "fake_cap", False)
+        return f"Limite de 30 FPS: {'ligado' if on else 'desligado'}"
+
+    def game_toggle(self, what, d=1):
+        """Esquerda/direita no menu de energia: muda o contador ou o limite sem voltar ao jogo."""
+        if FAKE:
+            if what == "hud":
+                self.fake_hud = {"0": "1", "1": "2", "2": "0"}[getattr(self, "fake_hud", "0")] if d > 0 else \
+                    {"0": "2", "1": "0", "2": "1"}[getattr(self, "fake_hud", "0")]
+            else:
+                self.fake_cap = not getattr(self, "fake_cap", False)
+            return
+        if what == "hud":
+            cur = flag(HUD_FLAG) if flag(HUD_FLAG) in ("1", "2") else "0"
+            put_flag(HUD_FLAG, ({"0": "1", "1": "2", "2": "0"} if d > 0 else {"0": "2", "1": "0", "2": "1"})[cur])
+        elif what == "cap":
+            put_flag(CAP_FLAG, "0" if flag(CAP_FLAG) not in ("", "0") else omni_combos.CAP_FPS)
 
     def game_action(self, what):
         """Menu de energia por cima de um jogo: o contador, o limite e a captura são do hud/omni_hud.so
