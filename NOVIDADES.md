@@ -2,6 +2,11 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.15.23 (31/10/2026)
+
+- Modo pendrive vale um boot só: ao ejetar no PC, tirar o cabo ou apertar B, o console devolve o cartão e reinicia sozinho no modo normal, com o Wi-Fi. Qualquer reinício no meio também volta ao normal.
+- Modo pendrive: o log (/home/ark/usb-disco.log) registra o estado da porta USB enquanto espera o PC, para achar a causa quando o PC não mostra o disco.
+
 ## 1.15.22 (31/10/2026)
 
 - Cartão em outro console, com outra tela: quando aparecer "Carregando" ao ligar, aperte e segure L1 + R1 até ouvir um arpejo. A tela do teste entra no lugar e o Omni36OS refaz a escolha da tela, sem precisar do PC.
