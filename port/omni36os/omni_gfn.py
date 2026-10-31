@@ -11,7 +11,10 @@ import json
 import os
 import re
 import shutil
+import socket
 import tempfile
+import time
+import urllib.error
 import urllib.request
 import zipfile
 
@@ -64,11 +67,23 @@ def running():
     return False
 
 
+def _open(url, timeout):
+    """urlopen com 4 tentativas: o DNS do roteador às vezes falha uma consulta."""
+    req = urllib.request.Request(url, headers={"User-Agent": "Omni36OS"})
+    for n in range(4):
+        try:
+            return urllib.request.urlopen(req, timeout=timeout)
+        except urllib.error.URLError as e:
+            if n == 3:
+                if isinstance(getattr(e, "reason", None), socket.gaierror):
+                    raise RuntimeError("Não foi possível achar o servidor (DNS). Confira o Wi-Fi e tente de novo.")
+                raise
+            time.sleep(3)
+
+
 def latest():
     """(tag, url do zip) da release mais nova, beta incluída."""
-    req = urllib.request.Request(f"https://api.github.com/repos/{REPO}/releases?per_page=5",
-                                 headers={"User-Agent": "Omni36OS"})
-    with urllib.request.urlopen(req, timeout=30) as r:
+    with _open(f"https://api.github.com/repos/{REPO}/releases?per_page=5", 30) as r:
         for rel in json.load(r):
             for a in rel.get("assets", []):
                 if a["name"].endswith(".zip"):
@@ -93,8 +108,7 @@ def install(log=lambda m: None, base=DIR):
     tmp = tempfile.mkdtemp(dir=base, prefix=".gfn-")
     try:
         z = os.path.join(tmp, "a.zip")
-        req = urllib.request.Request(url, headers={"User-Agent": "Omni36OS"})
-        with urllib.request.urlopen(req, timeout=60) as r, open(z, "wb") as f:
+        with _open(url, 60) as r, open(z, "wb") as f:
             shutil.copyfileobj(r, f, 1 << 20)
         x = os.path.join(tmp, "x")
         with zipfile.ZipFile(z) as zf:
