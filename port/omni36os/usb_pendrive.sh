@@ -158,7 +158,7 @@ daemon() {
     mount -a 2>/dev/null           # o /roms2 entregue já não conta no PART (que caiu para roms)
     take_back
   fi
-  log "daemon: esperando o cabo (/$PART)"
+  log "daemon: esperando o cabo (/$PART), modelo $(tr -d "\\0" < /proc/device-tree/model)"
   local given=0 idle=0 s n last
   PAD=""
   trap '[ $given = 1 ] && take_back; exit 0' TERM INT

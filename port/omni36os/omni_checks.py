@@ -283,6 +283,9 @@ def pc():
     warn = []
     if omni.usb_net_active():
         warn.append(("info", "A rede pelo cabo USB está ligada. Ligar o modo pendrive desliga a rede USB sozinho."))
+    if omni.wifi_on_otg():
+        warn.append(("aviso", "R36XX: o Wi-Fi embutido usa a mesma linha da porta OTG, e o PC pode não ver o console. "
+                              "Se não aparecer, passe os arquivos pelo Wi-Fi (Arquivos no navegador) ou tire o cartão."))
     part = f["particao_para_o_pc"]
     livre = f["livre_gb"].get(part)
     espaco = f" ({livre} GB livres)" if livre is not None else ""

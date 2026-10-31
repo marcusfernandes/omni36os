@@ -144,6 +144,7 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
   (RTL8822BU/8812BU), mt7601u, rt2800usb (RT3070/5370), rtl8187, zd1211rw. Módulos do rootfs btrfs da imagem:
   `btrfs restore -i --path-regex '^/(usr(/lib(/modules(/.*)?)?)?)?$' 1.img destino`.
 - 8821cu: o driver do dArkOSen 10312026 falhou mais no boot ("Chip id is undefined", EFUSE todo FF); voltou o anterior (o novo fica como 8821cu.ko.omni-10312026 no console). `omni36os-wifi-boot` (só na cópia do cartão) reinicia o controlador USB até 3 vezes.
+- R36XX (DTB `R36XX-V21 2024-12-18`, `omni.wifi_on_otg()`): igual ao R36S no USB do DTB, mas o Wi-Fi embutido fica na linha da porta OTG (relato de usuários; testador: porta `not attached` o tempo todo no modo pendrive). O Cartões avisa e sugere Wi-Fi ou tirar o cartão; o log do pendrive grava o modelo.
 - Adaptador Realtek liga como disco (`0bda:1a2b`) e o udev troca para Wi-Fi (`0bda:c820`); a troca às vezes se perde
   → `omni_sistema.wifi_dongle_fix()` ao abrir o menu. O driver deixa a interface "up" sem rede: conectado = carrier + IPv4.
 - Bluetooth do adaptador (hci0) não funciona: firmware não carrega (btusb e rtk_btusb disputam); serviço desligado.

@@ -1148,6 +1148,16 @@ def usb_run(*args):
     return (r.stdout + r.stderr).strip()
 
 
+def model():
+    """Modelo do DTB em uso (ex.: "R36S-V21 2024-12-18 2544", "R36XX-V21 2024-12-18")."""
+    return read_text("/proc/device-tree/model", "").strip("\0").strip()
+
+
+def wifi_on_otg():
+    """R36XX: o Wi-Fi embutido fica na mesma linha USB da porta OTG; o PC não vê o console por ela."""
+    return model().upper().startswith("R36XX")
+
+
 def usb_facts(_args=None):
     part = usb_run("part") or ("roms2" if os.path.ismount("/roms2") else "roms")
     dtb = subprocess.run(["fdtget", "-t", "s", "/boot/rk3326-r36s-linux.dtb", "/usb@ff300000", "dr_mode"],
@@ -1158,6 +1168,7 @@ def usb_facts(_args=None):
             st = os.statvfs(f"/{p}")
             free[p] = round(st.f_bavail * st.f_frsize / 1e9, 1)
     return {
+        "modelo": model(),
         # o DTB volta ao normal logo que o modo pendrive sobe (vale um boot): conta a porta de agora
         "modo_pendrive_ligado": dtb == "peripheral" or read_text("/proc/device-tree/usb@ff300000/dr_mode", "").strip("\0").strip() == "peripheral",
         "particao_para_o_pc": part,
