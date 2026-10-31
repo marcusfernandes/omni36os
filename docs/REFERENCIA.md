@@ -157,13 +157,12 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
 - Identidade visual: cards e páginas com vidro, pílula de estado no topo, ícones Tabler, fonte Poppins.
 - Mostrar no simulador antes de mexer no console/imagem/cartão quando a mudança for visual e o usuário pedir.
 
-## OpenNOW-4Handhelds (GeForce NOW)
+## GeForce NOW (OpenNOW-4Handhelds)
 
-github.com/OpenCloudGaming/OpenNOW-4Handhelds — cliente GeForce NOW (Rust + SDL2, vídeo pela Rockchip MPP). Port no formato PortMaster: `OpenNOW.sh` + `opennow/` em /roms/ports.
+github.com/OpenCloudGaming/OpenNOW-4Handhelds — cliente GeForce NOW (Rust + SDL2, vídeo pela Rockchip MPP, libs no zip).
 
-- Testado no Omni36OS (v0.1.1-beta1): todas as bibliotecas resolvem (MPP vem no zip; librga no sistema).
-- Pede `/dev/vpu_service` gravável (o .sh faz `sudo -n chmod`; o usuário ark tem sudo sem senha).
-- Atualizar sem apagar `opennow/stream.json` (configurações) nem `opennow/data/` (login).
-- Precisa de conta GeForce NOW e Wi-Fi bom (5 GHz recomendado).
-- Uso no Omni: aparece como port comum. Se o HUD não medir FPS (vídeo pela MPP), o Automático usa o teto; vale um teste com limite fixo baixo, decodificar vídeo pesa pouco.
-- FN abre o menu da sessão no OpenNOW: o FnGate só segura o FN quando há atalho; o atalho FN do Omni pode competir com ele.
+- Fica em Aplicativos > GeForce NOW (`omni_gfn.py`), instalado em /roms/apps (fora de Ports). A imagem já traz (`gerar-imagem.sh`); "Atualizar" baixa a release mais nova (beta incluída) e preserva `opennow/stream.json` e `opennow/data/` (login).
+- O `OpenNOW.sh` original força /roms/ports/opennow: `patch_sh()` faz o GAMEDIR ser a pasta do .sh.
+- Abre pelo handoff `game ports /roms/apps/OpenNOW.sh` (HUD, Automático e card 2 como qualquer port).
+- "FN no GeForce NOW": Sistema = atalhos FN do Omni; GeForce NOW = com `opennow-handheld` aberto, o omni_atalho não agarra o FN e ignora combinações com FN (o FN abre o menu da sessão). Conf: ~/.config/omni36os/gfn_fn.
+- Automático sem leitura de FPS (qualquer programa): teto no máximo sem overclock (1296/520), mesmo desbloqueado. No OpenNOW o HUD lê o FPS da janela, então o Automático age normalmente.

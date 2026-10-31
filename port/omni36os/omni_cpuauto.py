@@ -11,8 +11,8 @@ senão sobe o processador; para descer, a GPU folgada (< 50%) desce primeiro. S�
 só ele mexe, o outro fica no limite fixo dele.
 
 O FPS vem do hud/omni_hud.so (/dev/shm/omni36os-fps, reescrito a cada meio segundo). Arquivo
-parado = nenhum jogo desenhando: o teto volta ao máximo permitido (carregamento, vídeo e o
-menu, que fica no modo economia de qualquer jeito).
+parado = nenhum jogo desenhando (carregamento, vídeo, GeForce NOW): o teto fica no máximo sem
+overclock (1296/520 MHz), mesmo desbloqueado.
 """
 import os
 import time
@@ -90,11 +90,13 @@ class AutoCpu:
             fresh = False
         for k in knobs:
             k.refresh()
-        if not fresh:                    # sem jogo desenhando: teto liberado
+        if not fresh:                    # sem leitura de FPS: no máximo antes do overclock
             self.in_game = False
-            for k in knobs:
-                k.idx = len(k.cur) - 1
-                k.apply()
+            for k, safe in ((self.cpu, omni.CPU_SAFE_MHZ), (self.gpu, omni.GPU_SAFE_MHZ)):
+                if k in knobs:
+                    ok = [i for i, m in enumerate(k.cur) if m <= safe]
+                    k.idx = ok[-1] if ok else 0
+                    k.apply()
             return
         if not self.in_game:             # o jogo começou a desenhar: começa do mínimo
             self.in_game, self.ok_since = True, 0.0

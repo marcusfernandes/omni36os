@@ -40,6 +40,7 @@ else:   # simulador: a ficha da Steam vem de verdade, mas o cache fica no PC
     os.environ.setdefault("OMNI_META_DIR", os.path.expanduser("~/.cache/omni36os-steam"))
 import omni_meta  # noqa: E402
 import omni_combos  # noqa: E402
+import omni_gfn  # noqa: E402
 
 # --- paleta ---
 
@@ -108,6 +109,7 @@ SUBPAGES = {            "calibracao": ("Calibrar a bateria", "battery-2", "a3e63
             "checkup": ("Verificar tudo", "stethoscope", "22d3ee", "3b82f6", "geral"),
             "sobre": ("Sobre", "help-circle", "60a5fa", "a78bfa", "geral"),
             "atalhos": ("Atalhos", "keyboard", "818cf8", "4f46e5", "controles"),
+            "gfn": ("GeForce NOW", "device-tv", "84cc16", "15803d", "apps"),
             "testar": ("Testar ports", "player-play", "34d399", "059669", "ferramentas")}
 PARENT = {cid: v[4] for cid, v in SUBPAGES.items()}
 SOURCE_NAMES = {"roms": "ROMS", "roms2": "ROMS2", "ambos": "ROMS e ROMS2"}
@@ -321,6 +323,8 @@ class Data:
         return omni_checks.ACTIONS[name][0]
 
     def get(self, what):
+        if what == "gfn_fn":
+            return omni_gfn.fn_mode() if not FAKE else self.__dict__.get("fake_gfn", "sistema")
         if what.startswith("m_"):         # Aplicativos > Músicas (o mesmo arquivo no simulador e no console)
             return music_cfg()[what[2:]]
         if FAKE:
@@ -377,6 +381,12 @@ class Data:
             return omni.get_atalhos()[what[3:]]
 
     def set(self, what, value):
+        if what == "gfn_fn":
+            if FAKE:
+                self.fake_gfn = value
+            else:
+                omni_gfn.set_fn_mode(value)
+            return "ok"
         if what.startswith("m_"):
             music_save(**{what[2:]: value})
             return "ok"
@@ -821,6 +831,13 @@ class App:
                     [("info", "Wi-Fi desligado.")]}
         if cid == "rede":
             return omni_checks.finish(omni_sistema.wifi_status(), [], {})
+        if cid == "gfn":
+            if not FAKE and not omni_gfn.installed():
+                return {"nivel": "info", "acoes": [], "achados": [("info", "Não instalado. Aperte Instalar (precisa de Wi-Fi).")]}
+            v = "beta" if FAKE else (omni_gfn.version() or "instalado")
+            return {"nivel": "ok", "acoes": [], "achados": [
+                ("ok", f"GeForce NOW {v}, em /roms/apps."),
+                ("info", "Processamento na nuvem: o console fica no máximo sem overclock.")]}
         if cid in ("usbrede", "calibracao"):
             if FAKE:
                 return {"nivel": "ok", "acoes": [], "achados": [("ok", f"{cid}: tudo certo (dados de teste).")]}
@@ -1106,7 +1123,9 @@ class App:
                     tip(A("Vídeos", "movie", lambda: self.open_videos()),
                         "Toca os vídeos das pastas videos dos cartões (EASYROMS/videos e ROMS2/videos): mp4, mkv, webm e outros."),
                     tip(A("Notas", "notes", lambda: self.open_notes()),
-                        "Bloco de notas: textos simples na pasta notas do cartão 1 (EASYROMS/notas).")]
+                        "Bloco de notas: textos simples na pasta notas do cartão 1 (EASYROMS/notas)."),
+                    tip(subpage(A("GeForce NOW", "device-tv", lambda: self.open_page("gfn")), "gfn"),
+                        "Jogos da nuvem com a sua conta GeForce NOW (OpenNOW). Precisa de Wi-Fi bom.")]
         if cid == "tela":
             return [tip(A("Brilho, contraste e volume", "adjustments", self.open_levels),
                         "Abre os três ajustes: cima/baixo escolhe, esquerda/direita ajusta, A confirma e B desfaz."),
@@ -1277,6 +1296,16 @@ class App:
                       confirm="Aplicar a curva da última calibração?\nA % da bateria passa a seguir a sua bateria."),
                     A("Voltar à curva de fábrica", "rotate", run(S and S.cal_restore, "Restaurando..."),
                       confirm="Voltar à curva de fábrica?\nA curva calibrada é apagada.", danger=True)]
+        if cid == "gfn":
+            ok = FAKE or omni_gfn.installed()
+            get = A("Atualizar" if ok else "Instalar", "refresh", lambda: self.worker(
+                (lambda: "teste") if FAKE else omni_gfn.install, self._sys_done, busy="Baixando o GeForce NOW..."),
+                confirm=None if ok else "Baixar o GeForce NOW (OpenNOW, uns 14 MB)?\nPrecisa de Wi-Fi.")
+            items = [tip(Choice("FN no GeForce NOW", "keyboard", "gfn_fn", ["sistema", "gfn"],
+                                {"sistema": "Sistema", "gfn": "GeForce NOW"}),
+                         "Sistema: os atalhos FN do Omni valem. GeForce NOW: o FN abre o menu da sessão.")]
+            return ([tip(A("Abrir o GeForce NOW", "player-play", self.open_gfn),
+                         "Entre com a sua conta. Start + Select fecha (no menu).")] + items + [get]) if ok else [get] + items
         if cid == "testar":
             return [A("Escolher o port", "player-play", self.open_picker),
                     A("Limpar avisos de falha", "check", lambda: self.run_tool_toast("clear_port_alerts")), recheck]
@@ -3236,6 +3265,15 @@ class App:
                 sh["back"]()
         elif cmd == "ok":
             self.play(sh["s"], sh["g"])
+
+    def open_gfn(self):
+        if self.busy_game():
+            return
+        if FAKE:
+            self.toast = ("Abriria o GeForce NOW", "ok", self.t + 3)
+            return
+        omni_games.play("ports", omni_gfn.SH)
+        self.running = False          # o launch-direct.sh abre e reabre o Omni36OS
 
     def play(self, s, g):
         if self.busy_game():

@@ -28,7 +28,8 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import omni_audio          # noqa: E402
 import omni_combos as oc   # noqa: E402
-import omni_cpuauto        # noqa: E402
+import omni_cpuauto
+import omni_gfn        # noqa: E402
 import omni_runtimes       # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -401,6 +402,7 @@ def main():
     gate = FnGate(fd)
     down, since, waiting = set(), None, None
     guard, route, cpu = BatteryGuard(), omni_audio.AutoRoute(), omni_cpuauto.AutoCpu()
+    gfn_at, gfn = 0.0, False             # FN entregue ao GeForce NOW (Aplicativos > GeForce NOW)
     while True:
         try:
             cpu.tick()                   # "Limite do processador" em Automático
@@ -425,10 +427,19 @@ def main():
             fd, down, since, waiting = open_pad(), set(), None, None
             gate = FnGate(fd)
             continue
+        if time.monotonic() - gfn_at > 1.0:
+            gfn_at = time.monotonic()
+            try:
+                gfn = omni_gfn.fn_mode() == "gfn" and omni_gfn.running()
+            except Exception:
+                gfn = False
+            if gfn and gate.on:
+                gate.release([])
         if data:
             evs = [EVENT.unpack_from(data, k)[2:] for k in range(0, len(data) - EVENT.size + 1, EVENT.size)]
             try:
-                evs = gate.filter(evs, {c for cb in active("toque").values() if oc.FN in cb for c in cb - {oc.FN}})
+                if not gfn:
+                    evs = gate.filter(evs, {c for cb in active("toque").values() if oc.FN in cb for c in cb - {oc.FN}})
             except Exception as e:       # a chave do FN nunca derruba os atalhos
                 print(f"fn: {e}", file=sys.stderr, flush=True)
             for typ, code, val in evs:
@@ -437,11 +448,12 @@ def main():
                 if val:
                     down.add(code)
                     for key, cb in active("toque").items():   # a combinação fechou agora
-                        if down == cb:
+                        if down == cb and not (gfn and oc.FN in cb):
                             safe_call(tap, key)
                 else:
                     down.discard(code)
-                waiting = next((key for key, cb in active("segurar").items() if down == cb), None)
+                waiting = next((key for key, cb in active("segurar").items()
+                                if down == cb and not (gfn and oc.FN in cb)), None)
                 since = time.monotonic() if waiting else None
         elif gate.on and time.monotonic() - gate.since > 15:   # FN agarrado sem soltar: devolve
             gate.release([])
