@@ -134,7 +134,7 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
   hostname, authorized_keys, ALSA, brilho. Importar apaga o que surgiu depois nas mesmas pastas e pede reinício.
   Backups antigos (sem snapshot=1) só mesclam.
 - Runtimes entregues pelo Omni: `runtimes.txt` + `omni_runtimes.py` (índice = `ports.json` da release mais nova do
-  PortMaster-New, seção `utils`). No console, thread no `omni_atalho.py`: 2 min após abrir/atualizar e a cada 6 h, para
+  PortMaster-New, seção `utils`). No console, thread no `omni_atalho.py` presa à rede (rota padrão): confere ao conectar e a cada 6 h; falha com rede = 10 min; para
   se um jogo abrir; md5 local em `libs/.omni36os-md5.json`. Runtime novo = linha no `runtimes.txt` + versão nova.
 - Adaptador Realtek liga como disco (`0bda:1a2b`) e o udev troca para Wi-Fi (`0bda:c820`); a troca às vezes se perde
   → `omni_sistema.wifi_dongle_fix()` ao abrir o menu. O driver deixa a interface "up" sem rede: conectado = carrier + IPv4.

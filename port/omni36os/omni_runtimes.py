@@ -6,8 +6,9 @@ A lista fica em runtimes.txt (vem com cada atualização do Omni). sync() compar
 falta ou mudou, conferindo o md5. O md5 local fica guardado (tamanho + data) para não reler
 arquivos grandes a cada vez.
 
-No console roda em segundo plano pelo omni_atalho.py (Runner): 2 min depois de abrir (ou de
-uma atualização, que reinicia o serviço) e a cada 6 h; para no meio se um jogo abrir.
+No console roda em segundo plano pelo omni_atalho.py (Runner), presa ao Wi-Fi: confere ao
+conectar (também depois de uma atualização, que reinicia o serviço) e a cada 6 h com rede;
+para no meio se um jogo abrir.
 Na imagem: omni_runtimes.py --dest <pasta> deixa a pasta igual à lista (apaga o que saiu).
 """
 import hashlib
@@ -129,28 +130,45 @@ def sync(libs=LIBS, stop=lambda: False, prune=False, log=print):
     return got, bad
 
 
+def online():
+    """Há rota padrão (Wi-Fi ou rede USB conectados)? Leitura direta, sem chamar programas."""
+    try:
+        with open("/proc/net/route") as f:
+            return any(line.split()[1] == "00000000" for line in f.readlines()[1:] if line.split())
+    except OSError:
+        return False
+
+
 class Runner:
-    """Sincronização em segundo plano no serviço de atalhos."""
-    FIRST, EVERY = 120, 6 * 3600
+    """Sincronização em segundo plano no serviço de atalhos, presa ao Wi-Fi: confere ao conectar,
+    depois a cada 6 h enquanto houver rede. Falhou com rede: tenta de novo em 10 min. Jogo aberto:
+    espera ele fechar."""
+    CHECK, EVERY, RETRY = 30, 6 * 3600, 600
 
     def __init__(self, busy):
         self.busy = busy               # função: há jogo aberto?
         threading.Thread(target=self.loop, daemon=True).start()
 
     def loop(self):
-        time.sleep(self.FIRST)
+        was, due = False, 0.0
         while True:
-            if not self.busy():
-                try:
-                    got, bad = sync(stop=self.busy, log=lambda m: print(f"runtimes: {m}", file=sys.stderr, flush=True))
-                    if got or bad:
-                        print(f"runtimes: {len(got)} baixado(s); {'; '.join(bad) or 'sem falhas'}",
-                              file=sys.stderr, flush=True)
-                except Exception as e:  # sem internet: tenta na próxima
-                    print(f"runtimes: {e}", file=sys.stderr, flush=True)
-                time.sleep(300 if self.busy() else self.EVERY)   # parou por causa de um jogo: tenta logo
-            else:
-                time.sleep(300)
+            time.sleep(self.CHECK)
+            now = time.monotonic()
+            if not online():
+                was = False
+                continue
+            if not was:                # acabou de conectar
+                was, due = True, now
+            if now < due or self.busy():
+                continue
+            try:
+                got, bad = sync(stop=self.busy, log=lambda m: print(f"runtimes: {m}", file=sys.stderr, flush=True))
+                print(f"runtimes: conferidos, {len(got)} baixado(s); {'; '.join(bad) or 'sem falhas'}",
+                      file=sys.stderr, flush=True)
+                due = now if self.busy() else now + self.EVERY   # parou por um jogo: segue quando ele fechar
+            except Exception as e:     # rede sem internet, GitHub fora: tenta logo
+                print(f"runtimes: {e}", file=sys.stderr, flush=True)
+                due = now + self.RETRY
 
 
 if __name__ == "__main__":
