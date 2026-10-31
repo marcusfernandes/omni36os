@@ -850,7 +850,7 @@ class App:
                 return {"nivel": "info", "acoes": [], "achados": [("info", "Não instalado. Aperte Instalar (precisa de Wi-Fi).")]}
             return {"nivel": "ok", "acoes": [], "achados": [
                 ("ok", "Moonlight Embedded, em /roms/apps."),
-                ("info", "No PC: Sunshine (ou GeForce Experience). PC e console na mesma rede.")]}
+                ("info", "No PC: Sunshine. PC e console na mesma rede.")]}
         if cid == "gfn":
             if not FAKE and not omni_gfn.installed():
                 return {"nivel": "info", "acoes": [], "achados": [("info", "Não instalado. Aperte Instalar (precisa de Wi-Fi).")]}
@@ -1147,7 +1147,7 @@ class App:
                     tip(subpage(A("GeForce NOW", "device-tv", lambda: self.open_page("gfn")), "gfn"),
                         "Jogos da nuvem com a sua conta GeForce NOW (OpenNOW). Precisa de Wi-Fi bom."),
                     tip(subpage(A("Moonlight", "device-tv", lambda: self.open_page("moonlight")), "moonlight"),
-                        "Jogos do seu PC pela rede de casa (Sunshine ou GeForce Experience no PC).")]
+                        "Jogos do seu PC pela rede de casa (com o Sunshine instalado no PC).")]
         if cid == "tela":
             return [tip(A("Brilho, contraste e volume", "adjustments", self.open_levels),
                         "Abre os três ajustes: cima/baixo escolhe, esquerda/direita ajusta, A confirma e B desfaz."),
