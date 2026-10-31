@@ -89,7 +89,7 @@ NOVIDADES = [
         "O Omni36OS agora tem licença aberta: GNU GPL v3.0.",
     ]),
     ("1.15.3", "30/10/2026", [
-        "Créditos completos em Geral > Sobre: sistemas base, PortMaster, gptokeyb, ogage, 351Files, File Browser, BatteryPlus, SDL2, FFmpeg, fontes, ícones, fontes de dados e a comunidade do R36S, com os links.",
+        "Créditos completos em Geral > Sobre: sistema base, PortMaster, gptokeyb, ogage, 351Files, File Browser, BatteryPlus, SDL2, FFmpeg, fontes, ícones, fontes de dados e a comunidade do R36S, com os links.",
     ]),
     ("1.15.2", "30/10/2026", [
         "Desligar e reiniciar: a tela de despedida aparece direto, sem piscar o menu ou a boas-vindas antes.",
@@ -378,16 +378,14 @@ Para fechar um port travado, use SELECT + START (segure 1 s) antes de pensar em 
 CREDITOS = """# Omni36OS
 Sistema só de ports para o R36S, feito por mpjsilva, com a ajuda do Claude (Anthropic) no desenvolvimento. Licença GNU GPL v3.0. github.com/mpjsilva/omni36os
 
-# Sistemas usados como base
-ArkOS, de christianhaitian: o sistema original do R36S e de vários portáteis RK3326, com o kernel, o ogage e os scripts de sistema. github.com/christianhaitian/arkos
-dArkOS, de christianhaitian: o ArkOS sobre Debian. github.com/christianhaitian/dArkOS
+# Sistema base
 dArkOSen, de djparentx: a imagem usada como base do Omni36OS, com o catálogo de telas dos modelos R36, a ferramenta de calibração da bateria (que o Omni36OS reescreveu), o patch do DTB e o desligamento seguro. github.com/djparentx/dArkOSen-R36S
 
 # Ports e ferramentas
 PortMaster e sua comunidade: a loja de ports, os ports e os dados dos jogos. github.com/PortsMaster/PortMaster-GUI
 gptokeyb: o controle como teclado e mouse nos ports. github.com/PortsMaster/gptokeyb
-ogage: as teclas de atalho do sistema. github.com/christianhaitian/ogage
-351Files: gerenciador de arquivos de tela cheia. github.com/351ELEC/351Files
+ogage: as teclas de atalho do sistema, que vêm no dArkOSen.
+351Files: gerenciador de arquivos de tela cheia, que vem no dArkOSen.
 File Browser: o navegador de arquivos pela rede. github.com/filebrowser/filebrowser
 BatteryPlus, de Mikhailzrick. github.com/Mikhailzrick/knubat.components
 

@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Um sistema só de ports para o R36S</b>, com um launcher próprio, apps de mídia e cuidado do console num visual único.<br>
-  Feito sobre o <a href="https://github.com/djparentx/dArkOSen-R36S">dArkOSen</a>, que por sua vez vem do <a href="https://github.com/christianhaitian/dArkOS">dArkOS</a> e do <a href="https://github.com/christianhaitian/arkos">ArkOS</a>.
+  Feito sobre o <a href="https://github.com/djparentx/dArkOSen-R36S">dArkOSen</a>.
 </p>
 
 <p align="center">
@@ -105,16 +105,14 @@ Os atalhos se personalizam em Controles > Atalhos. O manual completo está no pr
 
 O Omni36OS só existe porque muita gente boa fez o trabalho pesado antes. Muito obrigado a todos:
 
-**Sistemas que serviram de base**
-- **[ArkOS](https://github.com/christianhaitian/arkos)**, de [christianhaitian](https://github.com/christianhaitian): o sistema que deu vida aos portáteis RK3326, incluindo o kernel, o `ogage` (botões de brilho e volume) e os scripts de sistema que o Omni36OS ainda usa por baixo.
-- **[dArkOS](https://github.com/christianhaitian/dArkOS)**, de christianhaitian: o ArkOS sobre Debian, base direta do dArkOSen.
+**Sistema base**
 - **[dArkOSen](https://github.com/djparentx/dArkOSen-R36S)**, de [djparentx](https://github.com/djparentx): a imagem usada como ponto de partida do Omni36OS, com o catálogo de DTBs dos modelos R36, a [ferramenta de calibração da bateria](https://github.com/djparentx/R36S-Battery-Calibration-Tool) (cuja ideia o Omni36OS reescreveu dentro do launcher), o patch do DTB de overclock e as correções de desligamento seguro e reparo do cartão.
 
 **Ports e ferramentas**
 - **[PortMaster](https://github.com/PortsMaster/PortMaster-GUI)** e toda a equipe e comunidade do PortMaster, pela loja de ports, pelos próprios ports e pelos dados e imagens dos jogos ([PortMaster-New](https://github.com/PortsMaster/PortMaster-New)).
 - **[gptokeyb](https://github.com/PortsMaster/gptokeyb)**: o controle virando teclado e mouse nos ports.
-- **[ogage](https://github.com/christianhaitian/ogage)**: as teclas de atalho do sistema.
-- **[351Files](https://github.com/351ELEC/351Files)**: o gerenciador de arquivos de tela cheia do sistema base.
+- **ogage**: as teclas de atalho do sistema, que vêm no dArkOSen.
+- **351Files**: o gerenciador de arquivos de tela cheia que vem no dArkOSen.
 - **[File Browser](https://github.com/filebrowser/filebrowser)**: o navegador de arquivos pela rede.
 - **[BatteryPlus](https://github.com/Mikhailzrick/knubat.components)**, de Mikhailzrick, que vem no dArkOSen.
 

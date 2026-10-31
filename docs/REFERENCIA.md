@@ -7,7 +7,7 @@ O que mudou em cada versão: `NOVIDADES.md` (e `omni_help.NOVIDADES`, que é o q
 ## O que é
 
 Sistema **só de ports** para o R36S (Rockchip RK3326, 1 GB, tela 640×480), em português, feito sobre o
-**dArkOSen** (djparentx), que vem do dArkOS e do ArkOS (christianhaitian). O EmulationStation e o
+**dArkOSen** (djparentx). O EmulationStation e o
 RetroArch saem; no lugar entra um launcher próprio em Python + SDL2 (via ctypes, sem pygame).
 Repositório público: https://github.com/mpjsilva/omni36os (GPL-3.0). Autor dos commits: `mpjsilva`.
 

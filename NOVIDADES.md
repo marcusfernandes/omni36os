@@ -109,7 +109,7 @@ Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a
 
 ## 1.15.3 (30/10/2026)
 
-- Créditos completos em Geral > Sobre: sistemas base, PortMaster, gptokeyb, ogage, 351Files, File Browser, BatteryPlus, SDL2, FFmpeg, fontes, ícones, fontes de dados e a comunidade do R36S, com os links.
+- Créditos completos em Geral > Sobre: sistema base, PortMaster, gptokeyb, ogage, 351Files, File Browser, BatteryPlus, SDL2, FFmpeg, fontes, ícones, fontes de dados e a comunidade do R36S, com os links.
 - README novo com descrição, diferenciais, capturas de tela e agradecimentos.
 
 ## 1.15.2 (30/10/2026)
