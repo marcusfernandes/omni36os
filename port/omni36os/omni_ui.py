@@ -3963,6 +3963,8 @@ class App:
                 r = (r + (1 if cmd == "down" else -1)) % rows
                 self.sel = min(r * cols + c, n - 1)
             elif cmd == "ok" and CARDS[self.sel][0] == "ports":
+                if not FAKE:              # port novo no cartão: confere as pastas (só data, rápido)
+                    self.games_idx = omni_games.index()
                 self.view = "lib"
             elif cmd == "ok":
                 self.open_page(CARDS[self.sel][0])
