@@ -140,6 +140,7 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
   do dArkOSen: baixar a imagem, `7z x`, `mcopy -s -i img@@$((32768*512)) ::dtb` e comparar (o repositório deles no
   GitHub fica desatualizado). A 10312026 trouxe HL-R45H-V11, HL-R46H-V20, R36S-V21 2503/2602/2604, RK3326-D3 e Y3506_V04 2537.
 - Wi-Fi USB (kernel 4.4.189): 8188eu, 8192cu/rtl8192cu, 8723bu, 8812au, 8821cu (RTL8821CU/8811CU), 88x2bu
+- 8821cu: o driver do dArkOSen 10312026 falhou mais no boot ("Chip id is undefined", EFUSE todo FF); voltou o anterior (o novo fica como 8821cu.ko.omni-10312026 no console). `omni36os-wifi-boot` (só na cópia do cartão) reinicia o controlador USB até 3 vezes.
   (RTL8822BU/8812BU), mt7601u, rt2800usb (RT3070/5370), rtl8187, zd1211rw. Módulos do rootfs btrfs da imagem:
   `btrfs restore -i --path-regex '^/(usr(/lib(/modules(/.*)?)?)?)?$' 1.img destino`.
 - Adaptador Realtek liga como disco (`0bda:1a2b`) e o udev troca para Wi-Fi (`0bda:c820`); a troca às vezes se perde
