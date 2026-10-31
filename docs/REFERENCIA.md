@@ -18,7 +18,7 @@ Repositório público: https://github.com/mpjsilva/omni36os (GPL-3.0). Autor dos
 | `~/Apps/Omni36OS/omni36os` | **O repositório.** Launcher, gerador da imagem, testes, docs |
 | `~/Apps/Omni36OS/cartao/{BOOT,ROOTFS,EASYROMS}` | Cópia do cartão do console. Arquivos de sistema (fora do launcher) são editados **aqui** (ROOTFS é do root: `SUDO_ASKPASS=/usr/bin/ksshaskpass sudo -A`) |
 | `~/Apps/Omni36OS/scripts/cartao.sh` | `cartao.sh launcher` copia o launcher do repositório para a cópia do cartão; `cartao.sh enviar` grava a diferença no SD (só quando pedido) |
-| `~/Apps/Omni36OS/dArkOSen_R36_10152026.img` | Imagem original do dArkOSen: base da imagem do Omni36OS (nunca é alterada) |
+| `~/Apps/Omni36OS/dArkOSen_R36_10312026.img` | Imagem original do dArkOSen 10312026: base da imagem do Omni36OS (nunca é alterada). A 10152026 fica até a primeira imagem nova ser validada |
 | `~/Apps/Omni36OS/runtimes` | Runtimes do PortMaster que entram na imagem (~1,3 GB). Lista em `port/omni36os/runtimes.txt`; o `gerar-imagem.sh` põe a pasta em dia |
 | `~/Apps/Omni36OS/telas` | Gerador das telas de boot/boas-vindas/desligar (`telas/out` entra na imagem) |
 | `~/Apps/Omni36OS/output` | Imagens geradas (`Omni36OS-X.Y.Z.img.xz`), logs da geração e notas de release |
@@ -136,6 +136,12 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
 - Runtimes entregues pelo Omni: `runtimes.txt` + `omni_runtimes.py` (índice = `ports.json` da release mais nova do
   PortMaster-New, seção `utils`). No console, thread no `omni_atalho.py` presa à rede (rota padrão): confere ao conectar e a cada 6 h; falha com rede = 10 min; para
   se um jogo abrir; md5 local em `libs/.omni36os-md5.json`. Runtime novo = linha no `runtimes.txt` + versão nova.
+- DTBs: o catálogo (`/boot/dtb/{r36s,clone,soysauce}`, `r36_devices.ini`) vem do dArkOSen sem alteração. Release nova
+  do dArkOSen: baixar a imagem, `7z x`, `mcopy -s -i img@@$((32768*512)) ::dtb` e comparar (o repositório deles no
+  GitHub fica desatualizado). A 10312026 trouxe HL-R45H-V11, HL-R46H-V20, R36S-V21 2503/2602/2604, RK3326-D3 e Y3506_V04 2537.
+- Wi-Fi USB (kernel 4.4.189): 8188eu, 8192cu/rtl8192cu, 8723bu, 8812au, 8821cu (RTL8821CU/8811CU), 88x2bu
+  (RTL8822BU/8812BU), mt7601u, rt2800usb (RT3070/5370), rtl8187, zd1211rw. Módulos do rootfs btrfs da imagem:
+  `btrfs restore -i --path-regex '^/(usr(/lib(/modules(/.*)?)?)?)?$' 1.img destino`.
 - Adaptador Realtek liga como disco (`0bda:1a2b`) e o udev troca para Wi-Fi (`0bda:c820`); a troca às vezes se perde
   → `omni_sistema.wifi_dongle_fix()` ao abrir o menu. O driver deixa a interface "up" sem rede: conectado = carrier + IPv4.
 - Bluetooth do adaptador (hci0) não funciona: firmware não carrega (btusb e rtk_btusb disputam); serviço desligado.

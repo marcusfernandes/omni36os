@@ -14,7 +14,7 @@
 set -euo pipefail
 
 BASE=/home/jamersonferreira/Apps/Omni36OS
-ORIG="$BASE/dArkOSen_R36_10152026.img"
+ORIG="$BASE/dArkOSen_R36_10312026.img"
 REPO="$BASE/omni36os"
 CARD="$BASE/cartao/ROOTFS"
 TELAS="$BASE/telas/out"
