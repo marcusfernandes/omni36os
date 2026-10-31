@@ -414,7 +414,7 @@ def main():
     try:                                 # o power sempre abre o menu de energia (pause.sh com o desvio)
         import omni
         omni.set_power_button({"mode": "menu"})
-        print(f"botões: {omni.ensure_default_buttons()}", file=sys.stderr, flush=True)   # A=A, B=B... (uma vez)
+        print(f"botões: {omni.ensure_default_buttons()}", file=sys.stderr, flush=True)   # A=A... só no 1º boot da imagem
         omni.ensure_swap_xy()            # X e Y trocados continuam trocados depois de atualizar o PortMaster
     except Exception as e:
         print(f"power: {e}", file=sys.stderr, flush=True)

@@ -112,6 +112,7 @@ mkdir -p "$R/etc/omni36os"
 echo 1 > "$R/etc/omni36os/cpu_auto"
 echo 1 > "$R/etc/omni36os/gpu_auto"
 rm -f "$R/etc/omni36os/overclock"
+touch "$R/etc/omni36os/botoes-iniciais"   # 1º boot: A, B, X e Y no padrão (omni.ensure_default_buttons)
 # botão de power com o menu de energia já ligado (como o set_power_button faz no console)
 P="$R/usr/local/bin/pause.sh"
 grep -q "Omni36OS: botão de power" "$P" || cp -a "$P" "$P.omni36os-orig"

@@ -2,6 +2,10 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.15.21 (31/10/2026)
+
+- Botões: o padrão A, B, X e Y como estão escritos vale só para imagens novas, no primeiro boot. Atualizar não muda mais a escolha feita em Controles > Inverter botões.
+
 ## 1.15.20 (31/10/2026)
 
 - Botões no padrão: A, B, X e Y fazem o que está escrito neles (o dArkOSen vinha com A e B trocados). Quem quiser trocar usa Controles > Inverter botões.

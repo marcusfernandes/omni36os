@@ -4,6 +4,9 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ("1.15.21", "31/10/2026", [
+        'Botões: o padrão A, B, X e Y como estão escritos vale só para imagens novas, no primeiro boot. Atualizar não muda mais a escolha feita em Controles > Inverter botões.',
+    ]),
     ("1.15.20", "31/10/2026", [
         'Botões no padrão: A, B, X e Y fazem o que está escrito neles (o dArkOSen vinha com A e B trocados). Quem quiser trocar usa Controles > Inverter botões.',
         'Aplicativos ganha GeForce NOW (jogos da nuvem) e Moonlight (jogos do seu PC pela rede de casa). Cada um tem Instalar/Atualizar; no GeForce NOW dá para escolher se o FN fica com o sistema ou com ele.',
