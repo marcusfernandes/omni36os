@@ -528,6 +528,7 @@ def run(st):
 
 
 L1, R1 = 310, 311
+HOLD_WINDOW = 4.0                   # s de espera pelo L1 + R1 no início do launcher
 EVIOCGKEY = (2 << 30) | (96 << 16) | (ord("E") << 8) | 0x18   # 96 bytes = KEY_MAX 0x2ff
 
 
@@ -554,9 +555,13 @@ def shoulders_held():
 def by_buttons():
     """L1 + R1 segurados ao ligar (chamado no início do launcher): refaz a escolha da tela.
     Serve para quando o cartão vai para outro console, com outra tela."""
-    if not shoulders_held():
-        return 0
+    end = time.monotonic() + HOLD_WINDOW      # o "Carregando" está na tela: dá um tempo para apertar
+    while not shoulders_held():
+        if time.monotonic() >= end:
+            return 0
+        time.sleep(0.1)
     log("L1 + R1 ao ligar: refazendo a escolha da tela")
+    show_prompt()                      # a tela do teste entra no lugar do "Carregando"
     beep(ARPEJO, wait=True)            # o aviso de que pegou (a tela pode estar apagada)
     os.makedirs(DIR, exist_ok=True)
     with open(RETRY, "w") as f:
