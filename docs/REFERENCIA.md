@@ -165,5 +165,5 @@ github.com/OpenCloudGaming/OpenNOW-4Handhelds — cliente GeForce NOW (Rust + SD
 - Pede `/dev/vpu_service` gravável (o .sh faz `sudo -n chmod`; o usuário ark tem sudo sem senha).
 - Atualizar sem apagar `opennow/stream.json` (configurações) nem `opennow/data/` (login).
 - Precisa de conta GeForce NOW e Wi-Fi bom (5 GHz recomendado).
-- Uso no Omni: aparece como port comum. Durante o streaming o Automático fica no mínimo (sem FPS do HUD, o jogo roda na nuvem), o que é o ideal.
+- Uso no Omni: aparece como port comum. Se o HUD não medir FPS (vídeo pela MPP), o Automático usa o teto; vale um teste com limite fixo baixo, decodificar vídeo pesa pouco.
 - FN abre o menu da sessão no OpenNOW: o FnGate só segura o FN quando há atalho; o atalho FN do Omni pode competir com ele.
