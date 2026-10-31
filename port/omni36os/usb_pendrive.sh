@@ -11,7 +11,8 @@
 #             Omni36OS, desmonta a partição e entrega ao PC; ao desconectar
 #             (ou ao "ejetar" no PC) monta de novo e abre o Omni36OS
 #
-# O DTB de fábrica deixa a porta só como host, por isso a troca reinicia.
+# O DTB de fábrica deixa a porta só como host, por isso a troca reinicia. O modo vale um boot só:
+# o daemon volta o DTB ao normal ao subir e reinicia sozinho quando a sessão com o PC acaba.
 # No modo pendrive o dongle Wi-Fi na OTG não funciona.
 DTB=/boot/rk3326-r36s-linux.dtb
 BAK=/boot/rk3326-r36s-linux.dtb.host-bak
@@ -145,6 +146,9 @@ PY
 
 daemon() {
   [ "$(mode)" = peripheral ] || exit 0
+  # Modo pendrive vale só para este boot: o DTB já volta ao normal agora. Qualquer reinício
+  # (fim da sessão, travamento, botão de power) volta ao modo normal, com o Wi-Fi.
+  [ "$(dtb_mode)" = peripheral ] && set_dtb otg && log "daemon: próximo boot volta ao modo normal"
   gadget_up || exit 1
   # O serviço caiu com a partição no PC (reinício pelo systemd): devolve antes de tudo, senão o
   # console ficaria sem a partição e sem o Omni36OS.
@@ -183,16 +187,12 @@ daemon() {
     log "$why"
     [ -n "$PAD" ] && kill $PAD 2>/dev/null; PAD=""; rm -f /run/usb-disco.back
     take_back; given=0
-    # Só arma de novo depois do cabo sair (5 s sem tráfego) e voltar
-    # (tráfego novo): com o cabo ainda no PC, ejetar não reentrega a partição.
-    # O UDC fica "configured" sem cabo, por isso conta o tráfego e não o estado.
-    idle=0; last=$(irqs)
-    while [ $idle -lt 5 ]; do
-      sleep 1; n=$(irqs); [ "$n" = "$last" ] && idle=$((idle + 1)) || { idle=0; last=$n; }
-    done
-    log "cabo fora; esperando conectar de novo"
-    while [ "$(irqs)" = "$last" ]; do sleep 1; done
-    log "atividade USB de novo"; prev=""; sleep 2
+    # fim da sessão: volta ao modo normal (o DTB já está como antes) e o Wi-Fi sobe sozinho
+    log "sessão encerrada: reiniciando no modo normal"
+    say "Pronto.\n\n  Voltando ao modo normal (com Wi-Fi)..."
+    systemctl stop omni36os-launcher 2>/dev/null
+    sync; sleep 2; reboot
+    exit 0
   done
 }
 

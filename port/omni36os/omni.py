@@ -1158,7 +1158,8 @@ def usb_facts(_args=None):
             st = os.statvfs(f"/{p}")
             free[p] = round(st.f_bavail * st.f_frsize / 1e9, 1)
     return {
-        "modo_pendrive_ligado": dtb == "peripheral",
+        # o DTB volta ao normal logo que o modo pendrive sobe (vale um boot): conta a porta de agora
+        "modo_pendrive_ligado": dtb == "peripheral" or read_text("/proc/device-tree/usb@ff300000/dr_mode", "").strip("\0").strip() == "peripheral",
         "particao_para_o_pc": part,
         "livre_gb": free,
         "wifi_usb_conectado": os.path.exists("/sys/class/net/wlan0"),

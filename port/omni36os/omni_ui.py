@@ -1217,7 +1217,8 @@ class App:
             tog = A("Desligar o modo pendrive" if on else "Ligar o modo pendrive (PC)", "power",
                     lambda: self.do_action("desligar_pendrive" if on else "ligar_pendrive"),
                     confirm=("Desligar o modo pendrive?\nO aparelho reinicia e o Wi-Fi volta." if on else
-                             "Ligar o modo pendrive?\nO aparelho reinicia; o Wi-Fi para até desligar."))
+                             "Ligar o modo pendrive?\nO console reinicia como pendrive. Ao ejetar no PC, tirar o cabo "
+                             "ou apertar B, ele volta sozinho ao normal, com o Wi-Fi."))
             tog.act = "desligar_pendrive" if on else "ligar_pendrive"
             mounted = getattr(self, "fake_usb", False) if FAKE else os.path.ismount("/mnt/usbdrive")
             return [Choice("Origem dos jogos", "folder", "fonte", list(SOURCE_NAMES), SOURCE_NAMES),
