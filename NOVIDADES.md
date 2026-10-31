@@ -2,6 +2,10 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.15.22 (31/10/2026)
+
+- Cartão em outro console, com outra tela: quando aparecer "Carregando" ao ligar, aperte e segure L1 + R1 até ouvir um arpejo. A tela do teste entra no lugar e o Omni36OS refaz a escolha da tela, sem precisar do PC.
+
 ## 1.15.21 (31/10/2026)
 
 - Botões: o padrão A, B, X e Y como estão escritos vale só para imagens novas, no primeiro boot. Atualizar não muda mais a escolha feita em Controles > Inverter botões.
