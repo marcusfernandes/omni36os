@@ -162,6 +162,11 @@ daemon() {
     s=$(udc_state)
     if [ $given = 0 ]; then
       n=$(irqs)
+      # diagnóstico: cada mudança do estado da porta e, a cada 15 s, o contador de atividade
+      if [ "$s" != "${last_s:-}" ] || [ $(( ${tick:-0} % 15 )) = 0 ]; then
+        log "espera: porta=${s:-?} atividade=${n:-?} vbus=$(cat /sys/class/power_supply/*/online 2>/dev/null | tr '\n' ' ')"
+      fi
+      last_s=$s; tick=$(( ${tick:-0} + 1 ))
       if [ "$s" = configured ] && [ "$n" != "${prev:-$n}" ] && give; then
         given=1; idle=0; last=$(irqs); rm -f /run/usb-disco.back; watch_pad
       fi
