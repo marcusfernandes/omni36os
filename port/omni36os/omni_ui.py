@@ -1267,10 +1267,12 @@ class App:
         if cid == "calibracao":
             S = omni_sistema if not FAKE else None
             run = lambda fn, busy: (lambda: self.worker(fn if S else (lambda: "teste"), self._sys_done, busy=busy))
-            return [A("Iniciar a calibração", "player-play", run(S and S.cal_start, "Começando..."),
-                      confirm="Iniciar uma calibração nova?\nA bateria precisa estar cheia e sem o carregador. "
-                              "A sessão anterior é apagada."),
-                    A("Parar a calibração", "x", run(S and S.cal_stop, "Parando...")),
+            running = S.cal_running() if S else os.environ.get("OMNI_CALIBRANDO") == "1"
+            toggle = A("Parar a calibração", "x", run(S and S.cal_stop, "Parando...")) if running else \
+                A("Iniciar a calibração", "player-play", run(S and S.cal_start, "Começando..."),
+                  confirm="Iniciar uma calibração nova?\nA bateria precisa estar cheia e sem o carregador. "
+                          "A sessão anterior é apagada.")
+            return [toggle,
                     A("Aplicar a curva", "check", run(S and S.cal_apply, "Calculando a curva..."),
                       confirm="Aplicar a curva da última calibração?\nA % da bateria passa a seguir a sua bateria."),
                     A("Voltar à curva de fábrica", "rotate", run(S and S.cal_restore, "Restaurando..."),
