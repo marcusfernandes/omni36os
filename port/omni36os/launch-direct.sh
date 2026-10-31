@@ -184,6 +184,12 @@ port_deps() {
 # Loop principal: launcher → port → launcher → ...
 RESUME=""
 CRASHES=0
+# L1 + R1 segurados ao ligar: refaz a escolha da tela (cartão num console com outra tela).
+# Só nos primeiros 3 min depois de ligar: reiniciar o launcher depois não dispara o teste.
+if [ "$(cut -d. -f1 /proc/uptime)" -lt 180 ]; then
+    sudo python3 -B "$OMNI_DIR/omni_painel.py" --botoes
+fi
+
 while true; do
     # Limpar sinal anterior
     sudo rm -f /tmp/omni36os-next 2>/dev/null || rm -f /tmp/omni36os-next 2>/dev/null

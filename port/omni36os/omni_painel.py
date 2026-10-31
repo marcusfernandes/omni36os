@@ -23,7 +23,8 @@ e um limite de reinícios encerra a detecção com os originais se algo sair do 
 
 Roda como serviço (omni36os-painel.service) antes do firstboot e do launcher, só quando:
 - /boot/firstboot.sh existe (primeiro boot de uma imagem nova, antes da expansão), ou
-- /boot/omni36os-tela/testar existe (refazer a detecção: crie o arquivo pelo PC).
+- /boot/omni36os-tela/testar existe (refazer a detecção: crie o arquivo pelo PC), ou
+- L1 + R1 segurados ao ligar (omni_painel.py --botoes, no início do launch-direct.sh).
 Estado em /boot/omni36os-tela/ (FAT, sobrevive aos reinícios); os arquivos originais ficam em
 /boot/omni36os-tela/original/ até o fim.
 """
@@ -526,7 +527,47 @@ def run(st):
     return 0
 
 
+L1, R1 = 310, 311
+EVIOCGKEY = (2 << 30) | (96 << 16) | (ord("E") << 8) | 0x18   # 96 bytes = KEY_MAX 0x2ff
+
+
+def shoulders_held():
+    """L1 e R1 apertados agora, em qualquer controle (lê o estado das teclas, sem esperar evento)."""
+    import fcntl
+    for dev in glob.glob("/dev/input/event*"):
+        try:
+            fd = os.open(dev, os.O_RDONLY | os.O_NONBLOCK)
+        except OSError:
+            continue
+        try:
+            buf = bytearray(96)
+            fcntl.ioctl(fd, EVIOCGKEY, buf)
+            if all(buf[k // 8] & (1 << (k % 8)) for k in (L1, R1)):
+                return True
+        except OSError:
+            pass
+        finally:
+            os.close(fd)
+    return False
+
+
+def by_buttons():
+    """L1 + R1 segurados ao ligar (chamado no início do launcher): refaz a escolha da tela.
+    Serve para quando o cartão vai para outro console, com outra tela."""
+    if not shoulders_held():
+        return 0
+    log("L1 + R1 ao ligar: refazendo a escolha da tela")
+    beep(ARPEJO, wait=True)            # o aviso de que pegou (a tela pode estar apagada)
+    os.makedirs(DIR, exist_ok=True)
+    with open(RETRY, "w") as f:
+        f.write("L1 + R1\n")
+    os.sync()
+    return main()
+
+
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--botoes":
+        sys.exit(by_buttons() or 0)
     if len(sys.argv) > 1 and sys.argv[1] == "--listar":     # diagnóstico, não muda nada
         hw = hardware()
         print(json.dumps({"hardware": hw, "tela_agora": panel_hash_live()[:12],

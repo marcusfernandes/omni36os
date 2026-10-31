@@ -103,6 +103,7 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
 ## Primeiro boot e tela certa (`omni_painel.py`)
 
 - Roda em `omni36os-painel.service` (cedo: só precisa da `/boot`), quando existe `/boot/firstboot.sh` ou `/boot/omni36os-tela/testar`.
+- L1 + R1 segurados ao ligar: `launch-direct.sh` (nos 3 primeiros min de uptime) chama `omni_painel.py --botoes`, que lê o estado das teclas (EVIOCGKEY), toca o arpejo, cria `testar` e roda o teste. Vem pela OTA (o `.service` não vem).
 - Lista as telas 640×480 do catálogo `/boot/dtb/{r36s,clone,soysauce}/*/` (uma por sequência de início), com a tela atual primeiro.
 - **Cada teste monta o DTB original com só as propriedades da tela trocadas** (`fdtput`). Nunca copia `boot.ini`
   nem DTB do u-boot do catálogo — a pasta de um clone já travou o boot com "dtb load fail".

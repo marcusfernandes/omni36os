@@ -212,6 +212,7 @@ Volume: o som do console. O último volume fica salvo: ao ligar, o console volta
 A saída de som é automática: com o fone encaixado, o som sai só no fone; sem ele, só no alto-falante. A troca acontece na hora e vale também no boot e depois de um jogo que mexa no som.
 Cor do LED: verde ou vermelho, também no boot. Com a bateria em 10% ou menos, o LED pisca.
 "Detalhes da tela" mostra o modelo da sua tela, diz qual opção escolher no SELECT MODEL ao atualizar o Omni36OS e avisa se o aparelho é um clone.
+Cartão em outro console, com outra tela (tela preta ou imagem errada): segure L1 + R1 ao ligar até ouvir um arpejo. O Omni36OS refaz a escolha da tela: a cada tela toca uma campainha e pergunta "Está vendo esta tela?"; aperte qualquer botão quando ela aparecer certa. Sem resposta, passa para a próxima e reinicia sozinho (uns 5 minutos no pior caso). Pelo PC também dá: crie o arquivo vazio omni36os-tela/testar na partição BOOT.
 
 # Rede
 Data, hora e fuso se acertam sozinhos: na primeira vez que o console pega internet depois de ligar, o Omni36OS descobre o fuso pela conexão, acerta a hora, grava no relógio do console e desliga o serviço de hora até o próximo boot.
