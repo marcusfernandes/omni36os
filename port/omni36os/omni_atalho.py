@@ -29,7 +29,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import omni_audio          # noqa: E402
 import omni_combos as oc   # noqa: E402
 import omni_cpuauto
-import omni_gfn        # noqa: E402
+import omni_gfn
+import omni_mouse        # noqa: E402
 import omni_runtimes       # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -428,6 +429,7 @@ def main():
     down, since, waiting = set(), None, None
     guard, route, cpu = BatteryGuard(), omni_audio.AutoRoute(), omni_cpuauto.AutoCpu()
     gfn_at, gfn = 0.0, False             # FN entregue ao GeForce NOW (Aplicativos > GeForce NOW)
+    mouse = omni_mouse.Mouse()           # modo mouse (FN + R3 ou menu de energia) e digitar texto
     while True:
         try:
             cpu.tick()                   # "Limite do processador" em Automático
@@ -442,7 +444,12 @@ def main():
         except Exception as e:
             print(f"som: {e}", file=sys.stderr, flush=True)
         try:
-            r, _, _ = select.select([fd], [], [], 0.2)
+            try:
+                mouse.poll(gate)
+                mouse.tick()
+            except Exception as e:       # o mouse nunca derruba os atalhos
+                print(f"mouse: {e}", file=sys.stderr, flush=True)
+            r, _, _ = select.select([fd], [], [], 0.016 if mouse.on else 0.2)
             data = os.read(fd, EVENT.size * 64) if r else b""
         except OSError:                   # controle sumiu (driver reiniciado): abre de novo
             try:
@@ -463,8 +470,11 @@ def main():
         if data:
             evs = [EVENT.unpack_from(data, k)[2:] for k in range(0, len(data) - EVENT.size + 1, EVENT.size)]
             try:
-                if not gfn:
-                    evs = gate.filter(evs, {c for cb in active("toque").values() if oc.FN in cb for c in cb - {oc.FN}})
+                if mouse.on:
+                    evs = mouse.filter(gate, evs)
+                elif not gfn:
+                    evs = gate.filter(evs, {c for cb in active("toque").values() if oc.FN in cb for c in cb - {oc.FN}}
+                                      | {omni_mouse.PAD_R3})
             except Exception as e:       # a chave do FN nunca derruba os atalhos
                 print(f"fn: {e}", file=sys.stderr, flush=True)
             for typ, code, val in evs:
@@ -472,6 +482,8 @@ def main():
                     continue
                 if val:
                     down.add(code)
+                    if down == {oc.FN, omni_mouse.PAD_R3} and not gfn:   # FN + R3: liga/desliga o modo mouse
+                        omni_mouse.set_mode(not omni_mouse.mode_on())
                     for key, cb in active("toque").items():   # a combinação fechou agora
                         if down == cb and not (gfn and oc.FN in cb):
                             safe_call(tap, key)
@@ -480,7 +492,7 @@ def main():
                 waiting = next((key for key, cb in active("segurar").items()
                                 if down == cb and not (gfn and oc.FN in cb)), None)
                 since = time.monotonic() if waiting else None
-        elif gate.on and time.monotonic() - gate.since > 15:   # FN agarrado sem soltar: devolve
+        elif gate.on and not mouse.on and time.monotonic() - gate.since > 15:   # FN agarrado sem soltar: devolve
             gate.release([])
         if since is not None and time.monotonic() - since >= HOLD:
             key, since, waiting = waiting, None, None

@@ -42,6 +42,7 @@ import omni_meta  # noqa: E402
 import omni_combos  # noqa: E402
 import omni_gfn  # noqa: E402
 import omni_apps  # noqa: E402
+import omni_mouse  # noqa: E402
 
 # --- paleta ---
 
@@ -3086,6 +3087,8 @@ class App:
         if HUB == "jogo" or os.environ.get("OMNI_JOGO") == "1":   # aberto por cima de um jogo
             rows = [{"name": self.hud_label(), "icon": "gauge", "do": "hud", "lr": True},
                     {"name": self.cap_label(), "icon": "battery-2", "do": "cap", "lr": True},
+                    {"name": self.mouse_label(), "icon": "device-gamepad-2", "do": "mouse", "lr": True},
+                    {"name": "Digitar texto", "icon": "keyboard", "do": "digitar"},
                     {"name": "Captura de tela", "icon": "device-tv", "do": "shot"},
                     {"name": "Fechar o jogo", "icon": "x", "do": "close"}] + rows
         if button:
@@ -3107,8 +3110,10 @@ class App:
             if r["do"] == "cancel":
                 return back()
             done()
-            if r["do"] in ("hud", "cap", "shot", "close"):
+            if r["do"] in ("hud", "cap", "shot", "close", "mouse"):
                 return self.game_action(r["do"])
+            if r["do"] == "digitar":
+                return self.type_into_game()
             if r["do"] in ("reboot", "poweroff"):
                 self.goodbye = "reiniciando" if r["do"] == "reboot" else "desligando"
                 self.frame(0)             # a despedida já na tela do launcher, antes de ele fechar
@@ -3119,7 +3124,7 @@ class App:
         if self.picker and rows[0 if not button else 1].get("lr"):
             def lr(r, d):
                 self.game_toggle(r["do"], d)
-                r["name"] = self.hud_label() if r["do"] == "hud" else self.cap_label()
+                r["name"] = {"hud": self.hud_label, "cap": self.cap_label, "mouse": self.mouse_label}[r["do"]]()
             self.picker["on_lr"] = lr
             self.picker["hints"] = [("UD", "Escolher"), ("LR", "Mudar")]
         if self.picker and button:
@@ -3138,6 +3143,18 @@ class App:
         cur = flag(HUD_FLAG) if not FAKE else getattr(self, "fake_hud", "0")
         return "Contador: " + HUD_NAMES.get(cur, "escondido")
 
+    def mouse_label(self):
+        on = omni_mouse.mode_on() if not FAKE else getattr(self, "fake_mouse", False)
+        return f"Modo mouse: {'ligado' if on else 'desligado'}"
+
+    def type_into_game(self):
+        """Teclado do Omni36OS por cima do programa: o texto é digitado nele quando ele volta."""
+        def done(text):
+            if text and not FAKE:
+                omni.save_file(omni_mouse.TYPE_FILE, text)
+            self.quit()
+        self.keyboard("Digitar no programa", done, hint="O texto vai para o programa ao voltar", texto=True)
+
     def cap_label(self):
         on = (flag(CAP_FLAG) not in ("", "0")) if not FAKE else getattr(self, "fake_cap", False)
         return f"Limite de 30 FPS: {'ligado' if on else 'desligado'}"
@@ -3145,6 +3162,9 @@ class App:
     def game_toggle(self, what, d=1):
         """Esquerda/direita no menu de energia: muda o contador ou o limite sem voltar ao jogo."""
         if FAKE:
+            if what == "mouse":
+                self.fake_mouse = not getattr(self, "fake_mouse", False)
+                return
             if what == "hud":
                 self.fake_hud = hud_step(getattr(self, "fake_hud", "0"), d)
             else:
@@ -3154,6 +3174,8 @@ class App:
             put_flag(HUD_FLAG, hud_step(flag(HUD_FLAG), d))
         elif what == "cap":
             put_flag(CAP_FLAG, "0" if flag(CAP_FLAG) not in ("", "0") else omni_combos.CAP_FPS)
+        elif what == "mouse":
+            omni_mouse.set_mode(not omni_mouse.mode_on())
 
     def game_action(self, what):
         """Menu de energia por cima de um jogo: o contador, o limite e a captura são do hud/omni_hud.so
@@ -3165,6 +3187,8 @@ class App:
             put_flag(HUD_FLAG, hud_step(flag(HUD_FLAG), 1))   # mesmo ciclo do FN + X
         elif what == "cap":
             put_flag(CAP_FLAG, "0" if flag(CAP_FLAG) not in ("", "0") else omni_combos.CAP_FPS)
+        elif what == "mouse":
+            omni_mouse.set_mode(not omni_mouse.mode_on())
         elif what == "shot":
             put_flag(SHOT_FLAG, int(time.time() * 1000))   # o jogo volta e salva o primeiro quadro
         elif what == "close":
