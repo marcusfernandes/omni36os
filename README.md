@@ -112,7 +112,6 @@ O Omni36OS só existe porque muita gente boa fez o trabalho pesado antes. Muito 
 - **[PortMaster](https://github.com/PortsMaster/PortMaster-GUI)** e toda a equipe e comunidade do PortMaster, pela loja de ports, pelos próprios ports e pelos dados e imagens dos jogos ([PortMaster-New](https://github.com/PortsMaster/PortMaster-New)).
 - **[gptokeyb](https://github.com/PortsMaster/gptokeyb)**: o controle virando teclado e mouse nos ports.
 - **ogage**: as teclas de atalho do sistema, que vêm no dArkOSen.
-- **351Files**: o gerenciador de arquivos de tela cheia que vem no dArkOSen.
 - **[File Browser](https://github.com/filebrowser/filebrowser)**: o navegador de arquivos pela rede.
 - **[BatteryPlus](https://github.com/Mikhailzrick/knubat.components)**, de Mikhailzrick, que vem no dArkOSen.
 

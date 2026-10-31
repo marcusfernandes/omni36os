@@ -1572,7 +1572,7 @@ class App:
     # --- ferramentas do Omni36OS ---
 
     def tool_list(self):
-        """Programas de tela cheia que continuam fora do launcher (PortMaster, 351Files)."""
+        """Programas de tela cheia que continuam fora do launcher (PortMaster)."""
         if FAKE:
             return [{"path": "/opt/system/Tools/PortMaster.sh", "name": "PortMaster",
                      "desc": "Loja de ports (precisa de internet)."}]

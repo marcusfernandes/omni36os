@@ -89,7 +89,7 @@ NOVIDADES = [
         "O Omni36OS agora tem licença aberta: GNU GPL v3.0.",
     ]),
     ("1.15.3", "30/10/2026", [
-        "Créditos completos em Geral > Sobre: sistema base, PortMaster, gptokeyb, ogage, 351Files, File Browser, BatteryPlus, SDL2, FFmpeg, fontes, ícones, fontes de dados e a comunidade do R36S, com os links.",
+        "Créditos completos em Geral > Sobre: sistema base, PortMaster, gptokeyb, ogage, File Browser, BatteryPlus, SDL2, FFmpeg, fontes, ícones, fontes de dados e a comunidade do R36S, com os links.",
     ]),
     ("1.15.2", "30/10/2026", [
         "Desligar e reiniciar: a tela de despedida aparece direto, sem piscar o menu ou a boas-vindas antes.",
@@ -385,7 +385,6 @@ dArkOSen, de djparentx: a imagem usada como base do Omni36OS, com o catálogo de
 PortMaster e sua comunidade: a loja de ports, os ports e os dados dos jogos. github.com/PortsMaster/PortMaster-GUI
 gptokeyb: o controle como teclado e mouse nos ports. github.com/PortsMaster/gptokeyb
 ogage: as teclas de atalho do sistema, que vêm no dArkOSen.
-351Files: gerenciador de arquivos de tela cheia, que vem no dArkOSen.
 File Browser: o navegador de arquivos pela rede. github.com/filebrowser/filebrowser
 BatteryPlus, de Mikhailzrick. github.com/Mikhailzrick/knubat.components
 

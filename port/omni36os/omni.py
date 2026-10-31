@@ -1086,7 +1086,7 @@ def usb_net_active(_args=None):
     return any(m in mods.split() for m in ("g_ether", "g_cdc", "g_multi")) or os.path.exists("/sys/class/net/usb0")
 
 
-# Programas de tela cheia (PortMaster, 351Files): o Omni36OS fecha, o launch-direct.sh
+# Programas de tela cheia (PortMaster): o Omni36OS fecha, o launch-direct.sh
 # roda o programa e reabre o Omni36OS. As outras ferramentas viraram subpáginas.
 HANDOFF = "/tmp/omni36os-next"
 

@@ -13,7 +13,7 @@ Versão atual: **1.5.0** (`port/omni36os/VERSION`). Testada no PC em modo de tes
 ```
 boot (logo.bmp = frame 0 de "Carregando")
   → omni36os-launcher.service → launch-direct.sh
-    → omni_ui.py (root)  ⇄  port / PortMaster / 351Files
+    → omni_ui.py (root)  ⇄  port / PortMaster
   → power: omni36os-tela desligando|reiniciando
 ```
 
@@ -38,7 +38,7 @@ boot (logo.bmp = frame 0 de "Carregando")
 | **Bateria** | Carga, brilho e modo do processador. Subpágina **Calibrar a bateria** (`/usr/local/etc/battery-cal`) |
 | **Desempenho** | No menu, CPU/GPU/memória sempre no mínimo (`relax_clocks`: powersave). Limites de CPU/GPU (valem nos ports), **Memória extra (zram)** 0/256/512/768 MB, Liberar overclock |
 | **Armazenamento** | Origem dos jogos (ROMS, ROMS2 ou ROMS e ROMS2), Cartão 1 / Cartão 2 no painel, detalhe do(s) cartão(ões) com teste de velocidade, modo pendrive (+ partição no PC), montar/desmontar pendrive (a dica diz se o pendrive foi reconhecido), limpar lixo do Mac; por último as ações que reiniciam: verificar e reparar, restaurar boot |
-| **Ferramentas** | Arquivos, subpágina **Testar ports** (15 s; causa provável e "Corrigir e testar de novo", `omni_ports_fix.py`), PortMaster, 351Files |
+| **Ferramentas** | Arquivos, subpágina **Testar ports** (15 s; causa provável e "Corrigir e testar de novo", `omni_ports_fix.py`), PortMaster |
 | **Geral** | Nome do jogador, subpáginas **Segurança** e **Backup**, Procurar atualização / Voltar à versão anterior, **Verificar tudo** (resumo dos avisos de todos os cards), **Sobre** (Manual, Cuidados, Novidades, Créditos), Redefinir o sistema (último) |
 
 Regra das páginas: o mais usado primeiro, escolhas antes das ações, o que reinicia ou apaga sempre por último.
@@ -69,7 +69,7 @@ Regra das páginas: o mais usado primeiro, escolhas antes das ações, o que rei
 | `port/omni36os/omni_painel.py` | Tela certa no primeiro boot: testa os DTBs do catálogo (uma tela por boot) até o usuário apertar um botão; serviço `omni36os-painel.service` (só com `/boot/firstboot.sh` ou `/boot/omni36os-tela/testar`) |
 | `port/omni36os/omni_checks.py` | Verificações de cada card, resumo do Verificar tudo e ações sugeridas |
 | `port/omni36os/omni_ports_fix.py` | Diagnóstico de falhas do Testar ports (`RULES`) e correções com desfazer |
-| `port/omni36os/omni_tools.py` | Nativas (atalhos, montar/desmontar pendrive) e apps de tela cheia (PortMaster, 351Files) |
+| `port/omni36os/omni_tools.py` | Nativas (atalhos, montar/desmontar pendrive) e apps de tela cheia (PortMaster) |
 | `port/omni36os/run_tool.sh`, `omni_dialog.py` | Rodam os apps de tela cheia com as janelas do Omni36OS |
 | `port/omni36os/omni_backup.py` | Exporta e importa configurações por módulo (`.tar.gz`) |
 | `port/omni36os/omni_help.py` | Manual, cuidados, créditos e `NOVIDADES` (só a versão atual; histórico em `NOVIDADES.md`) |
