@@ -7,37 +7,25 @@ procura /roms/ports/opennow; a cópia daqui usa a própria pasta.
 FN: "sistema" = atalhos FN do Omni valem; "gfn" = com o OpenNOW aberto, o FN vai só para ele
 (abre o menu da sessão) e o serviço de atalhos ignora as combinações com FN.
 """
-import json
 import os
-import re
-import shutil
-import socket
-import tempfile
-import time
-import urllib.error
-import urllib.request
-import zipfile
 
-DIR = "/roms/apps"
-SH = os.path.join(DIR, "OpenNOW.sh")
-GAME = os.path.join(DIR, "opennow")
-REPO = "OpenCloudGaming/OpenNOW-4Handhelds"
-VER = os.path.join(GAME, ".omni36os-versao")
+import omni_apps
+
+SH = omni_apps.sh_path("gfn")
 FN_CONF = "/home/ark/.config/omni36os/gfn_fn"
 PROC = "opennow-handhel"               # comm do opennow-handheld (15 letras)
-KEEP = ("stream.json", "data")
 
 
 def installed():
-    return os.path.isfile(SH) and os.path.isdir(GAME)
+    return omni_apps.installed("gfn")
 
 
 def version():
-    try:
-        with open(VER) as f:
-            return f.read().strip()
-    except OSError:
-        return ""
+    return omni_apps.version("gfn")
+
+
+def install(log=lambda m: None):
+    return omni_apps.install("gfn", log)
 
 
 def fn_mode():
@@ -65,81 +53,3 @@ def running():
             except OSError:
                 pass
     return False
-
-
-def _open(url, timeout):
-    """urlopen com 4 tentativas: o DNS do roteador às vezes falha uma consulta."""
-    req = urllib.request.Request(url, headers={"User-Agent": "Omni36OS"})
-    for n in range(4):
-        try:
-            return urllib.request.urlopen(req, timeout=timeout)
-        except urllib.error.URLError as e:
-            if n == 3:
-                if isinstance(getattr(e, "reason", None), socket.gaierror):
-                    raise RuntimeError("Não foi possível achar o servidor (DNS). Confira o Wi-Fi e tente de novo.")
-                raise
-            time.sleep(3)
-
-
-def latest():
-    """(tag, url do zip) da release mais nova, beta incluída."""
-    with _open(f"https://api.github.com/repos/{REPO}/releases?per_page=5", 30) as r:
-        for rel in json.load(r):
-            for a in rel.get("assets", []):
-                if a["name"].endswith(".zip"):
-                    return rel["tag_name"], a["browser_download_url"]
-    raise RuntimeError("nenhuma release com zip")
-
-
-def patch_sh(text):
-    """GAMEDIR = pasta do próprio .sh (o original força /roms/ports/opennow)."""
-    return re.sub(r'if \[ -n "\$\{directory:-\}" \]; then\n\s*GAMEDIR=.*\nelse\n\s*(GAMEDIR=.*)\nfi',
-                  r"\1", text)
-
-
-def install(log=lambda m: None, base=DIR):
-    sh, game = os.path.join(base, "OpenNOW.sh"), os.path.join(base, "opennow")
-    ver = os.path.join(game, ".omni36os-versao")
-    tag, url = latest()
-    if base == DIR and tag == version() and installed():
-        return f"GeForce NOW já está na versão mais nova ({tag})."
-    log(f"Baixando {tag}...")
-    os.makedirs(base, exist_ok=True)
-    tmp = tempfile.mkdtemp(dir=base, prefix=".gfn-")
-    try:
-        z = os.path.join(tmp, "a.zip")
-        with _open(url, 60) as r, open(z, "wb") as f:
-            shutil.copyfileobj(r, f, 1 << 20)
-        x = os.path.join(tmp, "x")
-        with zipfile.ZipFile(z) as zf:
-            zf.extractall(x)
-        if not os.path.isfile(os.path.join(x, "OpenNOW.sh")):
-            raise RuntimeError("zip sem OpenNOW.sh")
-        for k in KEEP:                 # ajustes e login continuam
-            old = os.path.join(game, k)
-            if os.path.exists(old):
-                new = os.path.join(x, "opennow", k)
-                shutil.rmtree(new, ignore_errors=True) if os.path.isdir(new) else (os.path.exists(new) and os.remove(new))
-                shutil.move(old, new)
-        shutil.rmtree(game, ignore_errors=True)
-        shutil.move(os.path.join(x, "opennow"), game)
-        with open(os.path.join(x, "OpenNOW.sh")) as f:
-            txt = patch_sh(f.read())
-        with open(sh, "w") as f:
-            f.write(txt)
-        os.chmod(sh, 0o755)
-        for root, _, files in os.walk(game):
-            for n in files:
-                if n.startswith("opennow-"):
-                    os.chmod(os.path.join(root, n), 0o755)
-        with open(ver, "w") as f:
-            f.write(tag)
-    finally:
-        shutil.rmtree(tmp, ignore_errors=True)
-    return f"GeForce NOW {tag} instalado."
-
-
-if __name__ == "__main__":              # imagem: omni_gfn.py --dest <pasta apps>
-    import sys
-    if len(sys.argv) == 3 and sys.argv[1] == "--dest":
-        print(install(print, sys.argv[2]))

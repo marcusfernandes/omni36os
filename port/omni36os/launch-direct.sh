@@ -242,7 +242,10 @@ while true; do
                 printf "\033c" > /dev/tty1
             fi
             RESUME="biblioteca"
-            [ "$rom" = /roms/apps/OpenNOW.sh ] && RESUME="gfn"   # GeForce NOW volta a Aplicativos
+            case "$rom" in                   # programas de Aplicativos voltam à página deles
+                /roms/apps/OpenNOW.sh) RESUME="gfn" ;;
+                /roms/apps/Moonlight.sh) RESUME="moonlight" ;;
+            esac
             continue ;;
         # Ferramentas de tela cheia do sistema (/opt/system)
         tool:*:/opt/system/*)

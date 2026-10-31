@@ -41,6 +41,7 @@ else:   # simulador: a ficha da Steam vem de verdade, mas o cache fica no PC
 import omni_meta  # noqa: E402
 import omni_combos  # noqa: E402
 import omni_gfn  # noqa: E402
+import omni_apps  # noqa: E402
 
 # --- paleta ---
 
@@ -110,6 +111,7 @@ SUBPAGES = {            "calibracao": ("Calibrar a bateria", "battery-2", "a3e63
             "sobre": ("Sobre", "help-circle", "60a5fa", "a78bfa", "geral"),
             "atalhos": ("Atalhos", "keyboard", "818cf8", "4f46e5", "controles"),
             "gfn": ("GeForce NOW", "device-tv", "84cc16", "15803d", "apps"),
+            "moonlight": ("Moonlight", "device-tv", "818cf8", "4338ca", "apps"),
             "testar": ("Testar ports", "player-play", "34d399", "059669", "ferramentas")}
 PARENT = {cid: v[4] for cid, v in SUBPAGES.items()}
 SOURCE_NAMES = {"roms": "ROMS", "roms2": "ROMS2", "ambos": "ROMS e ROMS2"}
@@ -842,6 +844,12 @@ class App:
                     [("info", "Wi-Fi desligado.")]}
         if cid == "rede":
             return omni_checks.finish(omni_sistema.wifi_status(), [], {})
+        if cid == "moonlight":
+            if not FAKE and not omni_apps.installed("moonlight"):
+                return {"nivel": "info", "acoes": [], "achados": [("info", "Não instalado. Aperte Instalar (precisa de Wi-Fi).")]}
+            return {"nivel": "ok", "acoes": [], "achados": [
+                ("ok", "Moonlight Embedded, em /roms/apps."),
+                ("info", "No PC: Sunshine (ou GeForce Experience). PC e console na mesma rede.")]}
         if cid == "gfn":
             if not FAKE and not omni_gfn.installed():
                 return {"nivel": "info", "acoes": [], "achados": [("info", "Não instalado. Aperte Instalar (precisa de Wi-Fi).")]}
@@ -1136,7 +1144,9 @@ class App:
                     tip(A("Notas", "notes", lambda: self.open_notes()),
                         "Bloco de notas: textos simples na pasta notas do cartão 1 (EASYROMS/notas)."),
                     tip(subpage(A("GeForce NOW", "device-tv", lambda: self.open_page("gfn")), "gfn"),
-                        "Jogos da nuvem com a sua conta GeForce NOW (OpenNOW). Precisa de Wi-Fi bom.")]
+                        "Jogos da nuvem com a sua conta GeForce NOW (OpenNOW). Precisa de Wi-Fi bom."),
+                    tip(subpage(A("Moonlight", "device-tv", lambda: self.open_page("moonlight")), "moonlight"),
+                        "Jogos do seu PC pela rede de casa (Sunshine ou GeForce Experience no PC).")]
         if cid == "tela":
             return [tip(A("Brilho, contraste e volume", "adjustments", self.open_levels),
                         "Abre os três ajustes: cima/baixo escolhe, esquerda/direita ajusta, A confirma e B desfaz."),
@@ -1317,6 +1327,15 @@ class App:
                          "Sistema: os atalhos FN do Omni valem. GeForce NOW: o FN abre o menu da sessão.")]
             return ([tip(A("Abrir o GeForce NOW", "player-play", self.open_gfn),
                          "Entre com a sua conta. Start + Select fecha (no menu).")] + items + [get]) if ok else [get] + items
+        if cid == "moonlight":
+            ok = FAKE or omni_apps.installed("moonlight")
+            get = A("Atualizar" if ok else "Instalar", "refresh", lambda: self.worker(
+                (lambda: "teste") if FAKE else (lambda: omni_apps.install("moonlight")), self._sys_done,
+                busy="Baixando o Moonlight..."),
+                confirm=None if ok else "Baixar o Moonlight (do PortMaster, uns 10 MB)?\nPrecisa de Wi-Fi.")
+            return [tip(A("Abrir o Moonlight", "player-play", lambda: self.open_app("moonlight")),
+                        "Na 1ª vez, pareie: o Moonlight mostra um código para digitar no Sunshine do PC."), get] \
+                if ok else [get]
         if cid == "testar":
             return [A("Escolher o port", "player-play", self.open_picker),
                     A("Limpar avisos de falha", "check", lambda: self.run_tool_toast("clear_port_alerts")), recheck]
@@ -3307,12 +3326,16 @@ class App:
             self.play(sh["s"], sh["g"])
 
     def open_gfn(self):
+        self.open_app("gfn")
+
+    def open_app(self, app):
+        """Programa de Aplicativos (/roms/apps): abre como port; ao fechar, volta à página dele."""
         if self.busy_game():
             return
         if FAKE:
-            self.toast = ("Abriria o GeForce NOW", "ok", self.t + 3)
+            self.toast = (f"Abriria o {omni_apps.APPS[app]['name']}", "ok", self.t + 3)
             return
-        omni_games.play("ports", omni_gfn.SH)
+        omni_games.play("ports", omni_apps.sh_path(app))
         self.running = False          # o launch-direct.sh abre e reabre o Omni36OS
 
     def play(self, s, g):

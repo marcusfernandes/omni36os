@@ -66,8 +66,8 @@ if compgen -G "$RUNTIMES/*.squashfs" >/dev/null; then
 else
   echo "   AVISO: sem runtimes em $RUNTIMES (a imagem sai sem eles)"
 fi
-# GeForce NOW (OpenNOW-4Handhelds) em Aplicativos: /roms/apps (Aplicativos > GeForce NOW atualiza)
-python3 -B "$REPO/port/omni36os/omni_gfn.py" --dest "$T/roms/apps" || echo "   AVISO: imagem sem o GeForce NOW"
+# GeForce NOW e Moonlight em Aplicativos: /roms/apps (a página de cada um atualiza)
+python3 -B "$REPO/port/omni36os/omni_apps.py" --dest "$T/roms/apps" || echo "   AVISO: imagem sem algum app"
 tar -cf "$R/roms.tar" -C "$T" roms
 rm -rf "$T"
 
