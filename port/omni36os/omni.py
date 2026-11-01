@@ -860,8 +860,82 @@ def get_game_source(_args=None):
     return v if v in GAME_SOURCES else "roms"
 
 
+CARD2 = "/dev/mmcblk1p1"
+
+
+def card2_gone():
+    """Cartão 2 tirado sem ejetar: o /roms2 continua "montado" sem aparelho. Solta (umount -l) para
+    o sistema todo deixar de ver o ROMS2. Chamado ao ler a biblioteca e a página Cartões."""
+    if os.path.ismount("/roms2") and not os.path.exists(CARD2):
+        subprocess.run(["umount", "-l", "/roms2"], capture_output=True)
+        return True
+    return False
+
+
+def card2_state():
+    """"montado", "fora" (cartão no slot, desmontado) ou "sem" (nenhum cartão 2)."""
+    card2_gone()
+    if os.path.ismount("/roms2"):
+        return "montado"
+    return "fora" if os.path.exists(CARD2) else "sem"
+
+
+def card2_eject(_args=None):
+    """Cartões > Ejetar cartão 2: grava o que falta e desmonta, para tirar sem desligar."""
+    if not os.path.ismount("/roms2"):
+        return "O cartão 2 já está desmontado."
+    os.sync()
+    with open("/proc/mounts") as f:      # binds que o dArkOSen faz a partir do cartão 2 (Tools)
+        extra = [l.split()[1] for l in f if l.split()[1].startswith(("/opt/system/Tools", "/roms/ports"))]
+    for m in extra:
+        subprocess.run(["umount", m], capture_output=True)
+    # o compartilhamento de rede (Samba) segura o cartão enquanto um PC está conectado: para e volta depois
+    smb = subprocess.run(["systemctl", "is-active", "--quiet", "smbd"]).returncode == 0
+    if smb:
+        subprocess.run(["systemctl", "stop", "smbd"], capture_output=True)
+    r = subprocess.run(["umount", "/roms2"], capture_output=True, text=True)
+    if smb:
+        subprocess.run(["systemctl", "start", "smbd"], capture_output=True)
+    if r.returncode:
+        busy = subprocess.run(["fuser", "-m", "/roms2"], capture_output=True, text=True).stdout.split()
+        names = sorted({os.path.basename(cmdline_of(p)) for p in busy if cmdline_of(p)})[:3]
+        return "Erro: o cartão 2 está em uso" + (f" ({', '.join(names)})" if names else "") + ". Feche e tente de novo."
+    os.sync()
+    return "Cartão 2 ejetado. Pode tirar."
+
+
+def card2_mount(_args=None):
+    """Cartões > Montar cartão 2: monta em /roms2 (mesmas opções do launch-direct.sh)."""
+    if os.path.ismount("/roms2"):
+        return "O cartão 2 já está montado."
+    if not os.path.exists(CARD2):
+        return "Erro: nenhum cartão 2 no console."
+    fs = subprocess.run(["lsblk", "-no", "FSTYPE", CARD2], capture_output=True, text=True).stdout.strip()
+    if not fs:
+        return "Erro: o cartão 2 não tem uma partição que o sistema reconheça."
+    os.makedirs("/roms2", exist_ok=True)
+    if fs == "ext4":
+        cmd = ["mount", "-t", "ext4", "-o", "noatime", CARD2, "/roms2"]
+    else:
+        cmd = ["mount", "-t", "ntfs-3g" if fs == "ntfs" else fs, "-o",
+               "umask=0000,iocharset=utf8,uid=1000,gid=1000,noatime", CARD2, "/roms2"]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode:
+        return f"Erro ao montar: {(r.stderr or '').strip()[:80]}"
+    return "Cartão 2 montado."
+
+
+def cmdline_of(pid):
+    try:
+        with open(f"/proc/{pid}/cmdline", "rb") as f:
+            return f.read().split(b"\0")[0].decode(errors="replace")
+    except OSError:
+        return ""
+
+
 def game_roots():
     """Raízes valendo agora; /roms2 só entra se estiver montado."""
+    card2_gone()
     want = {"roms": ["/roms"], "roms2": ["/roms2"], "ambos": ["/roms", "/roms2"]}[get_game_source()]
     got = [r for r in want if r == "/roms" or os.path.ismount(r)]
     return got or ["/roms"]             # escolheu ROMS2 e ele saiu: volta ao ROMS

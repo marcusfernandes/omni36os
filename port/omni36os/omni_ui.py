@@ -1317,6 +1317,7 @@ class App:
             mounted = getattr(self, "fake_usb", False) if FAKE else os.path.ismount("/mnt/usbdrive")
             return [*([Choice("Origem dos jogos", "folder", "fonte", list(SOURCE_NAMES), SOURCE_NAMES)]
                       if FAKE or os.path.ismount("/roms2") else []),   # sem ROMS2: só ROMS, sem escolha
+                    *self.card2_items(),
                     tip(A("Detalhe dos cartões" if self.sd_count() > 1 else "Detalhe do cartão", "info-circle",
                           self.speed_test),
                         "Marca, tamanho, espaço livre e ocupado e um teste de velocidade de cada cartão (até 1 minuto). Cartão "
@@ -1524,6 +1525,35 @@ class App:
 
     def run_tool_toast(self, tool):
         self.worker(lambda: D.run(tool), self._action_done, busy="Fazendo...")
+
+    def card2_items(self):
+        """Ejetar (montado) ou Montar (no slot, desmontado) o cartão 2. Manual: nada fica vigiando o slot."""
+        st = ("montado" if getattr(self, "fake_card2", True) else "fora") if FAKE else omni.card2_state()
+
+        def go(fn, busy):
+            def run():
+                if FAKE:
+                    self.fake_card2 = fn == "mount"
+                    return "Cartão 2 montado." if fn == "mount" else "Cartão 2 ejetado. Pode tirar."
+                return omni.card2_mount() if fn == "mount" else omni.card2_eject()
+
+            def done(res):
+                if not FAKE:
+                    self.games_idx = None          # a biblioteca relê os ports sem (ou com) o cartão 2
+                    self.results.pop("ports", None)
+                self._sys_done(res)
+                if self.page == "cartoes":
+                    self.items = self.build_items("cartoes")
+                    self.item_sel = min(self.item_sel, len(self.items) - 1)
+            self.worker(run, done, busy=busy)
+        if st == "montado":
+            return [tip(Action("Ejetar cartão 2", "player-eject", lambda: go("eject", "Ejetando o cartão 2..."),
+                          confirm="Ejetar o cartão 2?\nOs ports dele somem da lista até montar de novo."),
+                        "Grava o que falta e desmonta o cartão 2 (ROMS2) para tirar sem desligar o console.")]
+        if st == "fora":
+            return [tip(Action("Montar cartão 2", "device-sd-card", lambda: go("mount", "Montando o cartão 2...")),
+                        "Monta o cartão 2 (ROMS2) que foi colocado com o console ligado.")]
+        return []
 
     def sd_count(self):
         return 2 if FAKE else max(1, len(omni_checks.sd_facts()["cartoes"]))
