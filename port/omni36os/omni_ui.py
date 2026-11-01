@@ -1390,6 +1390,8 @@ class App:
                 if ok else [get]
         if cid == "testar":
             return [A("Escolher o port", "player-play", self.open_picker),
+                    tip(A("Ver relatórios", "notes", lambda: self.open_logs(omni_logs.TESTS, from_page=True)),
+                        "Abre no Notas os relatórios dos testes (logs/teste de ports/teste_<port>.txt), só para leitura."),
                     A("Limpar avisos de falha", "check", lambda: self.run_tool_toast("clear_port_alerts")), recheck]
         if cid == "backup":
             where = "/roms/backup/omni36os" if FAKE else omni_backup.backup_dir()
@@ -2624,7 +2626,7 @@ class App:
     def logs_root(self):
         return os.environ.get("OMNI_LOGS", "/tmp/omni36os-logs-sim") if FAKE else omni_logs.ROOT
 
-    def open_logs(self, func=None, start=None):
+    def open_logs(self, func=None, start=None, from_page=False):
         """As pastas de /roms/logs (uma por função) e, dentro, os logs, o mais novo primeiro."""
         root = self.logs_root()
         if func is None:
@@ -2660,12 +2662,13 @@ class App:
                  "right": (time.strftime("%d/%m %H:%M", time.localtime(os.path.getmtime(os.path.join(folder, f)))), MUTED)}
                 for f in names]
         if not rows:
-            self.toast = ("Pasta vazia", "info", self.t + 3)
+            self.toast = ("Nenhum relatório ainda" if func == omni_logs.TESTS else "Pasta vazia", "info", self.t + 3)
             return
         self.show_list(omni_logs.NAMES.get(func, func), "file-text", rows, lambda r: self.open_log(r["path"]),
                        "Abrir", start)
         self.picker.update(app=NOTE_COLORS, sub=folder, hints=[])
-        self.picker["on_back"] = lambda: self.open_logs()
+        if not from_page:                 # atalho (Testar ports): o B volta direto para a página
+            self.picker["on_back"] = lambda: self.open_logs()
 
     LOG_TAIL = 64 * 1024                  # logs grandes: só o fim
 
