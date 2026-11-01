@@ -2593,6 +2593,8 @@ class App:
                     n = sum(1 for f in os.listdir(os.path.join(root, d)) if not f.startswith("."))
                 except OSError:
                     n = 0
+                if not n:
+                    continue                  # pasta vazia: não aparece
                 rows.append({"name": omni_logs.NAMES.get(d, d.capitalize()), "icon": "folder", "func": d,
                              "right": (f"{n} Arquivo" + ("s" if n != 1 else ""), MUTED)})
             if not rows:

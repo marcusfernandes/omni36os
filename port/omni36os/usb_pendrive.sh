@@ -121,6 +121,7 @@ give() {
     umount /$PART || { log "não desmontou /$PART"; mount -a; systemctl start omni36os-launcher omni36os-atalho; return 1; }
   fi
   echo "$d" > $LUN/file
+  GIVEN=$d                         # o /roms2 não está no fstab: a volta monta pelo aparelho
   say "MODO PENDRIVE\n\n  /$PART está aberta no computador.\n\n  Ejete no PC e desconecte o cabo,\n  ou aperte B, para voltar aos jogos."
 }
 
@@ -132,7 +133,7 @@ take_back() {
   echo "" > $G/UDC 2>/dev/null
   sync
   echo "" > $LUN/file 2>/dev/null
-  mount /$PART || log "falha ao montar /$PART"
+  mount /$PART 2>/dev/null || { [ -b "${GIVEN:-}" ] && mount "$GIVEN" /$PART; } || log "falha ao montar /$PART"
   [ $PART = roms2 ] && mount /opt/system/Tools 2>/dev/null
   systemctl start omni36os-launcher omni36os-atalho
   echo $UDC > $G/UDC 2>/dev/null

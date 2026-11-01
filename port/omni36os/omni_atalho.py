@@ -423,6 +423,12 @@ def main():
         omni_sistema.ensure_alias()
     except Exception as e:
         print(f"apelido: {e}", file=sys.stderr, flush=True)
+    try:                                 # adaptador de Wi-Fi encaixado com o console ligado e preso no modo disco
+        import threading
+        import omni_sistema
+        threading.Thread(target=omni_sistema.dongle_watch, args=(lambda: bool(game_pids()),), daemon=True).start()
+    except Exception as e:
+        print(f"adaptador: {e}", file=sys.stderr, flush=True)
     signal.signal(signal.SIGHUP, lambda *_: apply_flags())
     omni_runtimes.Runner(lambda: bool(game_pids()))   # runtimes do PortMaster em dia, em segundo plano
     fd = open_pad()

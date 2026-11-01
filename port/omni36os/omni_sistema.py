@@ -12,6 +12,7 @@ O launcher roda como root: nada aqui usa sudo.
 import csv
 import glob
 import os
+import sys
 import re
 import shutil
 import signal
@@ -354,6 +355,45 @@ def wifi_dongle_fix():
         if not wifi_dongle_stuck():
             return "O adaptador de Wi-Fi demorou a acordar e foi religado."
     return "Erro: o adaptador de Wi-Fi ficou no modo disco. Tire e ponha de novo na porta USB."
+
+
+def reset_usb_controller():
+    """Reinicia o controlador da porta OTG (o mesmo do omni36os-wifi-boot): o adaptador volta do zero."""
+    drv = "/sys/bus/platform/drivers/dwc2"
+    try:
+        with open(f"{drv}/unbind", "w") as f:
+            f.write("ff300000.usb")
+        time.sleep(2)
+        with open(f"{drv}/bind", "w") as f:
+            f.write("ff300000.usb")
+        return True
+    except OSError:
+        return False
+
+
+def dongle_watch(busy=lambda: False):
+    """Vigia sem fim (serviço de atalhos): o adaptador posto com o console ligado também pode ficar
+    no modo disco, e a correção do menu só roda quando ele abre. Preso por 10 s: refaz a troca;
+    se não adiantar, reinicia o controlador USB (uma vez por encaixe). Não mexe durante um jogo."""
+    stuck_for, reset_done = 0, False
+    while True:
+        time.sleep(5)
+        try:
+            if not wifi_dongle_stuck():
+                stuck_for, reset_done = 0, False
+                continue
+            stuck_for += 5
+            if stuck_for < 10 or busy():
+                continue
+            r = wifi_dongle_fix()
+            print(f"adaptador no modo disco: {r or 'trocado'}", file=sys.stderr, flush=True)
+            if r.startswith("Erro") and not reset_done:
+                reset_done = True
+                print("reiniciando o controlador USB", file=sys.stderr, flush=True)
+                reset_usb_controller()
+                stuck_for = 0
+        except Exception as e:
+            print(f"adaptador: {e}", file=sys.stderr, flush=True)
 
 
 # --- rede pelo cabo USB (g_ether) ---
