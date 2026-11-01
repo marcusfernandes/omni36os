@@ -305,7 +305,7 @@ As outras ferramentas do sistema ficam nos cards: Testar o controle (Controles),
 Mostra os ports das pastas escolhidas em Cartões > Origem dos jogos.
 Escolha um port e aperte A: o Omni36OS fecha, o port abre como pela biblioteca e, depois de 15 segundos, é encerrado sozinho. O Omni36OS volta com o resultado.
 Passou: o port ficou aberto os 15 segundos.
-Falhou: o port fechou antes. O relatório fica em omni36os/logs/<nome do port>/ (dentro de /opt/omni36os) com a saída do port, os logs da pasta dele, as mensagens do kernel e o estado do sistema.
+Falhou: o port fechou antes. O relatório fica em logs/teste de ports/teste_<nome do port>.txt, no cartão 1 (dá para ler em Notas > Logs), com a saída do port, os logs da pasta dele, as mensagens do kernel e o estado do sistema.
 A lista mostra o último resultado de cada port, e as falhas viram alerta no card.
 "Limpar avisos de falha" tira o alerta do card depois que você já viu as falhas. O resultado continua na lista até o port ser testado de novo; se o novo teste falhar, o aviso volta.
 Ports com menu próprio (como Daytona USA e NFSU1) passam quando o menu abre: o teste não aperta botões.

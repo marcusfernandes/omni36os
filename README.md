@@ -34,7 +34,7 @@ Em relação ao ArkOS, ao dArkOS e ao dArkOSen, que são sistemas excelentes e c
 | **Ajustes** | Scripts separados em "Options/Tools", cada um com seu visual | Tudo dentro do launcher, com explicação de cada opção na própria tela |
 | **Diagnóstico** | Manual | Cada card se verifica sozinho e mostra pontos de alerta; o conserto aparece com um botão ("SUGERIDO") |
 | **Biblioteca** | Lista de arquivos | Capa, estúdio, data, gêneros e descrição de cada port (PortMaster, Steam, Wikipédia em português e DuckDuckGo, buscados uma vez e guardados no cartão) |
-| **Apps** | — | Músicas (com visualizações e capa do álbum), Vídeos (codecs abertos do FFmpeg) e Notas (bloco de notas com edição contínua) |
+| **Apps** | — | Músicas (com visualizações e capa do álbum), Vídeos (codecs abertos do FFmpeg), Imagens (capturas de tela do menu e dos jogos) e Notas (bloco de notas com edição contínua, que também lê os logs do sistema) |
 | **Boot** | Telas pretas entre etapas | Logo e boas-vindas contínuos até o menu, com tudo no máximo durante o boot (cerca de 3 s a menos) e no mínimo depois |
 | **Desempenho** | Governador fixo | Menu sempre no mínimo (esfria e poupa bateria); ports sobem até limites escolhidos; overclock com trava e senha |
 | **Teste de ports** | — | Abre o port por 15 s, diz a causa provável da falha e corrige o que é seguro (com desfazer) |
@@ -71,7 +71,7 @@ E mais:
    - **Seu nome:** no fim, o Omni36OS pergunta como você quer ser chamado.
 4. Instale ports pelo **PortMaster** (Ferramentas > PortMaster, com Wi-Fi) ou copie para a pasta `ports` do cartão.
 
-Pastas no cartão (partição EASYROMS): `ports`, `musicas`, `videos`, `notas` e `imagens` (capturas de tela). Com um segundo cartão, `ROMS2` também é lido.
+Pastas no cartão (partição EASYROMS): `ports`, `musicas`, `videos`, `notas`, `imagens` (capturas de tela) e `logs` (logs do sistema, uma pasta por função). Com um segundo cartão, `ROMS2` também é lido.
 
 **Acesso pelo PC:** SSH e SFTP com `omni` / `omni`. Com "Serviços remotos" ligado, o Samba mostra Cartão 1 e Cartão 2, e o navegador de arquivos fica na porta 80, com o mesmo usuário. Troque a senha em Geral > Segurança.
 

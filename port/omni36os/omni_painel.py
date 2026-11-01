@@ -71,8 +71,14 @@ EVENT = struct.Struct("llHHi")      # input_event no aarch64: timeval (2 longs),
 
 
 def log(msg):
-    os.makedirs(DIR, exist_ok=True)
-    with open(LOG, "a") as f:
+    """Com o /roms montado, em /roms/logs/tela; cedo no boot, no /boot (o launcher junta depois)."""
+    path = LOG
+    if os.path.ismount("/roms"):
+        path = "/roms/logs/tela/teste_de_tela.log"
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+    else:
+        os.makedirs(DIR, exist_ok=True)
+    with open(path, "a") as f:
         f.write(time.strftime("%d/%m %H:%M:%S ") + msg + "\n")
 
 

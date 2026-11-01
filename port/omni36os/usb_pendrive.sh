@@ -21,7 +21,10 @@ G=/sys/kernel/config/usb_gadget/r36s
 LUN=$G/functions/mass_storage.0/lun.0
 SELF=/home/ark/usb-disco.sh
 CFG=/home/ark/usb-disco.cfg
-LOG=/home/ark/usb-disco.log
+# Log em /roms/logs/pendrive (o mesmo lugar dos outros logs, ver omni_logs.py). Com o /roms entregue
+# ao PC ele vai para o /tmp e é juntado ao do cartão quando a partição volta.
+LOG=/roms/logs/pendrive/pendrive.log
+LOG_TMP=/tmp/omni36os-logs/pendrive/pendrive.log
 SVC=/etc/systemd/system/usb-disco.service
 TTY=/dev/tty1
 # Partição entregue ao PC: a escolhida em "Partição no PC" (padrão ROMS2 com o cartão 2); sem o
@@ -35,7 +38,16 @@ pick_part
 [ "$(id -u)" = 0 ] || exec sudo -n "$0" "$@"
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-log() { echo "$(/bin/date '+%F %T') $*" >> $LOG; }
+log() {
+  local f=$LOG
+  if mountpoint -q /roms; then
+    mkdir -p "${LOG%/*}" 2>/dev/null
+    [ -s $LOG_TMP ] && cat $LOG_TMP >> $LOG && rm -f $LOG_TMP
+  else
+    f=$LOG_TMP; mkdir -p "${f%/*}"
+  fi
+  echo "$(/bin/date '+%F %T') $*" >> "$f"
+}
 say() { printf '\033[H\033[2J\n\n  %b\n' "$*" > $TTY 2>/dev/null; }
 mode() { tr -d '\0' < /proc/device-tree/usb@ff300000/dr_mode; }
 dtb_mode() { fdtget -t s $DTB /usb@ff300000 dr_mode; }

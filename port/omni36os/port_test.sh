@@ -1,7 +1,7 @@
 #!/bin/bash
 # Teste de port do Omni36OS: roda o port como o ES roda (nice -19, já sob perfmax),
 # espera TEMPO segundos e encerra. Se o port fechar sozinho antes disso, conta
-# como falha e gera um relatório em omni36os/logs/<nome do port>/.
+# como falha e gera o relatório /roms/logs/teste de ports/teste_<nome do port>.txt.
 # Uso: port_test.sh "/roms2/ports/Nome.sh"
 
 PORT="$1"
@@ -61,9 +61,10 @@ printf "\033c" > /dev/tty1 2>/dev/null
 
 REPORT=""
 if [ "$STATUS" = "falhou" ]; then
-  DIR="$OMNI_DIR/logs/$SAFE"
-  mkdir -p "$DIR"
-  REPORT="$DIR/$(date '+%Y-%m-%d_%H-%M-%S').txt"
+  DIR=/roms/logs/"teste de ports"
+  mountpoint -q /roms || DIR="/tmp/omni36os-logs/teste de ports"
+  sudo mkdir -p "$DIR" && sudo chown ark:ark "$(dirname "$DIR")" "$DIR" 2>/dev/null
+  REPORT="$DIR/teste_$SAFE.txt"          # um por port: o teste novo substitui o anterior
   {
     echo "RELATÓRIO DE TESTE DE PORT (Omni36OS)"
     echo "================================"

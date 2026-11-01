@@ -101,12 +101,25 @@ p = sys.argv[2]
 print(omni_meta.port_dir(p) or (p if os.path.isdir(p) else os.path.dirname(p)))' "$OMNI_DIR" "$1" 2>/dev/null
 }
 
-# O launcher caiu (erro no Python): guarda o fim do log, que o /tmp perde na próxima abertura.
-CRASH_LOG=/var/log/omni36os-crash.log
+# Logs em /roms/logs/<função>/ (cartão 1, para ler pelo PC ou pelo Notas); sem o /roms, no /tmp.
+# Mesma regra do omni_logs.py.
+logdir() {
+    local base=/roms/logs
+    mountpoint -q /roms || base=/tmp/omni36os-logs
+    sudo mkdir -p "$base/$1" && sudo chown ark:ark "$base" "$base/$1" 2>/dev/null
+    echo "$base/$1"
+}
+sudo python3 -B -c 'import sys; sys.path.insert(0, sys.argv[1]); import omni_logs; omni_logs.migrate(sys.argv[1])' "$OMNI_DIR" 2>/dev/null
+LOG_SIS=$(logdir sistema)
+LOG_PORTS=$(logdir ports)
+UI_LOG="$LOG_SIS/launcher.log"
+
+# O launcher caiu (erro no Python): guarda o fim do log, que a próxima abertura apaga.
+CRASH_LOG="$LOG_SIS/falhas.log"
 crash_report() {
     {
         echo "=== $(date '+%d/%m/%Y %H:%M:%S') omni_ui.py saiu com código $1 (versão $(cat "$OMNI_DIR/VERSION" 2>/dev/null))"
-        tail -n 60 /tmp/omni.log 2>/dev/null
+        tail -n 60 "$UI_LOG" 2>/dev/null
     } | sudo tee -a "$CRASH_LOG" >/dev/null
     # o log não cresce sem fim no cartão
     if [ "$(sudo stat -c %s "$CRASH_LOG" 2>/dev/null || echo 0)" -gt 262144 ]; then
@@ -177,7 +190,7 @@ ports_unbind
 # antes de abrir. Ports antigos e independentes só montam o arquivo, sem o runtime_check.
 port_deps() {
     case "$1" in
-        *.sh|*.SH) sudo python3 -B "$OMNI_DIR/port_deps.py" "$1" > /tmp/omni36os-deps.log 2>&1 ;;
+        *.sh|*.SH) sudo python3 -B "$OMNI_DIR/port_deps.py" "$1" > "$LOG_PORTS/dependencias.log" 2>&1 ;;
     esac
 }
 
@@ -196,7 +209,7 @@ while true; do
 
     # Iniciar o launcher (UI principal)
     sudo OMNI_HUB="boot" OMNI_RESUME="$RESUME" SDL_GAMECONTROLLERCONFIG_FILE=/opt/inttools/gamecontrollerdb.txt \
-        python3 omni_ui.py > /tmp/omni.log 2>&1
+        python3 omni_ui.py > "$UI_LOG" 2>&1
     rc=$?
 
     if [ ! -f /tmp/omni36os-next ]; then
@@ -241,7 +254,7 @@ while true; do
                 sudo chmod 666 /dev/tty1
                 port_begin
                 ports_card2_begin "$rom"
-                OMNI_GAME_DIR="$(game_dir "$rom")" LD_PRELOAD="$(hud_preload)" bash -c "$cmd" > /tmp/omni36os-game.log 2>&1
+                OMNI_GAME_DIR="$(game_dir "$rom")" LD_PRELOAD="$(hud_preload)" bash -c "$cmd" > "$LOG_PORTS/jogo.log" 2>&1
                 kill_gptokeyb             # port que caiu antes do pm_finish deixa o gptokeyb rodando
                 ports_card2_end
                 port_end
@@ -300,9 +313,9 @@ ports.record_port_played(sys.argv[2])' "$OMNI_DIR" "$port_path" 2>/dev/null || t
                     port_begin
                     export LD_PRELOAD="$(hud_preload)" OMNI_GAME_DIR="$port_path"
                     if [ -n "$ESUDO" ]; then
-                        $ESUDO "./$exec_file" > /tmp/omni36os-port.log 2>&1
+                        $ESUDO "./$exec_file" > "$LOG_PORTS/port.log" 2>&1
                     else
-                        "./$exec_file" > /tmp/omni36os-port.log 2>&1
+                        "./$exec_file" > "$LOG_PORTS/port.log" 2>&1
                     fi
                     unset LD_PRELOAD OMNI_GAME_DIR
 

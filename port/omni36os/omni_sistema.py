@@ -359,7 +359,7 @@ def wifi_dongle_fix():
 # --- rede pelo cabo USB (g_ether) ---
 
 USBNET_PID, USBNET_LEASES = "/tmp/dnsmasq-usbnet.pid", "/tmp/usbnet.leases"
-USBNET_LOG = "/tmp/usbnet-dnsmasq.log"
+USBNET_LOG = "/roms/logs/rede/rede_usb.log" if os.path.ismount("/roms") else "/tmp/usbnet-dnsmasq.log"
 DEV_MAC, HOST_MAC = "42:61:72:6b:6f:53", "42:61:72:6b:6f:54"
 DHCP_CLIENTS = ("dhclient", "dhcpcd", "udhcpc")
 UNIVERSAL_IP = "10.44.44.1"
@@ -502,6 +502,7 @@ def usbnet_universal():
     sh("ip", "addr", "add", f"{UNIVERSAL_IP}/24", "dev", "usb0")
     sh("ip", "link", "set", "usb0", "up")
     sh("systemctl", "start", "ssh")
+    os.makedirs(os.path.dirname(USBNET_LOG), exist_ok=True)
     for f in (USBNET_LEASES, USBNET_LOG):
         try:
             os.remove(f)

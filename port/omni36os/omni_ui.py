@@ -149,6 +149,7 @@ STATE_MAX_AGE = 30 * 60
 import omni_help
 import omni_musica  # noqa: E402
 import omni_video  # noqa: E402
+import omni_logs  # noqa: E402
 import omni_teclado  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -574,6 +575,7 @@ def music_save(**kw):
 
 NOTE_COLORS = (hexc("fbbf24"), hexc("f97316"))
 VIDEO_COLORS = (hexc("38bdf8"), hexc("8b5cf6"))
+IMAGE_COLORS = (hexc("34d399"), hexc("0ea5e9"))
 TEXT_EXT = (".txt", ".md", ".log", ".ini", ".cfg", ".conf")
 NOTES_DIR = "/roms/notas"
 
@@ -1048,7 +1050,7 @@ class App:
             out.append(("info", f"{seen} Falha(s) já vista(s): continuam marcadas na lista até um novo teste."))
         oks = sum(1 for n, r in res.items() if r[0] == "ok" and n in names)
         for n in fails:
-            out.append(("aviso", f"{n} falhou no teste de {res[n][1]}. Relatório em omni36os/logs/{n}/."))
+            out.append(("aviso", f"{n} falhou no teste de {res[n][1]}. Relatório em logs/teste de ports/teste_{n}.txt (Notas > Logs)."))
         if oks:
             out.append(("ok", f"{oks} Port(s) passaram no último teste."))
         out.append(("info", "O teste abre o port por 15 s e fecha sozinho. Se ele fechar antes, é falha."))
@@ -1142,8 +1144,11 @@ class App:
                         "As opções ficam dentro do app: START."),
                     tip(A("Vídeos", "movie", lambda: self.open_videos()),
                         "Toca os vídeos das pastas videos dos cartões (EASYROMS/videos e ROMS2/videos): mp4, mkv, webm e outros."),
+                    tip(A("Imagens", "photo-search", lambda: self.open_images()),
+                        "Capturas de tela (FN + Y): as do menu e as de cada jogo. Esquerda/direita passam as imagens."),
                     tip(A("Notas", "notes", lambda: self.open_notes()),
-                        "Bloco de notas: textos simples na pasta notas do cartão 1 (EASYROMS/notas)."),
+                        "Bloco de notas: textos simples na pasta notas do cartão 1 (EASYROMS/notas). "
+                        "Em Logs do sistema dá para ler os logs de /roms/logs."),
                     tip(subpage(A("GeForce NOW", "device-tv", lambda: self.open_page("gfn")), "gfn"),
                         "Jogos da nuvem com a sua conta GeForce NOW (OpenNOW). Precisa de Wi-Fi bom."),
                     tip(subpage(A("Moonlight", "device-tv", lambda: self.open_page("moonlight")), "moonlight"),
@@ -2143,16 +2148,17 @@ class App:
 
     # --- ver imagens (Arquivos) ---
 
-    def open_viewer(self, path):
-        """Imagem em tela cheia. Esquerda/direita: as outras imagens da pasta; A: mostra/esconde o nome;
-        B: volta à pasta, na imagem que estava aberta."""
+    def open_viewer(self, path, pics=None, back=None):
+        """Imagem em tela cheia. Esquerda/direita: as outras imagens da pasta (ou `pics`, na ordem
+        dada); A: mostra/esconde o nome; B: volta à pasta (ou chama `back(caminho)`)."""
         folder = os.path.dirname(path)
-        try:
-            pics = sorted((n for n in os.listdir(folder) if is_image(n)), key=str.lower)
-        except OSError:
-            pics = [os.path.basename(path)]
+        if pics is None:
+            try:
+                pics = sorted((n for n in os.listdir(folder) if is_image(n)), key=str.lower)
+            except OSError:
+                pics = [os.path.basename(path)]
         name = os.path.basename(path)
-        self.viewer = {"dir": folder, "pics": pics, "i": pics.index(name) if name in pics else 0,
+        self.viewer = {"dir": folder, "pics": pics, "i": pics.index(name) if name in pics else 0, "back": back,
                        "info": True, "info_t": self.t, "sel": self.picker["sel"] if self.picker else 0}
         self.picker = None
 
@@ -2166,6 +2172,9 @@ class App:
         elif cmd == "back":
             cur = os.path.join(v["dir"], v["pics"][v["i"]])
             self.viewer = None
+            if v.get("back"):
+                v["back"](cur)
+                return
             self.open_files(v["dir"], v["sel"])
             rows = self.picker["rows"] if self.picker else []
             k = next((i for i, r in enumerate(rows) if r.get("path") == cur), None)
@@ -2189,6 +2198,86 @@ class App:
             g.rrect(0, H - 40, W, 40, 0, (0, 0, 0, int(150 * k)), feather=0)
             self.draw_footer_at(H - 29, [("LR", "Outra imagem"), ("A", "Mostrar/esconder"), ("B", "Voltar")],
                                 center=W / 2)
+
+    # --- Aplicativos > Imagens (capturas de tela) ---
+
+    def shot_folders(self):
+        """[(nome, pasta)] com capturas: a do menu (/roms/imagens) e a pasta imagens de cada port
+        (o FN + Y num jogo grava em <pasta do jogo>/imagens), nos dois cartões."""
+        if FAKE:
+            base = os.environ.get("OMNI_IMAGENS", os.path.join(HERE, "imagens", "capturas"))
+            cands = [("Menu do Omni36OS", base)]
+        else:
+            cands = [("Menu do Omni36OS", SHOT_DIR)]
+            for card in ("/roms", "/roms2"):
+                for d in sorted(glob.glob(f"{card}/ports/*/imagens")):
+                    cands.append((os.path.basename(os.path.dirname(d)), d))
+        out, seen = [], set()
+        for name, d in cands:
+            real = os.path.realpath(d)
+            if real in seen:
+                continue
+            seen.add(real)
+            try:
+                pics = [f for f in os.listdir(d) if is_image(f)]
+            except OSError:
+                continue
+            if pics:
+                newest = max(os.path.getmtime(os.path.join(d, f)) for f in pics)
+                out.append((name, d, len(pics), newest))
+        out.sort(key=lambda x: -x[3])
+        return out
+
+    def open_images(self, folder=None, start=None):
+        """Capturas de tela: as pastas (a mais nova primeiro) e, dentro, as imagens; A abre em tela
+        cheia (esquerda/direita passam), X apaga."""
+        if folder is None:
+            groups = self.shot_folders()
+            if not groups:
+                self.toast = ("Nenhuma captura ainda: FN + Y grava a tela", "aviso", self.t + 4)
+                return
+            if len(groups) == 1 and start is None:
+                return self.open_images(groups[0][1])
+            rows = [{"name": n, "icon": "folder", "path": d,
+                     "right": (f"{c} Imagem" + ("s" if c != 1 else "") + " · " + time.strftime("%d/%m", time.localtime(t)), MUTED)}
+                    for n, d, c, t in groups]
+            self.show_list("Imagens", "photo-search", rows, lambda r: self.open_images(r["path"]), "Abrir", start)
+            self.picker.update(app=IMAGE_COLORS, sub="Capturas de tela", hints=[])
+            return
+        try:
+            pics = [f for f in os.listdir(folder) if is_image(f)]
+        except OSError:
+            pics = []
+        pics.sort(key=lambda f: -os.path.getmtime(os.path.join(folder, f)))
+        if not pics:
+            self.picker = None
+            self.open_images()
+            return
+        rows = [{"name": os.path.splitext(f)[0], "icon": "photo-search", "path": os.path.join(folder, f),
+                 "right": (time.strftime("%d/%m %H:%M", time.localtime(os.path.getmtime(os.path.join(folder, f)))), MUTED)}
+                for f in pics]
+        groups = self.shot_folders()
+        many = len(groups) > 1
+        title = next((n for n, d, *_ in groups if d == folder), "Imagens") if many else "Imagens"
+        k = next((i for i, r in enumerate(rows) if r["path"] == start), None) if isinstance(start, str) else start
+
+        def show(r):
+            self.open_viewer(r["path"], pics=pics, back=lambda cur: self.open_images(folder, cur))
+        self.show_list(title, "photo-search", rows, show, "Ver", k)
+        self.picker.update(app=IMAGE_COLORS, sub=folder, hints=[("X", "Apagar")])
+        self.picker["on_x"] = lambda r: self.image_delete(r, folder)
+        if many:
+            self.picker["on_back"] = lambda: self.open_images(start=0)
+
+    def image_delete(self, r, folder):
+        def go():
+            try:
+                os.remove(r["path"])
+            except OSError as e:
+                self.toast = (f"Não consegui apagar: {e.strerror}", "problema", self.t + 3.5)
+            self.open_images(folder)
+        self.modal = {"title": "Apagar a imagem?", "icon": "trash", "sel": 1, "buttons": ["Apagar", "Cancelar"],
+                      "text": f"\"{r['name']}\" some do cartão. Não dá para desfazer.", "fns": [go, lambda: None]}
 
     # --- Aplicativos > Músicas ---
 
@@ -2455,7 +2544,9 @@ class App:
         except OSError:
             names = []
         names.sort(key=lambda n: -os.path.getmtime(os.path.join(folder, n)))
-        rows = [{"name": "Nova nota", "icon": "plus", "new": True}]
+        rows = [{"name": "Nova nota", "icon": "plus", "new": True},
+                {"name": "Logs do sistema", "icon": "folder", "logs": True,
+                 "right": ("Só leitura", MUTED)}]
         rows += [{"name": os.path.splitext(n)[0], "icon": "file-text", "path": os.path.join(folder, n),
                   "right": (time.strftime("%d/%m %H:%M", time.localtime(os.path.getmtime(os.path.join(folder, n)))), MUTED)}
                  for n in names]
@@ -2465,6 +2556,9 @@ class App:
         self.picker["hints"] = [("X", "Apagar")] if names else []
 
     def note_pick(self, r):
+        if r.get("logs"):
+            self.open_logs()
+            return
         if not r.get("new"):
             self.open_note(r["path"])
             return
@@ -2479,8 +2573,74 @@ class App:
             self.open_note(path, edit=True)
         self.keyboard("Nome da nota", create, hint="Ex.: senhas do wifi, dicas")
 
+    # --- Notas > Logs do sistema (só leitura) ---
+
+    def logs_root(self):
+        return os.environ.get("OMNI_LOGS", "/tmp/omni36os-logs-sim") if FAKE else omni_logs.ROOT
+
+    def open_logs(self, func=None, start=None):
+        """As pastas de /roms/logs (uma por função) e, dentro, os logs, o mais novo primeiro."""
+        root = self.logs_root()
+        if func is None:
+            try:
+                funcs = sorted((d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))),
+                               key=lambda d: (omni_logs.FUNCS.index(d) if d in omni_logs.FUNCS else 99, d))
+            except OSError:
+                funcs = []
+            rows = []
+            for d in funcs:
+                try:
+                    n = sum(1 for f in os.listdir(os.path.join(root, d)) if not f.startswith("."))
+                except OSError:
+                    n = 0
+                rows.append({"name": omni_logs.NAMES.get(d, d.capitalize()), "icon": "folder", "func": d,
+                             "right": (f"{n} Arquivo" + ("s" if n != 1 else ""), MUTED)})
+            if not rows:
+                self.toast = ("Nenhum log ainda", "info", self.t + 3)
+                return
+            self.show_list("Logs", "file-text", rows, lambda r: self.open_logs(r["func"]), "Abrir", start)
+            self.picker.update(app=NOTE_COLORS, sub=root, hints=[])
+            self.picker["on_back"] = lambda: self.open_notes(start=1)
+            return
+        folder = os.path.join(root, func)
+        try:
+            names = [f for f in os.listdir(folder) if not f.startswith(".") and os.path.isfile(os.path.join(folder, f))]
+        except OSError:
+            names = []
+        names.sort(key=lambda f: -os.path.getmtime(os.path.join(folder, f)))
+        rows = [{"name": f, "icon": "file-text", "path": os.path.join(folder, f),
+                 "right": (time.strftime("%d/%m %H:%M", time.localtime(os.path.getmtime(os.path.join(folder, f)))), MUTED)}
+                for f in names]
+        if not rows:
+            self.toast = ("Pasta vazia", "info", self.t + 3)
+            return
+        self.show_list(omni_logs.NAMES.get(func, func), "file-text", rows, lambda r: self.open_log(r["path"]),
+                       "Abrir", start)
+        self.picker.update(app=NOTE_COLORS, sub=folder, hints=[])
+        self.picker["on_back"] = lambda: self.open_logs()
+
+    LOG_TAIL = 64 * 1024                  # logs grandes: só o fim
+
+    def open_log(self, path):
+        """Log para ler (só leitura); dos grandes, só o fim, onde está o mais novo."""
+        try:
+            size = os.path.getsize(path)
+            with open(path, "rb") as f:
+                if size > self.LOG_TAIL:
+                    f.seek(size - self.LOG_TAIL)
+                data = f.read()
+        except OSError as e:
+            self.toast = (f"Não consegui abrir: {e.strerror}", "problema", self.t + 3.5)
+            return
+        text = data.decode("utf-8", errors="replace").replace("\r\n", "\n")
+        text = re.sub(r"\x1b\[[0-9;?]*[A-Za-z]", "", text)          # cores do terminal
+        if size > self.LOG_TAIL:
+            text = "(Só o fim do arquivo)\n" + text[text.find("\n") + 1:]
+        self.note = {"path": path, "text": text, "top": 10 ** 9, "scroll": 0.0, "jump": True,   # abre no fim
+                     "notes": False, "ro": True}
+
     def note_delete(self, r):
-        if r.get("new"):
+        if r.get("new") or r.get("logs"):
             return
         self.modal = {"title": "Apagar a nota?", "icon": "trash", "sel": 1, "buttons": ["Apagar", "Cancelar"],
                       "text": f"\"{r['name']}\" some do cartão. Não dá para desfazer.",
@@ -2578,7 +2738,8 @@ class App:
     def note_input(self, cmd):
         n = self.note
         if cmd == "ok":
-            self.note_edit()
+            if not n.get("ro"):
+                self.note_edit()
         elif cmd == "back":
             self.note = None
             if n["notes"] and self.picker and self.picker.get("title") == "Notas":
@@ -2606,6 +2767,8 @@ class App:
         vis = int((bot - ly) // rh)
         n["max"] = max(0, len(spans) - vis)
         n["top"] = min(n["top"], n["max"])
+        if n.pop("jump", False):
+            n["scroll"] = n["top"] * rh
         n["scroll"] = approach(n["scroll"], n["top"] * rh, dt, 18)
         g.clip(16, ly - 4, W - 32, bot - ly + 8)
         first = max(0, int(n["scroll"] // rh) - 1)
@@ -2620,7 +2783,7 @@ class App:
             g.rrect(W - 28, ly + (th - bh) * n["scroll"] / (n["max"] * rh), 4, bh, 2, alpha(a1, 220))
         if not text.strip():
             g.text("Regular", 13, "Nota vazia: A para escrever.", W / 2, 240, MUTED, "c")
-        hints = [("A", "Editar")] + ([("UD", "Rolar"), ("L1/R1", "Página")] if n["max"] else []) + [("B", "Fechar")]
+        hints = ([] if n.get("ro") else [("A", "Editar")]) + ([("UD", "Rolar"), ("L1/R1", "Página")] if n["max"] else []) + [("B", "Fechar")]
         self.draw_footer_at(H - 29, hints, center=W / 2)
 
     MUSIC_OPTIONS = (("Visualização", "wave-sine", "vis", list(VIS_NAMES), VIS_NAMES,
@@ -3471,7 +3634,7 @@ class App:
             if not kind:
                 return
             r = {"nome": "TMNTShreddersRevenge", "resultado": kind, "segundos": "2",
-                 "relatorio": "/opt/omni36os/logs/TMNTShreddersRevenge/2026-10-31_09-12-44.txt"}
+                 "relatorio": "/roms/logs/teste de ports/teste_TMNTShreddersRevenge.txt"}
             found = [] if kind == "ok" else [
                 {"id": "permissao", "causa": "Um arquivo do port está sem permissão para rodar (comum depois de "
                                              "copiar pelo PC).", "dica": "Dar permissão de execução aos arquivos do port.",
@@ -4809,7 +4972,7 @@ class App:
                 back = omni_update.rolled_back_message()
                 if back:
                     self.modal = {"title": "Atualização desfeita", "icon": "alert-triangle", "sel": 0,
-                                  "buttons": ["OK"], "text": back + "\nO erro ficou em /var/log/omni36os-crash.log."}
+                                  "buttons": ["OK"], "text": back + "\nO erro ficou em logs/sistema/falhas.log (Notas > Logs)."}
             self.first_screens()
             if RESUME == "testar":
                 self.sel = next(i for i, c in enumerate(CARDS) if c[0] == "ferramentas")
