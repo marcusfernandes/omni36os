@@ -95,6 +95,9 @@ if [ "$STATUS" = "falhou" ]; then
     # cópia que parou no meio (PC desconectado antes de terminar de gravar): arquivos com 0 bytes
     [ -s "$PORT" ] || echo "Cópia incompleta: o script $(basename "$PORT") está vazio (0 bytes)."
     GD=$(python3 -B -c 'import sys; sys.path.insert(0, sys.argv[1]); import omni_meta; print(omni_meta.port_dir(sys.argv[2]) or "")' "$OMNI_DIR" "$PORT" 2>/dev/null)
+    # runtime do PortMaster pedido pelo port (port.json ou o script) e que não está em libs/
+    python3 -B -c 'import sys; sys.path.insert(0, sys.argv[1]); import omni_runtimes as r
+for n in r.missing(sys.argv[2], sys.argv[3] or None): print("Runtime faltando:", n)' "$OMNI_DIR" "$PORT" "$GD" 2>/dev/null
     if [ -n "$GD" ] && [ -d "$GD" ]; then
       TOT=$(find "$GD" -type f 2>/dev/null | wc -l)
       VAZ=$(find "$GD" -type f -size 0 ! -name '*.log' ! -name '.*' 2>/dev/null | wc -l)

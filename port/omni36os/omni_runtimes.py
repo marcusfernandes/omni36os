@@ -42,6 +42,38 @@ def wanted():
         return []
 
 
+def needed(script, port_dir=None):
+    """Runtimes que um port pede (port.json "attr.runtime" e o script: runtime="..." ou
+    libs/<nome>.squashfs), já com o .squashfs no fim."""
+    import re
+    names = set()
+    if port_dir:
+        try:
+            with open(os.path.join(port_dir, "port.json")) as f:
+                r = json.load(f).get("attr", {}).get("runtime") or []
+            names.update([r] if isinstance(r, str) else r)
+        except (OSError, ValueError, AttributeError):
+            pass
+    try:
+        with open(script, errors="replace") as f:
+            txt = f.read()
+        names.update(re.findall(r'^\s*runtime="?([\w.\-]+?)"?\s*$', txt, re.M))
+        names.update(re.findall(r"libs/([\w.\-]+\.squashfs)", txt))
+    except OSError:
+        pass
+    return sorted(n if n.endswith(".squashfs") else n + ".squashfs" for n in names if n and "$" not in n)
+
+
+def missing(script, port_dir=None, libs=LIBS):
+    """Dos runtimes pedidos, os que não estão em libs/ (aceita o nome com -aarch64)."""
+    out = []
+    for n in needed(script, port_dir):
+        alt = n[:-len(".squashfs")] + "-aarch64.squashfs"
+        if not any(os.path.isfile(os.path.join(libs, x)) for x in (n, alt)):
+            out.append(n)
+    return out
+
+
 def index():
     """nome -> {url, md5, size} para aarch64."""
     req = urllib.request.Request(INDEX, headers={"User-Agent": "Omni36OS"})
