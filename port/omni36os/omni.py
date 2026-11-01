@@ -137,6 +137,72 @@ def live_panel():
     return panel_signature(model, props)
 
 
+DTB_PACKS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dtb")      # catálogos de DTB do dArkOSen que vêm na atualização
+
+
+def ensure_dtb_catalog():
+    """Completa /boot/dtb com o catálogo mais novo do dArkOSen que veio na atualização (dtb/*.tar.xz):
+    pastas novas e DTBs que mudaram, mais o r36_devices.ini. Não apaga nada nem mexe no DTB em uso
+    (/boot/rk3326-r36s-linux.dtb). Roda uma vez por catálogo (marca /boot/dtb/.omni-catalogo)."""
+    import tarfile
+    import tempfile
+    packs = sorted(glob.glob(os.path.join(DTB_PACKS, "dArkOSen-*.tar.xz")))
+    if not packs or not os.path.isdir(CATALOG):
+        return ""
+    pack = packs[-1]
+    name = os.path.basename(pack)
+    mark = os.path.join(CATALOG, ".omni-catalogo")
+    if read_text(mark, "").strip() == name:
+        return ""
+    added = changed = 0
+    with tempfile.TemporaryDirectory() as tmp:
+        with tarfile.open(pack) as tf:
+            tf.extractall(tmp, filter="data")
+        src = os.path.join(tmp, "dtb")
+        for root_dir, _dirs, files in os.walk(src):
+            rel = os.path.relpath(root_dir, src)
+            dest_dir = os.path.normpath(os.path.join(CATALOG, rel))
+            for f in files:
+                a, b = os.path.join(root_dir, f), os.path.join(dest_dir, f)
+                new = read(a, b"")
+                old = read(b, None)
+                if old == new:
+                    continue
+                os.makedirs(dest_dir, exist_ok=True)
+                with open(b + ".tmp", "wb") as fh:
+                    fh.write(new)
+                os.replace(b + ".tmp", b)
+                if old is None:
+                    added += 1
+                else:
+                    changed += 1
+    with open(mark, "w") as fh:
+        fh.write(name + "\n")
+    os.sync()
+    return f"catálogo de DTB {name}: {added} novos, {changed} atualizados"
+
+
+def model_variant(model):
+    """Variante do aparelho pelo modelo do DTB em uso (r36_devices.ini do dArkOSen); None se o
+    modelo não está lá. A tela sozinha não diz: o teste de tela pode ter trazido o painel de outro DTB."""
+    if not model or not os.path.exists(DEVICES_INI):
+        return None
+    ini = configparser.ConfigParser(strict=False, interpolation=None)
+    ini.read(DEVICES_INI, encoding="utf-8")
+    for sec in ini.sections():
+        if sec == model or model.startswith(sec + " ") or sec.startswith(model + " "):
+            return ini[sec].get("variant", "unknown")
+    return None
+
+
+def is_clone(model, same):
+    """Clone: pelo modelo quando o catálogo o conhece; senão, só se todos os DTBs com a mesma tela forem clone."""
+    v = model_variant(model)
+    if v is not None:
+        return v in ("clone", "soysauce")
+    return bool(same) and all(e["variant"] in ("clone", "soysauce") for e in same)
+
+
 def catalog_panels():
     variants = {}
     if os.path.exists(DEVICES_INI):
@@ -191,7 +257,7 @@ def detect_hardware_and_screen(_args=None):
     else:
         lines.append("DTB personalizado: faça backup de /boot antes de atualizar.")
 
-    if any(e["variant"] in ("clone", "soysauce") for e in exact or prefix or same):
+    if is_clone(live.get("model", ""), exact or prefix or same):
         lines += ["", "Atenção: clones/soysauce são marcados como NÃO SUPORTADOS pelo Omni36OS."]
     lines += ["", "Antes de trocar o DTB, copie a partição BOOT inteira para o PC."]
     return "\n".join(lines)

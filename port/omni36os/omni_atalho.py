@@ -416,6 +416,7 @@ def main():
         omni.set_power_button({"mode": "menu"})
         print(f"botões: {omni.ensure_default_buttons()}", file=sys.stderr, flush=True)   # A=A... só no 1º boot da imagem
         omni.ensure_swap_xy()            # X e Y trocados continuam trocados depois de atualizar o PortMaster
+        print(omni.ensure_dtb_catalog() or "catálogo de DTB em dia", file=sys.stderr, flush=True)
     except Exception as e:
         print(f"power: {e}", file=sys.stderr, flush=True)
     try:                                 # apelido omni/omni para o SSH e o SFTP

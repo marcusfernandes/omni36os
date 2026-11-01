@@ -149,7 +149,7 @@ def screen_facts():
     return {
         "modelo": model,
         "pastas": sorted(set(folders or [e["folder"] for e in same])),
-        "clone": any(e["variant"] in ("clone", "soysauce") for e in same),
+        "clone": omni.is_clone(model, same),
     }
 
 
