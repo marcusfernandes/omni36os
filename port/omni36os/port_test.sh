@@ -57,6 +57,24 @@ else
 fi
 # sobra comum de ports: o mapeador de controle
 sudo pkill -f gptokeyb 2>/dev/null
+# ports que se soltam do grupo (systemd-run, setsid, vigia que reabre o jogo, como o Cuphead):
+# para os serviços temporários criados durante o teste e mata quem roda de dentro de /roms*/ports
+for u in $(systemctl list-units --no-legend --plain --type=service 2>/dev/null | awk '{print $1}'); do
+  case "$(systemctl show -p Description --value "$u" 2>/dev/null)" in
+    *"[systemd-run]"*/roms*/ports/*|*/roms*/ports/*) sudo systemctl stop "$u" 2>/dev/null;;
+  esac
+done
+for _ in 1 2 3; do
+  left=""
+  for p in /proc/[0-9]*; do
+    n=${p#/proc/}; [ "$n" = $$ ] && continue
+    w=$(readlink "$p/cwd" 2>/dev/null); c=$(tr '\0' ' ' < "$p/cmdline" 2>/dev/null)
+    case "$c" in *port_test.sh*|*omni_*) continue;; esac
+    case "$w $c" in */roms/ports/*|*/roms2/ports/*) left="$left $n";; esac
+  done
+  [ -n "$left" ] || break
+  sudo kill -KILL $left 2>/dev/null; sleep 0.5
+done
 printf "\033c" > /dev/tty1 2>/dev/null
 
 REPORT=""
