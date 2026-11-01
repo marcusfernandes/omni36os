@@ -272,12 +272,12 @@ Bateria no fim (a porcentagem do R36S não é confiável, por isso os limites s�
 "Voltar à curva de fábrica" desfaz.
 
 # Aplicativos
-"Músicas" toca as músicas (mp3, e também ogg, flac e wav) das pastas musicas dos cartões: EASYROMS/musicas e, com o cartão 2, ROMS2/musicas. A pasta do cartão 1 é criada sozinha.
+"Músicas" toca as músicas (mp3, e também ogg, flac e wav) das pastas musicas dos cartões: EASYROMS/musicas⟦ e, com o cartão 2, ROMS2/musicas⟧. A pasta do cartão 1 é criada sozinha.
 Cada pasta mostra as músicas soltas nela e as subpastas; A numa subpasta entra nela, A numa música toca a pasta a partir dela, Y toca a pasta inteira e B volta. Com "Ler subpastas" ligado, tocar uma pasta inclui as músicas das subpastas, nível por nível.
 Na tela Tocando: A pausa, esquerda/direita trocam de música, L1/R1 voltam e avançam 10 s, Y troca a visualização e B volta à lista (a música continua; X volta para a tela Tocando). Sair das Músicas para a música.
 Opções (START, dentro do app): "Visualização": Capa do álbum (a imagem da pasta, como cover.jpg, ou a capa embutida no mp3), Barras, Ondas, Anel ou Aurora, dançando com o som. "Apagar a tela": com a música tocando e sem apertar nada, a luz da tela apaga em 30 s, 1, 2 ou 5 minutos (ou Manter ligada); qualquer botão acende.
 As pastas ficam num índice (nome, título e artista das tags): só a pasta que mudou é lida de novo, e a lista guarda só os caminhos.
-"Vídeos" toca os vídeos das pastas videos dos cartões (EASYROMS/videos, criada sozinha, e ROMS2/videos), com os codecs abertos do ffmpeg: mp4, mkv, webm, avi e outros (H.264, H.265, VP8, VP9, AV1, MPEG-4). A pausa, esquerda/direita voltam e avançam 10 s, L1/R1 1 minuto, B volta. Vídeos até 720p rodam bem; acima disso, depende do codec. A música para enquanto o vídeo toca.
+"Vídeos" toca os vídeos das pastas videos dos cartões (EASYROMS/videos, criada sozinha⟦, e ROMS2/videos⟧), com os codecs abertos do ffmpeg: mp4, mkv, webm, avi e outros (H.264, H.265, VP8, VP9, AV1, MPEG-4). A pausa, esquerda/direita voltam e avançam 10 s, L1/R1 1 minuto, B volta. Vídeos até 720p rodam bem; acima disso, depende do codec. A música para enquanto o vídeo toca.
 "Notas" é um bloco de notas simples: textos na pasta notas do cartão 1 (EASYROMS/notas). Na lista, a primeira linha cria uma nota e X apaga (com confirmação). Abrir uma nota mostra o texto inteiro: cima/baixo rolam e L1/R1 pulam a página. A edita a nota toda, como numa máquina de escrever: o texto quebra sozinho e sobe quando a linha enche, Enter começa uma linha nova, L1/R1 levam o cursor para a linha de cima ou de baixo, START salva e SELECT sai sem salvar.
 No Arquivos, abrir uma música, um vídeo ou um texto (txt, md, log, ini, cfg, conf) abre o app certo; B volta para a pasta.
 
@@ -291,13 +291,13 @@ Memória extra (zram): desligada por padrão. 256, 512 ou 768 MB de memória com
 
 # Cartões
 Tudo sobre onde ficam os jogos: os cartões, o pendrive e a porta USB. As ações que reiniciam ou apagam ficam no fim da página.
-"Origem dos jogos": ROMS (cartão 1), ROMS2 (cartão 2) ou ROMS e ROMS2. Ao sair da página depois de trocar (B ou START), o Omni36OS procura os jogos e os ports de novo, uma vez só, e atualiza a biblioteca e o Testar ports. Com as duas, o mesmo sistema dos dois cartões vira uma lista só. Sem o segundo cartão (ROMS2), a opção nem aparece e tudo vem do ROMS.
-"Detalhe do cartão" (com dois cartões, "Detalhe dos cartões"): mostra a marca, o tamanho, o espaço livre e o ocupado do cartão inteiro e testa a escrita e a leitura de cada cartão; leva até um minuto. O espaço livre aparece no painel. Cartões genéricos sem marca costumam ser lentos e falhar mais: o detalhe avisa quando o cartão não tem marca identificada (não é alerta).
+⟦"Origem dos jogos": ROMS (cartão 1), ROMS2 (cartão 2) ou ROMS e ROMS2. Ao sair da página depois de trocar (B ou START), o Omni36OS procura os jogos e os ports de novo, uma vez só, e atualiza a biblioteca e o Testar ports. Com as duas, o mesmo sistema dos dois cartões vira uma lista só. Sem o segundo cartão (ROMS2), a opção nem aparece e tudo vem do ROMS.⟧
+"Detalhe do cartão"⟦ (com dois cartões, "Detalhe dos cartões")⟧: mostra a marca, o tamanho, o espaço livre e o ocupado do cartão inteiro e testa a escrita e a leitura de cada cartão; leva até um minuto. O espaço livre aparece no painel. Cartões genéricos sem marca costumam ser lentos e falhar mais: o detalhe avisa quando o cartão não tem marca identificada (não é alerta).
 O Omni36OS avisa quando um cartão passa de 90% de uso ou tem menos de 1 GB livre.
 "Verificar e reparar os jogos" reinicia o aparelho e roda o reparo do Omni36OS (fsck.exfat) com o cartão desmontado. Depois o resultado aparece neste card, e o log fica em /boot/sd2_scan.log (segundo cartão) ou /boot/sd1p3_scan.log (só o cartão do sistema).
 
 Modo pendrive:
-Liga o modo pendrive: com o cabo de dados no PC, a partição ROMS2 (cartão 2) ou ROMS (cartão 1; com dois cartões, escolha em "Partição no PC", que só aparece com o cartão 2) aparece como um pendrive para copiar ports.
+Liga o modo pendrive: com o cabo de dados no PC, a partição ⟦ROMS2 (cartão 2) ou ⟧ROMS (cartão 1⟦; com dois cartões, escolha em "Partição no PC", que só aparece com o cartão 2⟧) aparece como um pendrive para copiar ports.
 Ligar reinicia o aparelho como pendrive. Enquanto estiver ligado, o Wi-Fi não funciona, porque usa a mesma porta. Se a rede USB estiver ligada, ela desliga sozinha.
 Ao conectar o PC, o Omni36OS fecha para soltar a partição. Com o PC ainda gravando, o B espera: a tela mostra "COPIANDO..." até a cópia terminar. Ao ejetar no PC, tirar o cabo ou apertar B (ou Select + Start), o console devolve a partição e reinicia sozinho no modo normal, com o Wi-Fi. O modo vale só para aquele boot: qualquer reinício volta ao normal.
 "Restaurar boot" volta o arquivo de boot original se algo der errado.
@@ -305,7 +305,7 @@ Ao conectar o PC, o Omni36OS fecha para soltar a partição. Com o PC ainda grav
 "Montar pendrive" monta um pendrive ligado no OTG em /mnt/usbdrive (FAT, exFAT ou NTFS). Com ele montado, o mesmo botão vira "Desmontar pendrive": use antes de tirar. Com essa opção escolhida, o painel da esquerda diz se o pendrive foi reconhecido, qual é e se já está montado.
 
 # Ferramentas
-"Arquivos": navega pelos cartões (/roms, /roms2) e pelo pendrive. A abre a pasta (ou a imagem, em tela cheia: esquerda/direita passa para a próxima, A mostra ou esconde o nome, B volta), B sobe um nível, X abre as opções do item (copiar, mover, renomear, apagar) e START abre as opções da pasta (colar aqui, nova pasta). Músicas, vídeos e textos abrem direto no app de Aplicativos. Para copiar: X > Copiar no item, vá até a pasta de destino e START > Colar aqui. Apagar pede confirmação, com Cancelar já escolhido.
+"Arquivos": navega pelo cartão (/roms⟦, /roms2⟧) e pelo pendrive. A abre a pasta (ou a imagem, em tela cheia: esquerda/direita passa para a próxima, A mostra ou esconde o nome, B volta), B sobe um nível, X abre as opções do item (copiar, mover, renomear, apagar) e START abre as opções da pasta (colar aqui, nova pasta). Músicas, vídeos e textos abrem direto no app de Aplicativos. Para copiar: X > Copiar no item, vá até a pasta de destino e START > Colar aqui. Apagar pede confirmação, com Cancelar já escolhido.
 "PortMaster" abre em tela cheia; o Omni36OS volta quando ele fecha. Para copiar, mover, renomear e apagar, use "Arquivos", aqui mesmo no Omni36OS.
 As outras ferramentas do sistema ficam nos cards: Testar o controle (Controles), Trocar a senha (Geral > Segurança), Wi-Fi e rede pelo cabo (Rede), pendrive (Cartões), Calibrar a bateria (Tela e som), Liberar overclock (Desempenho). Tudo o que mexe no boot abre um aviso vermelho com contagem; Cancelar fica escolhido desde o início.
 
@@ -338,7 +338,7 @@ Tudo o que é senha fica aqui. B volta para Geral.
 # Backup
 Geral > Backup > Exportar ou Importar.
 O backup é um snapshot do sistema: a versão do Omni36OS, todas as configurações (atalhos, Desempenho, overclock, zram, tela, gamma, som, brilho, troca de botões, músicas), as redes Wi-Fi, o nome do console e as chaves SSH. Jogos, ports e saves ficam de fora (estão nos cartões).
-Exportar pergunta onde salvar: cartão do sistema (/roms/backup/omni36os), segundo cartão (/roms2/backup/omni36os) ou pendrive (/mnt/usbdrive/backup/omni36os). Só aparece o que está no console agora, e o último lugar escolhido vem marcado. O caminho completo aparece ao terminar.
+Exportar pergunta onde salvar: cartão do sistema (/roms/backup/omni36os), ⟦segundo cartão (/roms2/backup/omni36os) ou ⟧pendrive (/mnt/usbdrive/backup/omni36os). Só aparece o que está no console agora, e o último lugar escolhido vem marcado. O caminho completo aparece ao terminar.
 Importar abre a pasta dos backups; navegue pelas pastas com A ("..": voltar). Cada arquivo mostra de qual módulo é, e só o backup do módulo certo pode ser importado.
 Importar volta o console exatamente ao ponto do backup: o que mudou ou surgiu depois é desfeito, inclusive a versão. No fim, o Omni36OS pede para reiniciar. Antes de importar, ele salva o que está valendo agora como "...-antes-de-importar.tar.gz".
 Só configurações: saves, estados, cores, shaders, temas e bancos de dados ficam de fora."""
@@ -349,7 +349,7 @@ Faça backup do cartão do sistema no PC de vez em quando. Uma imagem do cartão
 # Pendrive USB
 Sempre ejete o pendrive no PC antes de tirar o cabo. Tirar no meio de uma cópia pode corromper os arquivos.
 Não desligue o console enquanto ele estiver ligado no PC.
-Com segundo cartão, prefira compartilhar /roms2. Sem ele, o PC recebe /roms (a partição de jogos do cartão do sistema): copie só para as pastas de jogos e ports.
+⟦Com segundo cartão, prefira compartilhar /roms2. Sem ele, o⟧⟪O⟫ PC recebe /roms (a partição de jogos do cartão do sistema): copie só para as pastas de jogos e ports.
 Se o console não voltar ao normal, use "Restaurar boot" em Cartões (último item).
 
 # Verificar e reparar o cartão
@@ -425,6 +425,17 @@ def novidades_text():
 
 
 
+def roms2_text(text, has=None):
+    """⟦…⟧ só vale com o ROMS2 montado; ⟪…⟫ só sem ele. Sem ROMS2, a Ajuda não fala dele."""
+    import os
+    import re
+    if has is None:
+        has = os.path.ismount("/roms2")
+    text = re.sub(r"⟦(.*?)⟧", r"\1" if has else "", text, flags=re.S)
+    text = re.sub(r"⟪(.*?)⟫", "" if has else r"\1", text, flags=re.S)
+    return re.sub(r"\n{3,}", "\n\n", text)
+
+
 def manual(combos=None):
     """O manual com os botões dos atalhos que estão valendo (Controles > Atalhos)."""
     import omni_combos
@@ -432,4 +443,4 @@ def manual(combos=None):
     text = MANUAL
     for k in omni_combos.ACTIONS:
         text = text.replace(f"«{k}»", omni_combos.text(combos[k]))
-    return text
+    return roms2_text(text)

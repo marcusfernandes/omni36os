@@ -1456,7 +1456,7 @@ class App:
                         "\"antes-de-importar\".")]
         if cid == "sobre":
             return [A("Manual", "book", lambda: self.read("Manual", "book", omni_help.manual(D.get("at_combos")))),
-                    A("Cuidados", "alert-triangle", lambda: self.read("Cuidados", "alert-triangle", omni_help.CUIDADOS)),
+                    A("Cuidados", "alert-triangle", lambda: self.read("Cuidados", "alert-triangle", omni_help.roms2_text(omni_help.CUIDADOS))),
                     A("Novidades", "tag", lambda: self.read(f"Novidades · Omni36OS {omni_version()}", "tag",
                                                           omni_help.novidades_text())),
                     A("Créditos", "users", self.open_credits)]
