@@ -1,6 +1,17 @@
 #!/bin/sh
 # Omni36OS: o driver de vídeo do kernel apaga o logo do u-boot; redesenha o mesmo logo já aqui,
 # no começo do initramfs, para o boot não ficar ~2 s de tela preta até o sistema subir.
+# Durante a busca de DTB (Ferramentas > Trocar DTB) desenha a tela de busca, gravada no BOOT.
 [ "$1" = prereqs ] && exit 0
-[ -e /dev/fb0 ] && dd if=/omni36os/carregando.raw of=/dev/fb0 bs=2560 conv=notrunc 2>/dev/null
+[ -e /dev/fb0 ] || exit 0
+RAW=/omni36os/carregando.raw
+mkdir -p /omni36os/boot
+if mount -t vfat -o ro /dev/mmcblk0p1 /omni36os/boot 2>/dev/null; then
+    if [ -f /omni36os/boot/omni36os-tela/testar ] && [ -f /omni36os/boot/omni36os-tela/busca.raw ]; then
+        dd if=/omni36os/boot/omni36os-tela/busca.raw of=/dev/fb0 bs=2560 conv=notrunc 2>/dev/null
+        RAW=
+    fi
+    umount /omni36os/boot
+fi
+[ -n "$RAW" ] && dd if=$RAW of=/dev/fb0 bs=2560 conv=notrunc 2>/dev/null
 exit 0

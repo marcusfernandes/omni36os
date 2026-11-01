@@ -51,6 +51,8 @@ ORIG = f"{DIR}/original"
 DONE = f"{DIR}/pronto"
 RETRY = f"{DIR}/testar"
 LOG = f"{DIR}/log.txt"
+BUSCA = f"{DIR}/busca.raw"          # "Modo de busca de DTB" (Ferramentas > Trocar DTB, ver omni.busca_screen)
+LOGO_ORIG = f"{DIR}/logo.bmp.orig"  # logo.bmp do U-Boot de antes da busca
 PANEL = "/proc/device-tree/dsi@ff450000/panel@0"
 PANEL_NODE = "/dsi@ff450000/panel@0"
 WAIT = 10                           # segundos esperando um botão em cada tela (a pergunta aparece assim que a tela acende)
@@ -394,6 +396,31 @@ def beep(notes, wait=False, dur=0.18):
 
 # --- tela e botões ---
 
+def show_busca():
+    """A tela de busca no lugar do Carregando, enquanto o teste se prepara."""
+    if not os.path.exists(BUSCA):
+        return
+    try:
+        pan = open("/sys/class/graphics/fb0/pan").read().split(",")[1].strip()
+    except (OSError, IndexError):
+        pan = "0"
+    subprocess.run(["dd", f"if={BUSCA}", "of=/dev/fb0", "bs=2560", f"seek={pan}", "conv=notrunc"],
+                   capture_output=True)
+
+
+def end_busca():
+    """Fim da busca: o logo.bmp original volta e a tela de busca sai."""
+    try:
+        if os.path.exists(LOGO_ORIG):
+            shutil.copyfile(LOGO_ORIG, f"{BOOT}/logo.bmp")
+            os.remove(LOGO_ORIG)
+        for f in (BUSCA, f"{DIR}/busca.bmp"):
+            if os.path.exists(f):
+                os.remove(f)
+    except OSError as e:
+        log(f"logo: {e}")
+
+
 def show_prompt():
     subprocess.run(["/usr/local/bin/omni36os-tela", "tela-certa"], capture_output=True)
 
@@ -459,6 +486,7 @@ def finish(st, ok):
     for f in (RETRY,):
         if os.path.exists(f):
             os.remove(f)
+    end_busca()
     os.sync()
     log("fim: " + st["resultado"])
 
@@ -472,6 +500,7 @@ def needed():
 def main():
     if not needed():
         return 0
+    show_busca()
     st = load_state()
     if st is None or os.path.exists(RETRY) and st.get("fim"):
         if os.path.exists(DONE):

@@ -1269,12 +1269,32 @@ def dtb_retest(_args=None):
     if not os.path.exists("/etc/systemd/system/omni36os-painel.service") and \
             not os.path.exists("/lib/systemd/system/omni36os-painel.service"):
         return "Erro: o teste de tela não está instalado nesta imagem. Use L1 + R1 ao ligar."
-    os.makedirs("/boot/omni36os-tela", exist_ok=True)
-    with open("/boot/omni36os-tela/testar", "w") as f:
+    d = "/boot/omni36os-tela"
+    os.makedirs(d, exist_ok=True)
+    busca_screen(d)
+    with open(f"{d}/testar", "w") as f:
         f.write("Ferramentas\n")
     os.sync()
-    subprocess.Popen(["sh", "-c", "sleep 2; systemctl reboot"])
-    return "Reiniciando no teste de tela..."
+    # sem o launcher na frente, a tela de busca fica até o reinício (e o U-Boot mostra a mesma)
+    subprocess.Popen(["sh", "-c", f"sleep 1; systemctl stop omni36os-launcher; "
+                                  f"dd if={d}/busca.raw of=/dev/fb0 bs=2560 conv=notrunc 2>/dev/null; "
+                                  "sleep 2; systemctl reboot"])
+    return "Reiniciando no modo de busca de DTB..."
+
+
+def busca_screen(d):
+    """Tela "Modo de busca de DTB" no lugar do Carregando enquanto a busca durar: vira o logo.bmp do
+    U-Boot (o original fica em logo.bmp.orig; o omni_painel.py devolve no fim) e busca.raw, que o
+    teste e o initrd desenham. Feita do PNG que vem na atualização (telas/busca-dtb.png)."""
+    png = os.path.join(os.path.dirname(os.path.abspath(__file__)), "telas", "busca-dtb.png")
+    if not os.path.exists(png):
+        return
+    ff = ["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", png]
+    subprocess.run(ff + ["-pix_fmt", "bgra", "-f", "rawvideo", f"{d}/busca.raw"], capture_output=True)
+    if subprocess.run(ff + ["-pix_fmt", "bgr24", f"{d}/busca.bmp"], capture_output=True).returncode == 0:
+        if not os.path.exists(f"{d}/logo.bmp.orig") and os.path.exists("/boot/logo.bmp"):
+            shutil.copyfile("/boot/logo.bmp", f"{d}/logo.bmp.orig")
+        shutil.copyfile(f"{d}/busca.bmp", "/boot/logo.bmp")
 
 
 def usb_restore(_args=None):
