@@ -1072,7 +1072,7 @@ class App:
                 busy="Preparando o teste de tela...")
         self.modal = {"title": "Trocar o DTB da tela?", "icon": "alert-triangle", "sel": 1,
                       "buttons": ["Trocar", "Cancelar"], "fns": [go, lambda: None],
-                      "lock": (0, self.t + lock),
+                      "lock": (0, self.t + lock), "danger": True,
                       "text": "O console reinicia e testa as telas do catálogo, uma por uma: aperte um botão "
                               "quando a imagem aparecer certa. Com a tela errada ela fica preta ou torta, "
                               "e o teste segue sozinho.\nUse só se o cartão foi para outro console. "
@@ -1296,9 +1296,6 @@ class App:
         if cid == "ferramentas":
             out = [A("Arquivos", "folder", self.open_files),
                    subpage(A("Testar ports", "player-play", lambda: self.open_page("testar")), "testar"),
-                   tip(A("Trocar DTB", "device-tv", self.ask_dtb),
-                       "Refaz a escolha da tela (o mesmo teste do L1 + R1 ao ligar): reinicia e testa as telas "
-                       "do catálogo. Para quando o cartão vai para outro console."),
                    tip(A("Atualizar ports", "refresh", self.refresh_ports),
                        "Lê de novo as pastas de ports dos dois cartões, as capas e as descrições (pasta infos). "
                        "Use se um port copiado não apareceu na lista."),
@@ -1310,6 +1307,9 @@ class App:
                           lambda t=t: self.ask_tool(t)),
                         f"{t.get('desc', '')} Abre em tela cheia e o Omni36OS volta ao fechar.".strip())
                     for t in self.tool_list()]
+            out.append(tip(A("Trocar DTB", "device-tv", self.ask_dtb),
+                           "Refaz a escolha da tela (o mesmo teste do L1 + R1 ao ligar): reinicia e testa as telas "
+                           "do catálogo. Para quando o cartão vai para outro console."))
             return out
         if cid == "rede":
             on = getattr(self, "fake_wifi", True) if FAKE else omni_sistema.wifi_on()
@@ -4778,10 +4778,11 @@ class App:
             img = m.get("image")
             mh = 152 + 19 * len(lines) + (220 if img else 0)
             mx, my, mw = (W - 440) / 2, (H - mh) / 2, 440
-            g.glow(mx, my, mw, mh, 24, alpha(self.accent[0], 60), 26)
+            acc = (hexc("ef4444"), hexc("b91c1c")) if m.get("danger") else self.accent   # alerta: vermelho
+            g.glow(mx, my, mw, mh, 24, alpha(acc[0], 70 if m.get("danger") else 60), 26)
             g.rrect(mx, my, mw, mh, 24, MODAL_A, MODAL_B)
-            g.stroke(mx, my, mw, mh, 24, ink(25))
-            g.rrect(mx + 24, my + 22, 38, 38, 12, self.accent[0], self.accent[1])
+            g.stroke(mx, my, mw, mh, 24, alpha(acc[0], 120) if m.get("danger") else ink(25), 1.5 if m.get("danger") else 1)
+            g.rrect(mx + 24, my + 22, 38, 38, 12, acc[0], acc[1])
             g.icon(m["icon"], mx + 32, my + 30, 22, ON_TEXT)
             g.text("Bold", 18, m["title"], mx + 74, my + 28, TEXT)
             for k, ln in enumerate(lines):
@@ -4800,9 +4801,10 @@ class App:
                 if locked:
                     label = f"{label} ({int(lk[1] - self.t) + 1})"   # contagem da trava
                 if locked:
-                    g.rrect(bx, by, bw, 38, 14, ink(40 if k == m["sel"] else 14))
+                    g.rrect(bx, by, bw, 38, 14, alpha(acc[0], 60 if k == m["sel"] else 30) if m.get("danger")
+                            else ink(40 if k == m["sel"] else 14))
                 elif k == m["sel"]:
-                    g.rrect(bx, by, bw, 38, 14, self.accent[0], self.accent[1])
+                    g.rrect(bx, by, bw, 38, 14, acc[0], acc[1])
                 else:
                     g.rrect(bx, by, bw, 38, 14, ink(22))
                 g.text("SemiBold", 13, label, bx + bw / 2, by + 19.5,
