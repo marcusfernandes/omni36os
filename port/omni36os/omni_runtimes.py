@@ -74,6 +74,23 @@ def missing(script, port_dir=None, libs=LIBS):
     return out
 
 
+def scan(dirs=("/roms/ports", "/roms2/ports"), libs=LIBS):
+    """Ferramentas > Runtimes faltando: {runtime: [ports que pedem]} dos ports dos dois cartões."""
+    import glob
+    sys.path.insert(0, HERE)
+    import omni_meta
+    out = {}
+    for d in dirs:
+        for sh in sorted(glob.glob(os.path.join(d, "*.sh"))):
+            try:
+                gd = omni_meta.port_dir(sh)
+            except Exception:
+                gd = None
+            for n in missing(sh, gd, libs):
+                out.setdefault(n, []).append(os.path.splitext(os.path.basename(sh))[0])
+    return out
+
+
 def index():
     """nome -> {url, md5, size} para aarch64."""
     req = urllib.request.Request(INDEX, headers={"User-Agent": "Omni36OS"})
@@ -115,7 +132,7 @@ def _download(info, dest, stop):
             os.remove(tmp)
 
 
-def sync(libs=LIBS, stop=lambda: False, prune=False, log=print):
+def sync(libs=LIBS, stop=lambda: False, prune=False, log=print, names=None):
     """Deixa os runtimes da lista em dia em `libs`. Devolve (baixados, falhas)."""
     os.makedirs(libs, exist_ok=True)
     idx = index()
@@ -126,7 +143,8 @@ def sync(libs=LIBS, stop=lambda: False, prune=False, log=print):
     except (OSError, ValueError):
         cache = {}
     got, bad = [], []
-    names = wanted()
+    only = names is not None
+    names = list(names) if only else wanted()
     try:
         for n in names:
             info = idx.get(n)
@@ -154,7 +172,7 @@ def sync(libs=LIBS, stop=lambda: False, prune=False, log=print):
     finally:
         with open(cpath, "w") as f:
             json.dump(cache, f)
-    if prune:                          # só na pasta da imagem: o console guarda o que o usuário pôs
+    if prune and not only:             # só na pasta da imagem: o console guarda o que o usuário pôs
         for f in os.listdir(libs):
             if f.endswith(".squashfs") and f not in names:
                 os.remove(os.path.join(libs, f))

@@ -1097,6 +1097,55 @@ class App:
             self.toast = (f"{res} Port" + ("s" if res != 1 else "") + " na lista", "ok", self.t + 3)
         self.worker(run, done, busy="Lendo os ports...")
 
+    def check_runtimes(self):
+        """Ferramentas > Runtimes faltando: varre os ports e, com internet, oferece baixar o que falta."""
+        import omni_runtimes as R
+
+        def run():
+            if FAKE:
+                return {"mono-6.12.0.122-aarch64.squashfs": ["TMNT"]}
+            return R.scan()
+
+        def done(res):
+            if isinstance(res, Exception):
+                self.toast = (f"Erro na busca: {res}", "problema", self.t + 4)
+                return
+            if not res:
+                self.toast = ("Nenhum runtime faltando", "ok", self.t + 3)
+                return
+            names = sorted(res)
+            lines = "\n".join(f"{n[:-9]}: {', '.join(res[n][:3])}" + ("..." if len(res[n]) > 3 else "")
+                              for n in names[:6])
+            more = f"\n+{len(names) - 6} outros" if len(names) > 6 else ""
+            head = f"{len(names)} Runtime" + ("s faltando" if len(names) > 1 else " faltando")
+            if not (FAKE or R.online()):
+                self.modal = {"title": head, "icon": "database", "sel": 0, "buttons": ["OK"],
+                              "text": f"{lines}{more}\nConecte o Wi-Fi e busque de novo para baixar."}
+                return
+            self.modal = {"title": head, "icon": "database", "sel": 0, "buttons": ["Baixar", "Agora não"],
+                          "fns": [lambda: download(names), lambda: None],
+                          "text": f"{lines}{more}\nBaixar agora do PortMaster?"}
+
+        def download(names):
+            def get():
+                if FAKE:
+                    return names, []
+                return R.sync(names=names, log=lambda *_: None)
+
+            def fin(res):
+                if isinstance(res, Exception):
+                    self.toast = (f"Erro ao baixar: {res}", "problema", self.t + 4)
+                    return
+                got, bad = res
+                if bad:
+                    self.modal = {"title": f"{len(got)} Baixado(s), {len(bad)} com erro", "icon": "database",
+                                  "sel": 0, "buttons": ["OK"], "text": "\n".join(bad[:6])}
+                else:
+                    self.toast = (f"{len(got)} Runtime" + ("s baixados" if len(got) != 1 else " baixado"),
+                                  "ok", self.t + 3)
+            self.worker(get, fin, busy="Baixando runtimes...")
+        self.worker(run, done, busy="Procurando runtimes...")
+
     def games(self, force=False):
         if FAKE:
             self.games_idx = FAKE_GAMES
@@ -1299,6 +1348,9 @@ class App:
                    tip(A("Atualizar ports", "refresh", self.refresh_ports),
                        "Lê de novo as pastas de ports dos dois cartões, as capas e as descrições (pasta infos). "
                        "Use se um port copiado não apareceu na lista."),
+                   tip(A("Runtimes faltando", "database", self.check_runtimes),
+                       "Procura nos ports os runtimes do PortMaster que não estão no cartão. Com o Wi-Fi "
+                       "conectado, pergunta se você quer baixar."),
                    tip(Choice("Busca automática", "photo-search", "busca", ["ligada", "desligada"],
                               {"ligada": "Ligada", "desligada": "Desligada"}),
                        "Com o Wi-Fi conectado, busca uma vez a capa e a descrição de cada port na biblioteca. "

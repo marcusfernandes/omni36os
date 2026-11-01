@@ -59,7 +59,7 @@ Repositório público: https://github.com/mpjsilva/omni36os (GPL-3.0). Autor dos
 | `omni_teclado.py` | Teclado na tela (estilo Android), usado no launcher e nas janelas |
 | `omni_musica.py`, `omni_video.py` | Tocador de música (SDL_mixer) e de vídeo (ffmpeg em pipe) |
 | `omni_help.py` | Manual, cuidados, créditos e `NOVIDADES` |
-| `port_test.sh`, `omni_ports_fix.py` | Testar ports e correções conhecidas; o relatório marca "Cópia incompleta" (arquivos com 0 bytes) e "Runtime faltando" (runtime do port.json ou do script ausente em PortMaster/libs, via `omni_runtimes.missing`) |
+| `port_test.sh`, `omni_ports_fix.py` | Testar ports e correções conhecidas; o relatório marca "Cópia incompleta" (arquivos com 0 bytes) e "Runtime faltando" (runtime do port.json ou do script ausente em PortMaster/libs, via `omni_runtimes.missing`). Ferramentas › Runtimes faltando varre todos (`omni_runtimes.scan`) e, com rede, oferece baixar (`sync(names=...)`) |
 | `usb_pendrive.sh` | Modo pendrive da porta OTG (vira `/home/ark/usb-disco.sh`) |
 
 Serviços no console: `omni36os-launcher` (o launcher), `omni36os-atalho`, `omni36os-painel` (tela certa),
