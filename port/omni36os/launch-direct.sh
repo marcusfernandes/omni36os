@@ -203,7 +203,30 @@ if [ "$(cut -d. -f1 /proc/uptime)" -lt 180 ]; then
     sudo python3 -B "$OMNI_DIR/omni_painel.py" --botoes
 fi
 
+# Jogo que sobrou na tela (port que se solta com systemd-run/setsid, como o Cuphead; ou o fim do
+# Testar ports, que só encerra o grupo do script): com o launcher por cima, os dois desenham e a
+# tela pisca. Antes de abrir o launcher, fecha quem ainda está com a GPU, fora o próprio Omni36OS.
+kill_gpu_leftovers() {
+    local pids="" p c n
+    for p in /proc/[0-9]*; do
+        ls -l "$p/fd" 2>/dev/null | grep -qE -- '-> /dev/(mali0|dri/)' || continue
+        c=$(tr '\0' ' ' < "$p/cmdline" 2>/dev/null)
+        case "$c" in *omni_ui.py*|*power_button*|"") continue;; esac
+        pids="$pids ${p#/proc/}"
+    done
+    [ -n "$pids" ] || return 0
+    echo "=== $(date '+%H:%M:%S') jogo ainda na tela ao voltar ao launcher: fechando$pids" | sudo tee -a "$CRASH_LOG" >/dev/null
+    sudo kill -TERM $pids 2>/dev/null
+    for n in 1 2 3 4 5 6; do
+        sleep 0.5
+        for p in $pids; do [ -d "/proc/$p" ] && continue 2; done
+        return 0
+    done
+    sudo kill -KILL $pids 2>/dev/null
+}
+
 while true; do
+    kill_gpu_leftovers
     # Limpar sinal anterior
     sudo rm -f /tmp/omni36os-next 2>/dev/null || rm -f /tmp/omni36os-next 2>/dev/null
 
