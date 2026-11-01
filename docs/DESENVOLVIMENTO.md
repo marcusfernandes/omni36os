@@ -49,7 +49,7 @@ Regra das páginas: o mais usado primeiro, escolhas antes das ações, o que rei
 
 **Redefinir o sistema:** apaga nome, trava e tema, desliga o zram e volta processador (Equilibrado, 1296 MHz), GPU (520 MHz), atalhos (FN + X, FN + B, FN + Y, ligados) e botão de power ao padrão; depois pergunta o nome de novo.
 
-**Testar ports — correções conhecidas:** automáticas (com desfazer se o novo teste falhar): script CRLF → LF, permissão de execução, zram 768 MB por falta de memória. Só aviso: runtime do PortMaster, biblioteca, glibc, arquivos do jogo, exFAT sem links, segfault.
+**Testar ports — correções conhecidas:** cópia incompleta (script vazio ou ≥ 20% dos arquivos da pasta do port com 0 bytes: o relatório abre com "Cópia incompleta: ...", regra `copia`, só aviso); automáticas (com desfazer se o novo teste falhar): script CRLF → LF, permissão de execução, zram 768 MB por falta de memória. Só aviso: runtime do PortMaster, biblioteca, glibc, arquivos do jogo, exFAT sem links, segfault.
 
 **Saudação:** o cabeçalho mostra "Bom dia/Boa tarde/Boa noite, {jogador}!" (5–12 h, 12–18 h, resto). O nome fica em `~ark/.config/omni36os/jogador`.
 

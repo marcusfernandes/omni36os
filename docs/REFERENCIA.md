@@ -106,6 +106,7 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
 ## Primeiro boot e tela certa (`omni_painel.py`)
 
 - Roda em `omni36os-painel.service` (cedo: só precisa da `/boot`), quando existe `/boot/firstboot.sh` ou `/boot/omni36os-tela/testar`.
+- Modo pendrive: o B (ou Select+Start) só encerra a sessão se a partição entregue estiver sem gravação do PC há 5 s (`wsect`, campo 7 do stat do bloco). Com cópia em andamento, a tela diz "COPIANDO..." e o B é ignorado; tirar o cabo continua encerrando. O cache de escrita do Windows não aparece aqui: ejetar no PC continua sendo o certo.
 - L1 + R1 segurados ao ligar: `launch-direct.sh` (nos 3 primeiros min de uptime) chama `omni_painel.py --botoes`, que espera até 4 s (`HOLD_WINDOW`, com o "Carregando" na tela) lendo o estado das teclas (EVIOCGKEY); ao detectar mostra a tela `tela-certa`, toca o arpejo, cria `testar` e roda o teste. Vem pela OTA (o `.service` não vem).
 - Lista as telas 640×480 do catálogo `/boot/dtb/{r36s,clone,soysauce}/*/` (uma por sequência de início), com a tela atual primeiro.
 - **Cada teste monta o DTB original com só as propriedades da tela trocadas** (`fdtput`). Nunca copia `boot.ini`

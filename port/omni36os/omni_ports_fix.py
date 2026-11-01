@@ -14,6 +14,9 @@ PENDING = os.path.expanduser("~ark/.config/omni36os/correcao_pendente.json")
 
 # (id, regex no relatório, causa, dica, correção automática ou None)
 RULES = [
+    ("copia", r"^Cópia incompleta: (.+)$",
+     "A cópia do port parou no meio: há arquivos vazios (0 bytes).",
+     "Copie o port de novo. No modo pendrive, espere a cópia terminar e ejete no PC antes de desconectar.", None),
     ("crlf", r"\r: command not found|bad interpreter: .*\^M|/bin/bash\^M|\$'\\r'",
      "O script foi salvo no Windows (fim de linha CRLF).",
      "Converter os scripts do port para o formato do Linux.", "crlf"),

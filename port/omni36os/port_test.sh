@@ -74,6 +74,18 @@ if [ "$STATUS" = "falhou" ]; then
     echo "Fechou após: ${ELAPSED}s (o teste espera ${TEMPO}s)"
     echo "Código de saída: $CODE"
     echo
+    # cópia que parou no meio (PC desconectado antes de terminar de gravar): arquivos com 0 bytes
+    [ -s "$PORT" ] || echo "Cópia incompleta: o script $(basename "$PORT") está vazio (0 bytes)."
+    GD=$(python3 -B -c 'import sys; sys.path.insert(0, sys.argv[1]); import omni_meta; print(omni_meta.port_dir(sys.argv[2]) or "")' "$OMNI_DIR" "$PORT" 2>/dev/null)
+    if [ -n "$GD" ] && [ -d "$GD" ]; then
+      TOT=$(find "$GD" -type f 2>/dev/null | wc -l)
+      VAZ=$(find "$GD" -type f -size 0 ! -name '*.log' ! -name '.*' 2>/dev/null | wc -l)
+      if [ "$TOT" -gt 0 ] && [ $((VAZ * 100 / TOT)) -ge 20 ]; then
+        echo "Cópia incompleta: $VAZ de $TOT arquivos vazios (0 bytes) em $GD."
+        find "$GD" -type f -size 0 ! -name '*.log' ! -name '.*' 2>/dev/null | head -n 10 | sed 's/^/  /'
+      fi
+    fi
+    echo
     echo "--- Saída do port (stdout/stderr, últimas 200 linhas) ---"
     tail -n 200 "$OUT"
     echo

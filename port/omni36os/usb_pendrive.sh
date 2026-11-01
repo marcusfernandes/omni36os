@@ -142,6 +142,8 @@ take_back() {
 # Contador da interrupção do dwc2: com o PC ligado ele cresce sempre (o PC
 # consulta o pendrive a cada ~2 s); parado = cabo fora. O estado do UDC não
 # serve: sem o sinal de VBUS ele continua "configured" com o cabo solto.
+# Setores gravados pelo PC na partição entregue (campo 7 do stat): muda enquanto há cópia.
+wsect() { awk '{print $7}' "/sys/class/block/${GIVEN##*/}/stat" 2>/dev/null; }
 irqs() { awk '/ff300000.usb/{s=0; for(i=2;i<=NF&&$i~/^[0-9]+$/;i++) s+=$i; print s}' /proc/interrupts; }
 
 # B (ou Select+Start) no controle devolve a partição na hora; o código do B
@@ -195,12 +197,27 @@ daemon() {
       last_s=$s; tick=$(( ${tick:-0} + 1 ))
       if [ "$s" = configured ] && [ "$n" != "${prev:-$n}" ] && give; then
         given=1; idle=0; last=$(irqs); rm -f /run/usb-disco.back; watch_pad
+        lw=$(wsect); wquiet=0; busy_msg=0
       fi
       prev=$n
       continue
     fi
     n=$(irqs)
     if [ "$n" = "$last" ]; then idle=$((idle + 1)); else idle=0; last=$n; fi
+    w=$(wsect)
+    if [ "$w" = "$lw" ]; then wquiet=$((wquiet + 1)); else wquiet=0; lw=$w; fi
+    # B com o PC ainda gravando: devolver agora deixaria arquivos pela metade (vazios). Avisa e espera.
+    if [ -f /run/usb-disco.back ] && [ $wquiet -lt 5 ]; then
+      rm -f /run/usb-disco.back
+      log "botão no controle com cópia em andamento: ignorado"
+      say "COPIANDO...\n\n  O PC ainda está gravando em /$PART.\n\n  Espere a cópia terminar e ejete no PC.\n  Depois aperte B de novo."
+      busy_msg=1; [ -n "$PAD" ] && kill $PAD 2>/dev/null; watch_pad
+      continue
+    fi
+    if [ $busy_msg = 1 ] && [ $wquiet -ge 5 ]; then     # a cópia terminou: volta a tela normal
+      busy_msg=0
+      say "MODO PENDRIVE\n\n  /$PART está aberta no computador.\n\n  Ejete no PC e desconecte o cabo,\n  ou aperte B, para voltar aos jogos."
+    fi
     why=""
     [ -z "$(cat $LUN/file)" ] && why="ejetado no PC"
     [ -f /run/usb-disco.back ] && why="botão no controle"
