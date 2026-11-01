@@ -3144,6 +3144,16 @@ class App:
         pairs.sort(key=lambda p: (not p[1].get("fav"), p[1]["name"].lower()))   # favoritos primeiro
         return [("Ports", "device-gamepad-2", pairs)] if pairs else []
 
+    def select_last_played(self):
+        """Ao abrir Ports, o destaque fica no último port jogado (o de "Última vez" mais nova)."""
+        lists = self.lib_lists()
+        if not lists:
+            return
+        games = lists[0][2]
+        best = max(range(len(games)), key=lambda i: games[i][1].get("last") or "", default=None)
+        if best is not None and games[best][1].get("last"):
+            self.lib.update(sys=0, game=best, top=0.0)
+
     def library_input(self, cmd):
         lists, lb = self.lib_lists(), self.lib
         if cmd == "back":                 # B: de volta aos cards, com Ports escolhido
@@ -4183,6 +4193,7 @@ class App:
                 if not FAKE:              # port novo no cartão: confere as pastas (só data, rápido)
                     self.games_idx = omni_games.index()
                 self.view = "lib"
+                self.select_last_played()
             elif cmd == "ok":
                 self.open_page(CARDS[self.sel][0])
             elif cmd == "back":
