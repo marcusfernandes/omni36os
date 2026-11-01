@@ -1057,6 +1057,25 @@ class App:
         return omni_checks.finish(out, [], {}) if not FAKE else {
             "nivel": "aviso" if fails else "ok", "achados": out, "acoes": []}
 
+    def refresh_ports(self):
+        """Ferramentas > Atualizar ports: relê tudo do zero (lista, capas e descrições locais)."""
+        def run():
+            if FAKE:
+                return sum(len(sy["games"]) for sy in FAKE_GAMES)
+            idx = omni_games.index(force=True)
+            return sum(len(sy["games"]) for sy in idx)
+
+        def done(res):
+            if isinstance(res, Exception):
+                self.toast = (f"Erro ao ler os ports: {res}", "problema", self.t + 4)
+                return
+            if not FAKE:
+                self.games_idx = None
+                self.games(force=False)
+            self.__dict__.pop("meta_cache", None)      # capas e descrições lidas de novo
+            self.toast = (f"{res} Port" + ("s" if res != 1 else "") + " na lista", "ok", self.t + 3)
+        self.worker(run, done, busy="Lendo os ports...")
+
     def games(self, force=False):
         if FAKE:
             self.games_idx = FAKE_GAMES
@@ -1256,6 +1275,9 @@ class App:
         if cid == "ferramentas":
             out = [A("Arquivos", "folder", self.open_files),
                    subpage(A("Testar ports", "player-play", lambda: self.open_page("testar")), "testar"),
+                   tip(A("Atualizar ports", "refresh", self.refresh_ports),
+                       "Lê de novo as pastas de ports dos dois cartões, as capas e as descrições (pasta infos). "
+                       "Use se um port copiado não apareceu na lista."),
                    tip(Choice("Busca automática", "photo-search", "busca", ["ligada", "desligada"],
                               {"ligada": "Ligada", "desligada": "Desligada"}),
                        "Com o Wi-Fi conectado, busca uma vez a capa e a descrição de cada port na biblioteca. "
