@@ -25,9 +25,9 @@ Versão atual: **1.15.4** · [Novidades de cada versão](NOVIDADES.md)
 
 ## Principais diferenciais
 
-Em relação ao ArkOS, ao dArkOS e ao dArkOSen, que são sistemas excelentes e completos de emulação, o Omni36OS segue outro caminho:
+Em relação ao dArkOSen, um sistema excelente e completo de emulação, o Omni36OS segue outro caminho:
 
-| | ArkOS / dArkOS / dArkOSen | Omni36OS |
+| | dArkOSen | Omni36OS |
 |---|---|---|
 | **Foco** | Emulação de dezenas de sistemas + ports | Só ports (a biblioteca lê apenas as pastas `ports`) |
 | **Interface** | EmulationStation com temas | Launcher próprio em cards (3×3), em pt-BR, com tema claro e escuro |
@@ -37,14 +37,15 @@ Em relação ao ArkOS, ao dArkOS e ao dArkOSen, que são sistemas excelentes e c
 | **Apps** | — | Músicas (com visualizações e capa do álbum), Vídeos (codecs abertos do FFmpeg), Imagens (capturas de tela do menu e dos jogos) e Notas (bloco de notas com edição contínua, que também lê os logs do sistema) |
 | **Boot** | Telas pretas entre etapas | Logo e boas-vindas contínuos até o menu, com tudo no máximo durante o boot (cerca de 3 s a menos) e no mínimo depois |
 | **Desempenho** | Governador fixo | Menu sempre no mínimo (esfria e poupa bateria); ports sobem até limites escolhidos; overclock com trava e senha |
-| **Teste de ports** | — | Abre o port por 15 s, diz a causa provável da falha e corrige o que é seguro (com desfazer) |
-| **Primeiro boot** | Escolher o DTB da tela à mão | Detecta a tela sozinho: testa os modelos possíveis e você só aperta um botão quando a imagem aparecer |
+| **Teste de ports** | — | Abre o port por 15 s, diz a causa provável da falha e corrige o que é seguro (com desfazer); avisa runtime faltando e cópia incompleta, e baixa os runtimes que faltam |
+| **Primeiro boot** | Escolher o DTB da tela à mão | Detecta a tela sozinho: testa os modelos possíveis e você só aperta um botão quando a imagem aparecer. Cartão em outro console: Ferramentas > Trocar DTB refaz a busca |
 | **Teclado** | Teclado simples | Teclado no estilo do Android, igual em todo o sistema: maiúscula automática, caps lock com dois toques e símbolos no Y |
 
 E mais:
 - **Atalhos com FN dentro dos jogos:** contador de FPS com temperatura e bateria, limite de 30 FPS, captura de tela e fechar o jogo. O botão de power congela o jogo e abre o menu de energia por cima.
 - **Energia segura:** desligar e reiniciar gravam tudo e desmontam o boot antes. Com bateria em 10%, o Omni36OS fecha o jogo dando tempo de ele salvar e desliga sozinho.
-- **Rede pelo cabo USB, modo pendrive, Samba e navegador de arquivos com senha:** os serviços remotos só ligam com rede.
+- **Rede pelo cabo USB, modo pendrive, Samba e navegador de arquivos com senha:** os serviços remotos só ligam com rede. O modo pendrive mostra a cópia em andamento e não encerra no meio dela.
+- **Cartão 2 sem desligar:** Ejetar e Montar em Cartões, alerta vermelho se ele sair sem ejetar, e nada do ROMS2 aparece quando ele não está no console.
 - **Calibração da bateria, backup das configurações, trava por senha e atualização pelo GitHub** com volta automática se a versão nova não abrir.
 
 ## Telas

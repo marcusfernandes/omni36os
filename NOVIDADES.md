@@ -2,6 +2,19 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.15.26 (01/11/2026)
+
+- Ferramentas > Trocar DTB: troca a tela do console sem o PC. Alerta vermelho com trava de 10 s; o console reinicia mostrando "Modo de busca de DTB" e testa as telas uma a uma. O L1 + R1 ao ligar continua valendo.
+- Catálogo de DTBs do dArkOSen vem com o Omni36OS e é posto em dia sozinho; o aviso de console clone agora vem do modelo e não aparece mais à toa.
+- Cartões: Ejetar cartão 2 e Montar cartão 2, para tirar e pôr o cartão sem desligar. Tirado sem ejetar, aparece um alerta vermelho (também ao voltar de um jogo).
+- Sem o cartão 2, nada do ROMS2 aparece: Origem dos jogos, Arquivos, Imagens, runtimes e a Ajuda. A página Cartões se atualiza sozinha quando o cartão entra ou sai.
+- Ports abre com o último port jogado selecionado.
+- Testar ports: Ver relatórios (abre no Notas), Runtimes faltando (procura nos ports e, com Wi-Fi, baixa), e o relatório avisa cópia incompleta (arquivos com 0 bytes) e runtime faltando.
+- Testar ports encerra também o que o port deixa rodando à parte (como o Cuphead); antes o jogo ficava por baixo do menu e a tela piscava.
+- Atalhos FN acham ports que rodam à parte (Cuphead, Blasphemous). Em port que não aceita o contador de FPS, o limite e a captura, aparece um aviso uma vez por partida.
+- CAPTURA SALVA aparece embaixo, no centro, e não fica mais sob o monitor de recursos. FN + Y no menu volta a salvar com o File Browser ligado.
+- Modo pendrive: mostra quando o PC está copiando para o console ou para o PC, e o B não encerra no meio de uma cópia.
+
 ## 1.15.25 (31/10/2026)
 
 - Aplicativos ganha Imagens: as capturas de tela (FN + Y) do menu e de cada jogo, a mais nova primeiro. Esquerda/direita passam as imagens; X apaga.

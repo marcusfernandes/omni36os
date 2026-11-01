@@ -4,6 +4,18 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ("1.15.26", "01/11/2026", [
+        'Ferramentas > Trocar DTB: troca a tela do console sem o PC. Alerta vermelho com trava de 10 s; o console reinicia mostrando "Modo de busca de DTB" e testa as telas uma a uma. O L1 + R1 ao ligar continua valendo.',
+        'Catálogo de DTBs do dArkOSen vem com o Omni36OS e é posto em dia sozinho; o aviso de console clone agora vem do modelo e não aparece mais à toa.',
+        'Cartões: Ejetar cartão 2 e Montar cartão 2, para tirar e pôr o cartão sem desligar. Tirado sem ejetar, aparece um alerta vermelho (também ao voltar de um jogo).',
+        'Sem o cartão 2, nada do ROMS2 aparece: Origem dos jogos, Arquivos, Imagens, runtimes e a Ajuda. A página Cartões se atualiza sozinha quando o cartão entra ou sai.',
+        'Ports abre com o último port jogado selecionado.',
+        'Testar ports: Ver relatórios (abre no Notas), Runtimes faltando (procura nos ports e, com Wi-Fi, baixa), e o relatório avisa cópia incompleta (arquivos com 0 bytes) e runtime faltando.',
+        'Testar ports encerra também o que o port deixa rodando à parte (como o Cuphead); antes o jogo ficava por baixo do menu e a tela piscava.',
+        'Atalhos FN acham ports que rodam à parte (Cuphead, Blasphemous). Em port que não aceita o contador de FPS, o limite e a captura, aparece um aviso uma vez por partida.',
+        'CAPTURA SALVA aparece embaixo, no centro, e não fica mais sob o monitor de recursos. FN + Y no menu volta a salvar com o File Browser ligado.',
+        'Modo pendrive: mostra quando o PC está copiando para o console ou para o PC, e o B não encerra no meio de uma cópia.',
+    ]),
     ("1.15.25", "31/10/2026", [
         'Aplicativos ganha Imagens: as capturas de tela (FN + Y) do menu e de cada jogo, a mais nova primeiro. Esquerda/direita passam as imagens; X apaga.',
         'Logs do sistema numa pasta só, no cartão 1: logs/<função> (sistema, ports, pendrive, tela, rede). O relatório do Testar ports vira logs/teste de ports/teste_<nome do port>.txt. Os antigos foram trazidos para lá.',
@@ -219,7 +231,7 @@ As verificações rodam na tela de carregamento. Depois de uma ação, o card ve
 Geral > "Verificar tudo" junta numa lista só os alertas de todos os cards.
 
 # Ports (card do centro)
-O console liga nos cards e entrega o destaque no Ports, no centro: A abre a biblioteca. É uma lista só, com os favoritos primeiro e o resto por nome. Cima/baixo escolhem o port, esquerda/direita pulam de 10 em 10 e L1/R1 pulam de letra. Ao lado aparece a ficha do jogo (capa, estúdio, data, gêneros e descrição); A abre o port e, ao fechar, a lista volta no mesmo lugar.
+O console liga nos cards e entrega o destaque no Ports, no centro: A abre a biblioteca. É uma lista só, com os favoritos primeiro e o resto por nome. Cima/baixo escolhem o port, esquerda/direita pulam de 10 em 10 e L1/R1 pulam de letra. Ao lado aparece a ficha do jogo (capa, estúdio, data, gêneros e descrição); A abre o port e, ao fechar, a lista volta no mesmo lugar. Ao abrir Ports, o destaque já vem no último port jogado.
 B volta para os cards. O botão de power abre Energia: suspender, reiniciar ou desligar.
 A capa e a descrição vêm da pasta infos, dentro de ports, com o nome do jogo: para abismo.sh, abismo.txt (descrição) e abismo.png, .jpg ou .webp (capa). Depois, com o Wi-Fi conectado, do PortMaster, da Steam, da Wikipédia e do DuckDuckGo, buscados uma vez e guardados no cartão. Ferramentas > Busca automática liga e desliga a busca.
 
@@ -255,12 +267,12 @@ Serviços que falham no boot aparecem aqui. A falha do dmc-governor (ajuste da R
 Valem com um port aberto. Cada atalho tem Ligado ou Desligado na página, e os botões abaixo são os que estão valendo agora:
 «fps»: em ciclo: FPS; FPS e CPU; FPS, CPU e GPU; FPS, CPU, GPU e RAM usada (MB); esconde. Tudo na mesma pílula. O contador fica no canto de cima e mostra quadros por segundo, temperatura e bateria. O FPS fica verde de 50 para cima, amarelo de 28 a 49 e vermelho abaixo disso. A temperatura fica amarela a partir de 65 °C e vermelha a partir de 75 °C. A bateria fica amarela até 30% e vermelha até 15%; carregando, aparece um raio verde.
 «limite»: liga ou desliga o limite de 30 FPS. Em jogo leve, economiza bateria e esquenta menos. Um traço roxo no contador mostra que o limite está ligado.
-«captura»: captura de tela na pasta imagens dentro da pasta do jogo (ex.: ports/daytona/imagens), em .bmp com o nome do port e a hora, sem o contador. Vale em qualquer cartão. Aparece "CAPTURA SALVA" no canto. Fora de um jogo, FN + Y grava a tela do Omni36OS em PNG na pasta imagens do cartão 1 (EASYROMS/imagens); dá para ver em Arquivos.
+«captura»: captura de tela na pasta imagens dentro da pasta do jogo (ex.: ports/daytona/imagens), em .bmp com o nome do port e a hora, sem o contador. Vale em qualquer cartão. Aparece "CAPTURA SALVA" embaixo, no centro. Fora de um jogo, FN + Y grava a tela do Omni36OS em PNG na pasta imagens do cartão 1 (EASYROMS/imagens); dá para ver em Arquivos.
 «fechar» (segure 1 s): fecha o jogo e volta ao Omni36OS. Serve para port travado ou sem opção de sair. Este é fixo.
 "Personalizar um atalho": escolha o atalho e aperte a tecla nova; ele vira FN + essa tecla. O Omni36OS recusa o que já é do sistema ou de outro atalho. "Voltar aos botões padrão" desfaz (FN + X, FN + B e FN + Y).
 Pelo botão de power, com um jogo aberto: o jogo congela e o menu Energia abre por cima com as mesmas opções (mostrar o contador, limitar a 30 FPS, captura de tela e fechar o jogo), além de suspender, reiniciar e desligar. Captura e contador valem quando o jogo volta.
 O sistema (ogage) já usa: FN + cima/baixo e FN + volume para o brilho; FN com L1/R1, esquerda/direita, A, L3 e R3 para ajustes do sistema; SELECT + FN fala a bateria; FN + power desliga gravando tudo.
-O contador, o limite e a captura funcionam em ports que desenham com OpenGL ES (a maioria). Ports em 32 bits também. Os que trocam o LD_PRELOAD não mostram o contador. Com o FN apertado, a tecla do atalho fica só com o Omni36OS: o jogo não a recebe.
+O contador, o limite e a captura funcionam em ports que desenham com OpenGL ES (a maioria). Ports em 32 bits também. Os que trocam o LD_PRELOAD (como o Cuphead) não aceitam o contador, o limite nem a captura: o atalho mostra um aviso, uma vez por partida. Fechar continua valendo, inclusive em ports que rodam à parte. Com o FN apertado, a tecla do atalho fica só com o Omni36OS: o jogo não a recebe.
 
 # Bateria (dentro de Tela e som)
 O painel mostra a carga, se está carregando, o brilho e o modo do processador. Com o brilho alto ou o processador no máximo, aparece a dica de economia com um botão. O processador se ajusta em Desempenho.
@@ -292,6 +304,7 @@ Memória extra (zram): desligada por padrão. 256, 512 ou 768 MB de memória com
 # Cartões
 Tudo sobre onde ficam os jogos: os cartões, o pendrive e a porta USB. As ações que reiniciam ou apagam ficam no fim da página.
 ⟦"Origem dos jogos": ROMS (cartão 1), ROMS2 (cartão 2) ou ROMS e ROMS2. Ao sair da página depois de trocar (B ou START), o Omni36OS procura os jogos e os ports de novo, uma vez só, e atualiza a biblioteca e o Testar ports. Com as duas, o mesmo sistema dos dois cartões vira uma lista só. Sem o segundo cartão (ROMS2), a opção nem aparece e tudo vem do ROMS. Antes de tirar o cartão 2, use "Ejetar cartão 2": tirado montado, ele pode corromper, e o Omni36OS mostra um alerta vermelho.⟧
+⟦"Ejetar cartão 2" grava o que falta e desmonta o cartão 2 para tirar sem desligar; com um cartão posto e desmontado, aparece "Montar cartão 2". A página se atualiza sozinha quando o cartão entra ou sai. Tirado sem ejetar, aparece um alerta vermelho (num jogo, ao voltar ao menu): ponha de volta, monte e use "Verificar e reparar os jogos".⟧
 "Detalhe do cartão"⟦ (com dois cartões, "Detalhe dos cartões")⟧: mostra a marca, o tamanho, o espaço livre e o ocupado do cartão inteiro e testa a escrita e a leitura de cada cartão; leva até um minuto. O espaço livre aparece no painel. Cartões genéricos sem marca costumam ser lentos e falhar mais: o detalhe avisa quando o cartão não tem marca identificada (não é alerta).
 O Omni36OS avisa quando um cartão passa de 90% de uso ou tem menos de 1 GB livre.
 "Verificar e reparar os jogos" reinicia o aparelho e roda o reparo do Omni36OS (fsck.exfat) com o cartão desmontado. Depois o resultado aparece neste card, e o log fica em /boot/sd2_scan.log (segundo cartão) ou /boot/sd1p3_scan.log (só o cartão do sistema).
@@ -299,7 +312,7 @@ O Omni36OS avisa quando um cartão passa de 90% de uso ou tem menos de 1 GB livr
 Modo pendrive:
 Liga o modo pendrive: com o cabo de dados no PC, a partição ⟦ROMS2 (cartão 2) ou ⟧ROMS (cartão 1⟦; com dois cartões, escolha em "Partição no PC", que só aparece com o cartão 2⟧) aparece como um pendrive para copiar ports.
 Ligar reinicia o aparelho como pendrive. Enquanto estiver ligado, o Wi-Fi não funciona, porque usa a mesma porta. Se a rede USB estiver ligada, ela desliga sozinha.
-Ao conectar o PC, o Omni36OS fecha para soltar a partição. Com o PC ainda gravando, o B espera: a tela mostra "COPIANDO..." até a cópia terminar. Ao ejetar no PC, tirar o cabo ou apertar B (ou Select + Start), o console devolve a partição e reinicia sozinho no modo normal, com o Wi-Fi. O modo vale só para aquele boot: qualquer reinício volta ao normal.
+Ao conectar o PC, o Omni36OS fecha para soltar a partição. Durante a cópia, a tela mostra "COPIANDO PARA O CONSOLE..." ou "COPIANDO PARA O PC...". Com o PC ainda gravando, o B espera a cópia terminar. Ao ejetar no PC, tirar o cabo ou apertar B (ou Select + Start), o console devolve a partição e reinicia sozinho no modo normal, com o Wi-Fi. O modo vale só para aquele boot: qualquer reinício volta ao normal.
 "Restaurar boot" volta o arquivo de boot original se algo der errado.
 "Limpar lixo do Mac" apaga os arquivos ._ e .DS_Store que o macOS cria ao copiar. Eles aparecem como ports fantasmas na biblioteca. A busca leva até um minuto.
 "Montar pendrive" monta um pendrive ligado no OTG em /mnt/usbdrive (FAT, exFAT ou NTFS). Com ele montado, o mesmo botão vira "Desmontar pendrive": use antes de tirar. Com essa opção escolhida, o painel da esquerda diz se o pendrive foi reconhecido, qual é e se já está montado.
@@ -315,6 +328,9 @@ Escolha um port e aperte A: o Omni36OS fecha, o port abre como pela biblioteca e
 Passou: o port ficou aberto os 15 segundos.
 Falhou: o port fechou antes. O relatório fica em logs/teste de ports/teste_<nome do port>.txt, no cartão 1 (dá para ler em Notas > Logs), com a saída do port, os logs da pasta dele, as mensagens do kernel e o estado do sistema.
 A lista mostra o último resultado de cada port, e as falhas viram alerta no card.
+"Ver relatórios" abre os relatórios no Notas, só para leitura.
+"Runtimes faltando" procura nos ports os runtimes do PortMaster que não estão no cartão; com o Wi-Fi conectado, pergunta se quer baixar. O relatório de cada teste também avisa runtime faltando e cópia incompleta (arquivos com 0 bytes, de uma cópia que parou no meio).
+O teste encerra também o que o port deixa rodando à parte (como o Cuphead), para o jogo não ficar por baixo do menu.
 "Limpar avisos de falha" tira o alerta do card depois que você já viu as falhas. O resultado continua na lista até o port ser testado de novo; se o novo teste falhar, o aviso volta.
 Ports com menu próprio (como Daytona USA e NFSU1) passam quando o menu abre: o teste não aperta botões.
 Quando o port falha, o Omni36OS lê o relatório e mostra a causa provável (script do Windows, arquivo sem permissão, falta de memória, runtime do PortMaster, biblioteca, glibc, arquivos do jogo, cartão exFAT, travamento). Se houver conserto seguro, aparece "Corrigir e testar de novo": ele corrige (permissão, formato dos scripts ou memória extra) e testa outra vez. Se ainda falhar, a correção é desfeita. O diagnóstico também fica no relatório.
