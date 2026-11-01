@@ -1348,9 +1348,6 @@ class App:
                    tip(A("Atualizar ports", "refresh", self.refresh_ports),
                        "Lê de novo as pastas de ports dos dois cartões, as capas e as descrições (pasta infos). "
                        "Use se um port copiado não apareceu na lista."),
-                   tip(A("Runtimes faltando", "database", self.check_runtimes),
-                       "Procura nos ports os runtimes do PortMaster que não estão no cartão. Com o Wi-Fi "
-                       "conectado, pergunta se você quer baixar."),
                    tip(Choice("Busca automática", "photo-search", "busca", ["ligada", "desligada"],
                               {"ligada": "Ligada", "desligada": "Desligada"}),
                        "Com o Wi-Fi conectado, busca uma vez a capa e a descrição de cada port na biblioteca. "
@@ -1444,6 +1441,9 @@ class App:
             return [A("Escolher o port", "player-play", self.open_picker),
                     tip(A("Ver relatórios", "notes", lambda: self.open_logs(omni_logs.TESTS, from_page=True)),
                         "Abre no Notas os relatórios dos testes (logs/teste de ports/teste_<port>.txt), só para leitura."),
+                    tip(A("Runtimes faltando", "database", self.check_runtimes),
+                       "Procura nos ports os runtimes do PortMaster que não estão no cartão. Com o Wi-Fi "
+                        "conectado, pergunta se você quer baixar."),
                     A("Limpar avisos de falha", "check", lambda: self.run_tool_toast("clear_port_alerts")), recheck]
         if cid == "backup":
             where = "/roms/backup/omni36os" if FAKE else omni_backup.backup_dir()
