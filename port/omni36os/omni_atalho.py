@@ -135,6 +135,22 @@ def cmdline(pid):
 BACKGROUND = ("filebrowser", "smbd", "nmbd", "sshd", "dnsmasq")
 
 
+def cleanup_once():
+    """Limpeza única do que a base trouxe e não usamos (omni_limpeza.py): espera o menu na tela,
+    sem jogo, e para entre as etapas se um jogo abrir (tenta de novo no próximo início)."""
+    import omni_limpeza
+    if omni_limpeza.done():
+        return
+    time.sleep(60)                       # depois do boot e da abertura do menu
+    while game_pids() or not ui_running():
+        time.sleep(30)
+    try:
+        omni_limpeza.run(stop=lambda: bool(game_pids()))
+        print("limpeza: " + ("feita" if omni_limpeza.done() else "incompleta"), file=sys.stderr, flush=True)
+    except Exception as e:
+        print(f"limpeza: {e}", file=sys.stderr, flush=True)
+
+
 def game_pids():
     """Os processos do que está na tela, fora o Omni36OS: jogo, port ou ferramenta (filhos do launch-direct.sh)."""
     tree = children()
@@ -498,6 +514,7 @@ def main():
         import threading
         import omni_sistema
         threading.Thread(target=omni_sistema.dongle_watch, args=(lambda: bool(game_pids()),), daemon=True).start()
+        threading.Thread(target=cleanup_once, daemon=True).start()
     except Exception as e:
         print(f"adaptador: {e}", file=sys.stderr, flush=True)
     signal.signal(signal.SIGHUP, lambda *_: apply_flags())
