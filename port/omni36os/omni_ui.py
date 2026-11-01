@@ -1228,11 +1228,10 @@ class App:
                         "lento deixa os ports lentos para abrir."),
                     tip(tog, "O console vira um pendrive para o PC: ligue o cabo na porta OTG e copie jogos direto "
                              "para o cartão. Reinicia ao ligar e ao desligar; o Wi-Fi para enquanto estiver ligado."),
-                    tip(Choice("Partição no PC", "device-floppy", "part",
-                               ["roms2", "roms"] if FAKE or os.path.ismount("/roms2") else ["roms"],
-                               {"roms2": "ROMS2", "roms": "ROMS"}),
-                        "Qual partição o PC enxerga no modo pendrive: ROMS2 (cartão 2, se houver) ou ROMS "
-                        "(cartão 1). Sem o cartão 2, só ROMS aparece."),
+                    *([tip(Choice("Partição no PC", "device-floppy", "part", ["roms2", "roms"],
+                                  {"roms2": "ROMS2", "roms": "ROMS"}),
+                           "Qual partição o PC enxerga no modo pendrive: ROMS2 (cartão 2) ou ROMS (cartão 1).")]
+                      if FAKE or os.path.ismount("/roms2") else []),   # sem cartão 2: sempre ROMS, sem escolha
                     tip(A("Desmontar pendrive", "player-eject", lambda: self.native("usb_umount", "Desmontando..."))
                         if mounted else
                         A("Montar pendrive", "plug", lambda: self.native("usb_mount", "Montando o pendrive...")),

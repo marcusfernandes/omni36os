@@ -289,7 +289,7 @@ O Omni36OS avisa quando um cartão passa de 90% de uso ou tem menos de 1 GB livr
 "Verificar e reparar os jogos" reinicia o aparelho e roda o reparo do Omni36OS (fsck.exfat) com o cartão desmontado. Depois o resultado aparece neste card, e o log fica em /boot/sd2_scan.log (segundo cartão) ou /boot/sd1p3_scan.log (só o cartão do sistema).
 
 Modo pendrive:
-Liga o modo pendrive: com o cabo de dados no PC, a partição ROMS2 (cartão 2) ou ROMS (cartão 1, escolha em "Partição no PC") aparece como um pendrive para copiar ports.
+Liga o modo pendrive: com o cabo de dados no PC, a partição ROMS2 (cartão 2) ou ROMS (cartão 1; com dois cartões, escolha em "Partição no PC", que só aparece com o cartão 2) aparece como um pendrive para copiar ports.
 Ligar reinicia o aparelho como pendrive. Enquanto estiver ligado, o Wi-Fi não funciona, porque usa a mesma porta. Se a rede USB estiver ligada, ela desliga sozinha.
 Ao conectar o PC, o Omni36OS fecha para soltar a partição. Ao ejetar no PC, tirar o cabo ou apertar B (ou Select + Start), o console devolve a partição e reinicia sozinho no modo normal, com o Wi-Fi. O modo vale só para aquele boot: qualquer reinício volta ao normal.
 "Restaurar boot" volta o arquivo de boot original se algo der errado.
