@@ -250,8 +250,12 @@ def tap(key):
 
 
 def hud_loaded(pids):
-    """O hud/omni_hud.so está dentro de algum processo do jogo? (lido de /proc/<pid>/maps, na hora)"""
-    for p in pids:
+    """O hud/omni_hud.so está dentro de quem desenha o jogo? (lido de /proc/<pid>/maps, na hora)
+    Só conta quem tem a GPU aberta: o script do port carrega o HUD mesmo quando o jogo, depois,
+    tira o LD_PRELOAD (Cuphead)."""
+    gpu = set(gpu_users())
+    draw = [p for p in pids if p in gpu]
+    for p in draw or pids:
         try:
             with open(f"/proc/{p}/maps") as f:
                 if "omni_hud" in f.read():
