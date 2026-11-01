@@ -130,6 +130,11 @@ def cmdline(pid):
         return ""
 
 
+# Serviços que o Omni36OS deixa rodando por trás do menu (não são jogo): sem isso, FN + Y no menu
+# ia para o HUD de um jogo que não existe e a captura do menu não saía.
+BACKGROUND = ("filebrowser", "smbd", "nmbd", "sshd", "dnsmasq")
+
+
 def game_pids():
     """Os processos do que está na tela, fora o Omni36OS: jogo, port ou ferramenta (filhos do launch-direct.sh)."""
     tree = children()
@@ -137,7 +142,7 @@ def game_pids():
     for h in pgrep("-f", f"{HERE}/launch-direct.sh"):
         for p in descendants(h, tree):
             c = cmdline(p)
-            if "omni_ui.py" in c or "power_button" in c or not c:
+            if "omni_ui.py" in c or "power_button" in c or not c or any(d in c for d in BACKGROUND):
                 continue
             out.append(p)
     # port que se solta (systemd-run, setsid, vigia que reabre o jogo, como Cuphead e Blasphemous):
