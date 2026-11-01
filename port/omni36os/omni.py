@@ -872,6 +872,28 @@ def card2_gone():
     return False
 
 
+CARD2_MARK = "/run/omni36os-cartao2"      # "montado" ou "ejetado": dura até o boot (sobrevive aos jogos)
+
+
+def card2_pulled():
+    """O cartão 2 saiu sem Ejetar desde a última olhada? (o systemd desmonta sozinho quando o aparelho
+    some, então vale a marca: estava montado, não foi ejetado e agora não está). Uma resposta por retirada."""
+    try:
+        with open(CARD2_MARK) as f:
+            mark = f.read().strip()
+    except OSError:
+        mark = ""
+    if os.path.ismount("/roms2") and os.path.exists(CARD2):
+        if mark != "montado":
+            write_text(CARD2_MARK, "montado")
+        return False
+    card2_gone()
+    if mark == "montado" and not os.path.ismount("/roms2"):
+        write_text(CARD2_MARK, "fora")
+        return True
+    return False
+
+
 def card2_state():
     """"montado", "fora" (cartão no slot, desmontado) ou "sem" (nenhum cartão 2)."""
     card2_gone()
@@ -904,6 +926,10 @@ def card2_eject(_args=None):
         return "Erro: o cartão 2 está em uso" + (f" ({', '.join(names)})" if names else "") + ". Feche e tente de novo."
     tools_back()
     os.sync()
+    try:
+        write_text(CARD2_MARK, "ejetado")
+    except OSError:
+        pass
     return "Cartão 2 ejetado. Pode tirar."
 
 

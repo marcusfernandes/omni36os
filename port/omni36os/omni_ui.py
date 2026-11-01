@@ -3588,9 +3588,17 @@ class App:
     def power_check(self):
         """Sinais do power_button.py: USR1 abre o menu de energia, USR2 mostra o aviso do pânico.
         Também o pedido de captura de tela (FN + Y) do serviço de atalhos."""
+        if os.path.exists(UI_SHOT):
+            try:
+                os.remove(UI_SHOT)
+                self.want_shot = True
+            except OSError:
+                pass
+        if self.loading:
+            return                    # depois da tela de abertura, para o aviso não sumir nela
         if not FAKE and self.t - getattr(self, "card2_t", 0) > 2:
             self.card2_t = self.t
-            if omni.card2_gone():        # tirado sem ejetar: o sistema solta o /roms2 e avisa
+            if omni.card2_pulled():      # tirado sem ejetar (agora ou durante um jogo): avisa
                 self.games_idx = None
                 self.card2_alert()
         if self.page == "cartoes" and not FAKE and self.t - getattr(self, "card2_pt", 0) > 2:
@@ -3602,14 +3610,6 @@ class App:
                 self.item_sel = min(self.item_sel, len(self.items) - 1)
                 self.reload_findings()
             self.card2_seen = st
-        if os.path.exists(UI_SHOT):
-            try:
-                os.remove(UI_SHOT)
-                self.want_shot = True
-            except OSError:
-                pass
-        if self.loading:
-            return                    # depois da tela de abertura, para o aviso não sumir nela
         if self.want_power:
             self.want_power = False
             self.sheet = self.danger = self.modal = None
