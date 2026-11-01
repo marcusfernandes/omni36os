@@ -4,6 +4,14 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ("1.15.25", "31/10/2026", [
+        'Aplicativos ganha Imagens: as capturas de tela (FN + Y) do menu e de cada jogo, a mais nova primeiro. Esquerda/direita passam as imagens; X apaga.',
+        'Logs do sistema numa pasta só, no cartão 1: logs/<função> (sistema, ports, pendrive, tela, rede). O relatório do Testar ports vira logs/teste de ports/teste_<nome do port>.txt. Os antigos foram trazidos para lá.',
+        'Notas lê os logs: Logs do sistema abre cada log só para leitura, já no fim (o mais novo).',
+        'Ferramentas > Atualizar ports: relê a lista de ports, as capas e as descrições quando um port copiado não aparecer.',
+        'Wi-Fi: adaptador encaixado com o console ligado e preso no modo disco agora é religado sozinho.',
+        'Modo pendrive: respeita a escolha ROMS2 (antes caía em ROMS no boot) e "Partição no PC" só aparece com o cartão 2.',
+    ]),
     ("1.15.24", "31/10/2026", [
         'Capa e descrição dos ports pela pasta infos, dentro de ports, com o nome do jogo: para abismo.sh, abismo.txt (descrição) e abismo.png, .jpg ou .webp (capa). Um abismo.json opcional traz nome, estúdio, ano e gêneros.',
         'R36XX: o modo pendrive avisa que o Wi-Fi embutido divide a porta OTG e o PC pode não ver o console; o log do pendrive grava o modelo.',
