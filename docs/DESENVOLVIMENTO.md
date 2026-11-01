@@ -32,13 +32,13 @@ boot (logo.bmp = frame 0 de "Carregando")
 | Card | O que tem |
 |---|---|
 | **Ports** | Abre a biblioteca (lista única dos ports + ficha) |
-| **Tela e som** | Duas colunas. Brilho, Volume e Contraste (barras no analógico esquerdo), Tema, Cor do LED, Detalhes da tela, Restaurar áudio (só aparece se algum jogo mexeu no som). Saída fone/alto-falante automática |
+| **Tela e som** | Duas colunas. Subpágina **Calibrar a bateria**. Brilho, Volume e Contraste (barras no analógico esquerdo), Tema, Cor do LED, Detalhes da tela, Restaurar áudio (só aparece se algum jogo mexeu no som). Saída fone/alto-falante automática |
 | **Rede** | Wi-Fi (ligar/desligar, procurar redes e conectar com senha, redes salvas, desconectar; painel com rede, sinal e IP, via nmcli) e subpágina **Rede pelo cabo USB** |
 | **Controles** | Testar o controle (sair segurando SELECT+START), subpágina **Atalhos**, Botão de power, Consertar atalhos (reinicia o `ogage`) |
-| **Bateria** | Carga, brilho e modo do processador. Subpágina **Calibrar a bateria** (`/usr/local/etc/battery-cal`) |
 | **Desempenho** | No menu, CPU/GPU/memória sempre no mínimo (`relax_clocks`: powersave). Limites de CPU/GPU (valem nos ports), **Memória extra (zram)** 0/256/512/768 MB, Liberar overclock |
-| **Armazenamento** | Origem dos jogos (ROMS, ROMS2 ou ROMS e ROMS2), Cartão 1 / Cartão 2 no painel, detalhe do(s) cartão(ões) com teste de velocidade, modo pendrive (+ partição no PC), montar/desmontar pendrive (a dica diz se o pendrive foi reconhecido), limpar lixo do Mac; por último as ações que reiniciam: verificar e reparar, restaurar boot |
-| **Ferramentas** | Arquivos, subpágina **Testar ports** (15 s; causa provável e "Corrigir e testar de novo", `omni_ports_fix.py`), PortMaster |
+| **Aplicativos** | Músicas, Vídeos, Imagens (capturas), Notas (lê os logs), subpáginas **GeForce NOW** e **Moonlight** |
+| **Cartões** | Origem dos jogos (só com ROMS2), Ejetar/Montar cartão 2 (alerta vermelho se sair sem ejetar), detalhe do(s) cartão(ões) com teste de velocidade, modo pendrive (+ partição no PC, só com ROMS2), montar/desmontar pendrive, limpar lixo do Mac; por último as ações que reiniciam: verificar e reparar, restaurar boot |
+| **Ferramentas** | Arquivos, subpágina **Testar ports** (15 s; causa provável e "Corrigir e testar de novo", `omni_ports_fix.py`; Ver relatórios; Runtimes faltando), Atualizar ports, Busca automática, PortMaster; por último **Trocar DTB** (alerta vermelho, trava de 10 s) |
 | **Geral** | Nome do jogador, subpáginas **Segurança** e **Backup**, Procurar atualização / Voltar à versão anterior, **Verificar tudo** (resumo dos avisos de todos os cards), **Sobre** (Manual, Cuidados, Novidades, Créditos), Redefinir o sistema (último) |
 
 Regra das páginas: o mais usado primeiro, escolhas antes das ações, o que reinicia ou apaga sempre por último.
