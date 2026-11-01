@@ -267,6 +267,8 @@ def hud_loaded(pids):
 
 def show_notice(title, msg):
     """Congela o jogo e abre o Omni36OS só com o aviso; o OK volta ao jogo (mesmo caminho do aviso de bateria)."""
+    if ui_running() or pgrep("-f", "power_button.py --freeze"):
+        return                           # já tem um aviso ou o menu por cima: não empilha outro
     os.makedirs(POWER_SHM, exist_ok=True)
     try:
         os.chmod(POWER_SHM, 0o777)
