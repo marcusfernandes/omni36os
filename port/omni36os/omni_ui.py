@@ -3150,8 +3150,17 @@ class App:
         if not lists:
             return
         games = lists[0][2]
-        best = max(range(len(games)), key=lambda i: games[i][1].get("last") or "", default=None)
-        if best is not None and games[best][1].get("last"):
+        try:
+            with open(omni_games.LAST) as f:
+                path = f.read().strip()
+        except (OSError, NameError):     # simulador: sem omni_games
+            path = ""
+        best = next((i for i, (_s, g) in enumerate(games) if path and g["path"] == path), None)
+        if best is None:                  # sem registro próprio: a "Última vez" do ES
+            best = max(range(len(games)), key=lambda i: games[i][1].get("last") or "", default=None)
+            if best is not None and not games[best][1].get("last"):
+                best = None
+        if best is not None:
             self.lib.update(sys=0, game=best, top=0.0)
 
     def library_input(self, cmd):
@@ -3519,7 +3528,7 @@ class App:
                 os.remove(BAT_MSG)
                 if title:
                     self.modal = {"title": title, "icon": "battery-2", "sel": 0, "buttons": ["OK"], "text": text,
-                                  "bat": title != "Desligando"}
+                                  "bat": title == "Bateria fraca"}
                     if self.bat_return:   # por cima de uma ferramenta: o OK devolve a tela para ela
                         self.modal.update(fns=[self.quit], on_back=self.quit)
             except OSError:

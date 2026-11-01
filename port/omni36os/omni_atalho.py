@@ -238,7 +238,7 @@ def tap(key):
     if key in ("fps", "captura", "limite") and not hud_loaded(game_pids()):
         # port que barra o HUD (tira o LD_PRELOAD, usa runtime próprio, como o Cuphead): avisa por cima do jogo
         show_notice("Atalho indisponível", "Este port não aceita o contador de FPS, o limite nem a captura "
-                    "do Omni36OS. Os atalhos de fechar e pausar continuam valendo.")
+                    "do Omni36OS. Os atalhos de fechar e pausar continuam valendo. Este aviso só aparece uma vez por jogo.")
         return
     if key == "fps":
         # ciclo: desligado -> FPS -> FPS + frequência do processador e da GPU -> desligado
@@ -265,10 +265,18 @@ def hud_loaded(pids):
     return False
 
 
+NOTICED = ()
+
+
 def show_notice(title, msg):
     """Congela o jogo e abre o Omni36OS só com o aviso; o OK volta ao jogo (mesmo caminho do aviso de bateria)."""
+    global NOTICED
     if ui_running() or pgrep("-f", "power_button.py --freeze"):
         return                           # já tem um aviso ou o menu por cima: não empilha outro
+    draw = tuple(sorted(gpu_users()))
+    if draw and draw == NOTICED:
+        return                           # abrir o Omni36OS por cima demora: avisa uma vez por jogo
+    NOTICED = draw
     os.makedirs(POWER_SHM, exist_ok=True)
     try:
         os.chmod(POWER_SHM, 0o777)

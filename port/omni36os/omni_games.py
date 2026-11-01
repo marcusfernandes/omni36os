@@ -17,6 +17,7 @@ import omni
 ES_SYSTEMS = omni.ES_SYSTEMS
 ES_SETTINGS = f"{omni.HOME}/.emulationstation/es_settings.cfg"
 CACHE = f"{omni.HOME}/.config/omni36os/jogos.json"
+LAST = f"{omni.HOME}/.config/omni36os/ultimo_port"
 CACHE_VER = 3              # 3: só ports (antes lia todos os sistemas do ES)
 # O Omni36OS é só de ports: a biblioteca lê apenas /roms/ports e /roms2/ports (Origem dos jogos).
 # Pastas de emuladores que sobraram no cartão não são varridas nem listadas.
@@ -433,3 +434,7 @@ def command(sysd_name, game_path):
 def play(sys_name, path):
     """Pede ao launch-direct.sh para abrir o jogo (o Omni36OS fecha e volta depois)."""
     omni.write_text(omni.HANDOFF, f"game\t{sys_name}\t{path}")
+    try:                                 # o Ports abre com ele selecionado (Omni36OS não grava o lastplayed do ES)
+        omni.write_text(LAST, path)
+    except OSError:
+        pass
