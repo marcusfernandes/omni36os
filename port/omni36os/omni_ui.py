@@ -1526,6 +1526,15 @@ class App:
     def run_tool_toast(self, tool):
         self.worker(lambda: D.run(tool), self._action_done, busy="Fazendo...")
 
+    def card2_alert(self):
+        """Alerta vermelho: o cartão 2 saiu sem Ejetar. O OK só libera depois de 5 s."""
+        self.sheet = self.danger = None
+        self.modal = {"title": "Cartão 2 removido sem ejetar", "icon": "alert-triangle", "sel": 0,
+                      "buttons": ["OK"], "fns": [lambda: None], "lock": (0, self.t + 5), "danger": True,
+                      "text": "Tirar o cartão montado pode deixar arquivos pela metade ou corromper a "
+                              "partição. Antes de tirar, use sempre Cartões › Ejetar cartão 2.\nAo colocar "
+                              "de novo, use Cartões › Verificar e reparar os jogos."}
+
     def card2_items(self):
         """Ejetar (montado) ou Montar (no slot, desmontado) o cartão 2. Manual: nada fica vigiando o slot."""
         st = ("montado" if getattr(self, "fake_card2", True) else "fora") if FAKE else omni.card2_state()
@@ -3579,8 +3588,13 @@ class App:
     def power_check(self):
         """Sinais do power_button.py: USR1 abre o menu de energia, USR2 mostra o aviso do pânico.
         Também o pedido de captura de tela (FN + Y) do serviço de atalhos."""
-        if self.page == "cartoes" and not FAKE and self.t - getattr(self, "card2_t", 0) > 2:
-            self.card2_t = self.t        # cartão 2 tirado ou posto com a página aberta: refaz a lista
+        if not FAKE and self.t - getattr(self, "card2_t", 0) > 2:
+            self.card2_t = self.t
+            if omni.card2_gone():        # tirado sem ejetar: o sistema solta o /roms2 e avisa
+                self.games_idx = None
+                self.card2_alert()
+        if self.page == "cartoes" and not FAKE and self.t - getattr(self, "card2_pt", 0) > 2:
+            self.card2_pt = self.t       # cartão 2 tirado ou posto com a página aberta: refaz a lista
             st = omni.card2_state()
             if st != getattr(self, "card2_seen", st):
                 self.games_idx = None
