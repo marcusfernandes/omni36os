@@ -3579,6 +3579,15 @@ class App:
     def power_check(self):
         """Sinais do power_button.py: USR1 abre o menu de energia, USR2 mostra o aviso do pânico.
         Também o pedido de captura de tela (FN + Y) do serviço de atalhos."""
+        if self.page == "cartoes" and not FAKE and self.t - getattr(self, "card2_t", 0) > 2:
+            self.card2_t = self.t        # cartão 2 tirado ou posto com a página aberta: refaz a lista
+            st = omni.card2_state()
+            if st != getattr(self, "card2_seen", st):
+                self.games_idx = None
+                self.items = self.build_items("cartoes")
+                self.item_sel = min(self.item_sel, len(self.items) - 1)
+                self.reload_findings()
+            self.card2_seen = st
         if os.path.exists(UI_SHOT):
             try:
                 os.remove(UI_SHOT)

@@ -1361,7 +1361,10 @@ def dtb_retest(_args=None):
         f.write("Ferramentas\n")
     os.sync()
     # sem o launcher na frente, a tela de busca fica até o reinício (e o U-Boot mostra a mesma)
-    subprocess.Popen(["sh", "-c", f"sleep 1; systemctl stop omni36os-launcher; "
+    # numa unidade à parte (systemd-run): dentro do launcher, parar o launcher matava este comando
+    # antes do reboot e o console ficava parado com a tela apagada
+    subprocess.Popen(["systemd-run", "--no-block", "--collect", "--unit", f"omni36os-busca-dtb-{int(time.time())}",
+                      "sh", "-c", f"sleep 1; systemctl stop omni36os-launcher; "
                                   f"dd if={d}/busca.raw of=/dev/fb0 bs=2560 conv=notrunc 2>/dev/null; "
                                   "sleep 2; systemctl reboot"])
     return "Reiniciando no modo de busca de DTB..."

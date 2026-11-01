@@ -144,6 +144,8 @@ take_back() {
 # serve: sem o sinal de VBUS ele continua "configured" com o cabo solto.
 # Setores gravados pelo PC na partição entregue (campo 7 do stat): muda enquanto há cópia.
 wsect() { awk '{print $7}' "/sys/class/block/${GIVEN##*/}/stat" 2>/dev/null; }
+# Setores lidos pelo PC (campo 3): muda enquanto o PC copia do console para ele.
+rsect() { awk '{print $3}' "/sys/class/block/${GIVEN##*/}/stat" 2>/dev/null; }
 irqs() { awk '/ff300000.usb/{s=0; for(i=2;i<=NF&&$i~/^[0-9]+$/;i++) s+=$i; print s}' /proc/interrupts; }
 
 # B (ou Select+Start) no controle devolve a partição na hora; o código do B
@@ -197,7 +199,7 @@ daemon() {
       last_s=$s; tick=$(( ${tick:-0} + 1 ))
       if [ "$s" = configured ] && [ "$n" != "${prev:-$n}" ] && give; then
         given=1; idle=0; last=$(irqs); rm -f /run/usb-disco.back; watch_pad
-        lw=$(wsect); wquiet=0; busy_msg=0
+        lw=$(wsect); lr=$(rsect); wquiet=0; rquiet=9; busy_msg=0; shown=normal
       fi
       prev=$n
       continue
@@ -206,6 +208,20 @@ daemon() {
     if [ "$n" = "$last" ]; then idle=$((idle + 1)); else idle=0; last=$n; fi
     w=$(wsect)
     if [ "$w" = "$lw" ]; then wquiet=$((wquiet + 1)); else wquiet=0; lw=$w; fi
+    r=$(rsect)
+    if [ "$r" = "$lr" ]; then rquiet=$((rquiet + 1)); else rquiet=0; lr=$r; fi
+    # tela ao vivo: o que o PC está fazendo agora (some 3 s depois de parar)
+    if [ $busy_msg = 0 ]; then
+      if [ $wquiet -lt 3 ]; then now=grava; elif [ $rquiet -lt 3 ]; then now=le; else now=normal; fi
+      if [ "$now" != "$shown" ]; then
+        shown=$now
+        case $now in
+          grava) say "COPIANDO PARA O CONSOLE...\n\n  O PC está gravando em /$PART.\n\n  Espere terminar e ejete no PC antes de tirar o cabo.";;
+          le)    say "COPIANDO PARA O PC...\n\n  O PC está lendo /$PART.\n\n  Espere terminar e ejete no PC antes de tirar o cabo.";;
+          *)     say "MODO PENDRIVE\n\n  /$PART está aberta no computador.\n\n  Ejete no PC e desconecte o cabo,\n  ou aperte B, para voltar aos jogos.";;
+        esac
+      fi
+    fi
     # B com o PC ainda gravando: devolver agora deixaria arquivos pela metade (vazios). Avisa e espera.
     if [ -f /run/usb-disco.back ] && [ $wquiet -lt 5 ]; then
       rm -f /run/usb-disco.back
@@ -215,7 +231,7 @@ daemon() {
       continue
     fi
     if [ $busy_msg = 1 ] && [ $wquiet -ge 5 ]; then     # a cópia terminou: volta a tela normal
-      busy_msg=0
+      busy_msg=0; shown=normal
       say "MODO PENDRIVE\n\n  /$PART está aberta no computador.\n\n  Ejete no PC e desconecte o cabo,\n  ou aperte B, para voltar aos jogos."
     fi
     why=""
