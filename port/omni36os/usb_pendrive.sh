@@ -24,10 +24,14 @@ CFG=/home/ark/usb-disco.cfg
 LOG=/home/ark/usb-disco.log
 SVC=/etc/systemd/system/usb-disco.service
 TTY=/dev/tty1
-PART=roms2
-mountpoint -q /roms2 || PART=roms   # sem segundo cartão, o PC recebe a partição de jogos do cartão do sistema
-[ -f $CFG ] && . $CFG
-[ $PART = roms2 ] && ! mountpoint -q /roms2 && PART=roms   # escolheu ROMS2, mas o cartão saiu
+# Partição entregue ao PC: a escolhida em "Partição no PC" (padrão ROMS2 com o cartão 2); sem o
+# cartão 2 montado, ROMS.
+pick_part() {
+  PART=roms2
+  [ -f $CFG ] && . $CFG
+  [ $PART = roms2 ] && ! mountpoint -q /roms2 && PART=roms
+}
+pick_part
 [ "$(id -u)" = 0 ] || exec sudo -n "$0" "$@"
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -150,6 +154,11 @@ daemon() {
   # (fim da sessão, travamento, botão de power) volta ao modo normal, com o Wi-Fi.
   [ "$(dtb_mode)" = peripheral ] && set_dtb otg && log "daemon: próximo boot volta ao modo normal"
   gadget_up || exit 1
+  # O /roms2 é montado pelo launcher (launch-direct.sh), segundos depois deste serviço subir:
+  # com o cartão 2 no console, espera ele antes de escolher, senão a escolha cairia em ROMS.
+  local w=0
+  while [ -b /dev/mmcblk1p1 ] && ! mountpoint -q /roms2 && [ $w -lt 60 ]; do sleep 1; w=$((w + 1)); done
+  pick_part
   # O serviço caiu com a partição no PC (reinício pelo systemd): devolve antes de tudo, senão o
   # console ficaria sem a partição e sem o Omni36OS.
   if ! mountpoint -q /$PART || ! systemctl -q is-active omni36os-launcher; then
