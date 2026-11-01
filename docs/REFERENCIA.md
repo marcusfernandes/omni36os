@@ -125,7 +125,7 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
   (decisão do usuário: nem todos têm dois cartões); sem internet, o usuário copia para `tools/PortMaster/libs` pelo PC.
 - HUD (FPS/captura/limite) tem duas versões, as duas no LD_PRELOAD: `hud/omni_hud.so` (aarch64) e `hud/omni_hud32.so`
   (armhf: Asphalt e outros jogos 32 bits). armhf: `podman run --rm -v "$PWD":/w:Z debian:trixie` + `gcc-arm-linux-gnueabihf`,
-  `arm-linux-gnueabihf-gcc -O2 -fPIC -shared -nostdlib -o omni_hud32.so omni_hud.c`.
+  `arm-linux-gnueabihf-gcc -O2 -fPIC -shared -nostdlib -o omni_hud32.so omni_hud.c` (sem esse gcc: no próprio console, `clang-19 --target=arm-linux-gnueabihf -march=armv7-a -mfloat-abi=hard -O2 -fPIC -shared -nostdlib -fno-builtin -fuse-ld=lld`). "CAPTURA SALVA" aparece embaixo, no centro.
 - "Limite do processador" em Automático (`/etc/omni36os/cpu_auto`, valor 0 no seletor): `omni_cpuauto.py` roda no
   laço do `omni_atalho.py` e mexe no `scaling_max_freq` (no jogo o governador é performance). Alvo = limite de FPS (FN + B)
   ou 60; FPS lido de `/dev/shm/omni36os-fps`, que o HUD reescreve a cada 0,5 s (arquivo parado = sem jogo → teto).

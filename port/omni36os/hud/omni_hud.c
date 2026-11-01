@@ -484,7 +484,7 @@ static void build(int W, int Hh)
     }
     if (now() < H.toast_until) {
         const char *msg = "CAPTURA SALVA";
-        float w = text_w(msg, px) + pad * 2, tx = W - w - 8, tyy = y;
+        float w = text_w(msg, px) + pad * 2, tx = (W - w) / 2, tyy = Hh - h - 12;   /* embaixo, no centro (toast): não briga com o monitor */
         quad(tx, tyy, w, h, BG);
         text(msg, tx + pad, tyy + pad, px, GREEN);
     }
