@@ -83,7 +83,7 @@ def find_ports():
     seen = set()
 
     for ports_dir in PORTS_DIRS:
-        if not os.path.isdir(ports_dir):
+        if not os.path.isdir(ports_dir) or (ports_dir.startswith("/roms2") and not os.path.ismount("/roms2")):
             continue
 
         for entry in sorted(os.listdir(ports_dir)):

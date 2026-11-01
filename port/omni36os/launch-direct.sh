@@ -174,7 +174,7 @@ ports_card2_begin() {
     ports_unbind                         # sobra de um jogo anterior: cada port começa do zero
     case "$1" in
         /roms2/ports/*)
-            if [ -d /roms2/ports ]; then
+            if mountpoint -q /roms2 && [ -d /roms2/ports ]; then
                 sudo mkdir -p /roms/ports
                 sudo mount --bind /roms2/ports /roms/ports && PORTS_BOUND=1
             fi ;;

@@ -81,6 +81,8 @@ def scan(dirs=("/roms/ports", "/roms2/ports"), libs=LIBS):
     import omni_meta
     out = {}
     for d in dirs:
+        if d.startswith("/roms2") and not os.path.ismount("/roms2"):
+            continue                     # sem ROMS2 nem olha lá
         for sh in sorted(glob.glob(os.path.join(d, "*.sh"))):
             try:
                 gd = omni_meta.port_dir(sh)

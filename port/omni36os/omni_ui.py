@@ -1315,7 +1315,8 @@ class App:
                              "ou apertar B, ele volta sozinho ao normal, com o Wi-Fi."))
             tog.act = "desligar_pendrive" if on else "ligar_pendrive"
             mounted = getattr(self, "fake_usb", False) if FAKE else os.path.ismount("/mnt/usbdrive")
-            return [Choice("Origem dos jogos", "folder", "fonte", list(SOURCE_NAMES), SOURCE_NAMES),
+            return [*([Choice("Origem dos jogos", "folder", "fonte", list(SOURCE_NAMES), SOURCE_NAMES)]
+                      if FAKE or os.path.ismount("/roms2") else []),   # sem ROMS2: só ROMS, sem escolha
                     tip(A("Detalhe dos cartões" if self.sd_count() > 1 else "Detalhe do cartão", "info-circle",
                           self.speed_test),
                         "Marca, tamanho, espaço livre e ocupado e um teste de velocidade de cada cartão (até 1 minuto). Cartão "
@@ -2197,7 +2198,7 @@ class App:
     def open_files(self, path=None, start=None):
         if path is None:
             roots = [r for r in (["/roms", "/roms2", "/mnt/usbdrive"] if not FAKE else ["/roms", "/roms2"])
-                     if FAKE or os.path.ismount(r) or os.path.isdir(r)]
+                     if FAKE or os.path.ismount(r) or (r == "/roms" and os.path.isdir(r))]   # ROMS2 só montado
             names = {"/roms": "Cartão 1 (/roms)", "/roms2": "Cartão 2 (/roms2)",
                      "/mnt/usbdrive": "Pendrive (/mnt/usbdrive)"}
             rows = [{"name": names[r], "icon": "device-sd-card" if r != "/mnt/usbdrive" else "usb", "path": r,
@@ -2310,6 +2311,8 @@ class App:
         else:
             cands = [("Menu do Omni36OS", SHOT_DIR)]
             for card in ("/roms", "/roms2"):
+                if card == "/roms2" and not os.path.ismount(card):
+                    continue
                 for d in sorted(glob.glob(f"{card}/ports/*/imagens")):
                     cands.append((os.path.basename(os.path.dirname(d)), d))
         out, seen = [], set()

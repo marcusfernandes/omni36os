@@ -863,7 +863,8 @@ def get_game_source(_args=None):
 def game_roots():
     """Raízes valendo agora; /roms2 só entra se estiver montado."""
     want = {"roms": ["/roms"], "roms2": ["/roms2"], "ambos": ["/roms", "/roms2"]}[get_game_source()]
-    return [r for r in want if r == "/roms" or os.path.ismount(r)]
+    got = [r for r in want if r == "/roms" or os.path.ismount(r)]
+    return got or ["/roms"]             # escolheu ROMS2 e ele saiu: volta ao ROMS
 
 
 def set_game_source(args):
