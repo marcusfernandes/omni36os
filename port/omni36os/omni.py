@@ -885,8 +885,10 @@ def card2_eject(_args=None):
     if not os.path.ismount("/roms2"):
         return "O cartão 2 já está desmontado."
     os.sync()
-    with open("/proc/mounts") as f:      # binds que o dArkOSen faz a partir do cartão 2 (Tools)
-        extra = [l.split()[1] for l in f if l.split()[1].startswith(("/opt/system/Tools", "/roms/ports"))]
+    # só o que vem do cartão 2: o /opt/system/Tools (PortMaster) é bind de /roms/tools, do cartão 1, e fica
+    with open("/proc/mounts") as f:
+        extra = [l.split()[1] for l in f if l.split()[0] == CARD2 and l.split()[1] != "/roms2"]
+    extra += ["/roms/ports"] if os.path.ismount("/roms/ports") else []     # bind de port do cartão 2
     for m in extra:
         subprocess.run(["umount", m], capture_output=True)
     # o compartilhamento de rede (Samba) segura o cartão enquanto um PC está conectado: para e volta depois
@@ -900,6 +902,7 @@ def card2_eject(_args=None):
         busy = subprocess.run(["fuser", "-m", "/roms2"], capture_output=True, text=True).stdout.split()
         names = sorted({os.path.basename(cmdline_of(p)) for p in busy if cmdline_of(p)})[:3]
         return "Erro: o cartão 2 está em uso" + (f" ({', '.join(names)})" if names else "") + ". Feche e tente de novo."
+    tools_back()
     os.sync()
     return "Cartão 2 ejetado. Pode tirar."
 
@@ -922,7 +925,14 @@ def card2_mount(_args=None):
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode:
         return f"Erro ao montar: {(r.stderr or '').strip()[:80]}"
+    tools_back()
     return "Cartão 2 montado."
+
+
+def tools_back():
+    """O PortMaster fica em /opt/system/Tools (bind do fstab): sem ele, nenhum port abre."""
+    if not os.path.ismount("/opt/system/Tools"):
+        subprocess.run(["mount", "/opt/system/Tools"], capture_output=True)
 
 
 def cmdline_of(pid):
