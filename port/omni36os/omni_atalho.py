@@ -140,9 +140,30 @@ def game_pids():
             if "omni_ui.py" in c or "power_button" in c or not c:
                 continue
             out.append(p)
-    if out:                              # port que se solta (systemd-run, setsid): quem desenha também conta
-        out += [p for p in gpu_users() if p not in out]
+    # port que se solta (systemd-run, setsid, vigia que reabre o jogo, como Cuphead e Blasphemous):
+    # quem desenha e quem roda de dentro da pasta de ports também conta. Se o script já saiu e o
+    # launcher não está na tela, o jogo solto é tudo o que sobrou.
+    if out or not pgrep("-f", "omni_ui.py"):
+        out += [p for p in gpu_users() + port_procs() if p not in out]
     return out
+
+
+def port_procs():
+    """Processos rodando de dentro de /roms*/ports (cwd ou linha de comando), fora o Omni36OS."""
+    me, found = os.getpid(), []
+    for p in os.listdir("/proc"):
+        if not p.isdigit() or int(p) == me:
+            continue
+        try:
+            w = os.readlink(f"/proc/{p}/cwd")
+        except OSError:
+            w = ""
+        c = cmdline(int(p))
+        if "omni_" in c or "port_test.sh" in c or not c:
+            continue
+        if any(x in f"{w}/ {c}" for x in ("/roms/ports/", "/roms2/ports/")):
+            found.append(int(p))
+    return found
 
 
 def gpu_users():
