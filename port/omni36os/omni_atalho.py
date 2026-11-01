@@ -235,6 +235,11 @@ def tap(key):
             os.makedirs(os.path.dirname(UI_SHOT), exist_ok=True)
             put(UI_SHOT, int(time.time() * 1000))
         return
+    if key in ("fps", "captura", "limite") and not hud_loaded(game_pids()):
+        # port que barra o HUD (tira o LD_PRELOAD, usa runtime próprio, como o Cuphead): avisa por cima do jogo
+        show_notice("Atalho indisponível", "Este port não aceita o contador de FPS, o limite nem a captura "
+                    "do Omni36OS. Os atalhos de fechar e pausar continuam valendo.")
+        return
     if key == "fps":
         # ciclo: desligado -> FPS -> FPS + frequência do processador e da GPU -> desligado
         put(HUD_FLAG, {"0": "1", "1": "2", "2": "3", "3": "4"}.get(read_flag(HUD_FLAG), "0"))   # FPS, +CPU, +GPU, +RAM, esconde
@@ -242,6 +247,31 @@ def tap(key):
         put(SHOT_FLAG, int(time.time() * 1000))
     elif key == "limite":
         put(CAP_FLAG, "0" if read_flag(CAP_FLAG) != "0" else oc.CAP_FPS)
+
+
+def hud_loaded(pids):
+    """O hud/omni_hud.so está dentro de algum processo do jogo? (lido de /proc/<pid>/maps, na hora)"""
+    for p in pids:
+        try:
+            with open(f"/proc/{p}/maps") as f:
+                if "omni_hud" in f.read():
+                    return True
+        except OSError:
+            pass
+    return False
+
+
+def show_notice(title, msg):
+    """Congela o jogo e abre o Omni36OS só com o aviso; o OK volta ao jogo (mesmo caminho do aviso de bateria)."""
+    os.makedirs(POWER_SHM, exist_ok=True)
+    try:
+        os.chmod(POWER_SHM, 0o777)
+    except OSError:
+        pass
+    put(f"{POWER_SHM}/bat-msg", f"{title}\n{msg}")
+    put(BAT_FLAG, str(time.time()))
+    subprocess.run(["systemd-run", "--no-block", "--collect", "--unit", f"omni36os-aviso-{int(time.time())}",
+                    sys.executable, os.path.join(HERE, "power_button.py"), "--freeze"])
 
 
 def held(key):
