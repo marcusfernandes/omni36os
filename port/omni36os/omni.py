@@ -1263,6 +1263,20 @@ def usb_off(_args=None):
     return usb_run("off")
 
 
+def dtb_retest(_args=None):
+    """Ferramentas > Trocar DTB: o mesmo teste de tela do L1 + R1 ao ligar. Marca o pedido no /boot
+    (o omni36os-painel.service roda o teste no boot seguinte) e reinicia."""
+    if not os.path.exists("/etc/systemd/system/omni36os-painel.service") and \
+            not os.path.exists("/lib/systemd/system/omni36os-painel.service"):
+        return "Erro: o teste de tela não está instalado nesta imagem. Use L1 + R1 ao ligar."
+    os.makedirs("/boot/omni36os-tela", exist_ok=True)
+    with open("/boot/omni36os-tela/testar", "w") as f:
+        f.write("Ferramentas\n")
+    os.sync()
+    subprocess.Popen(["sh", "-c", "sleep 2; systemctl reboot"])
+    return "Reiniciando no teste de tela..."
+
+
 def usb_restore(_args=None):
     return usb_run("restore")
 

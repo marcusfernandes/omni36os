@@ -47,6 +47,7 @@ Repositório público: https://github.com/mpjsilva/omni36os (GPL-3.0). Autor dos
 | `omni_checks.py` | Diagnóstico de cada card por regras fixas (níveis ok/info/aviso/problema) |
 | `omni_games.py`, `ports.py` | Lista de ports (dois cartões), gamelist, comando de lançamento, histórico |
 | `dtb/dArkOSen-*.tar.xz` | Catálogo de DTB do dArkOSen (sem as imagens do seletor). `omni.ensure_dtb_catalog()` (serviço de atalhos, no boot) completa `/boot/dtb` uma vez por catálogo, sem apagar nada nem tocar no DTB em uso. Catálogo novo: `tar --exclude=dtb/images -cJf` da pasta `BOOT/dtb` da imagem nova |
+| Trocar DTB | Ferramentas > Trocar DTB (`omni.dtb_retest`): alerta com trava de 10 s (`modal["lock"]`), grava `/boot/omni36os-tela/testar` e reinicia; o `omni36os-painel.service` roda o teste. L1 + R1 ao ligar continua como reserva |
 | `omni_logs.py` | Lugar dos logs: `/roms/logs/<função>/` (sistema, ports, teste de ports/teste_<port>.txt, pendrive, tela, rede); migração única dos antigos |
 | `omni_meta.py` | Ficha do port: `ports/infos/<nome do .sh>.txt/.png/.jpg/.webp/.json` → pasta info do port → PortMaster → Steam → Wikipédia → DuckDuckGo; cache em `~/.config/omni36os/steam`. Força IPv4 no `getaddrinfo` (roteador sem resposta AAAA) |
 | `omni_update.py` | Atualização pelo GitHub (maior tag `omni-vX.Y.Z`), com volta automática se a nova não abrir |

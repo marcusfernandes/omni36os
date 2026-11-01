@@ -1057,6 +1057,27 @@ class App:
         return omni_checks.finish(out, [], {}) if not FAKE else {
             "nivel": "aviso" if fails else "ok", "achados": out, "acoes": []}
 
+    def ask_dtb(self):
+        """Ferramentas > Trocar DTB: alerta com trava de 10 s antes de liberar o Trocar."""
+        if self.busy_game():
+            return
+        lock = 10
+
+        def go():
+            if FAKE:
+                self.toast = ("Reiniciaria no teste de tela", "ok", self.t + 3)
+                return
+            self.worker(omni.dtb_retest, lambda r: self.__setattr__(
+                "toast", (str(r), "problema" if str(r).startswith("Erro") else "ok", self.t + 5)),
+                busy="Preparando o teste de tela...")
+        self.modal = {"title": "Trocar o DTB da tela?", "icon": "alert-triangle", "sel": 1,
+                      "buttons": ["Trocar", "Cancelar"], "fns": [go, lambda: None],
+                      "lock": (0, self.t + lock),
+                      "text": "O console reinicia e testa as telas do catálogo, uma por uma: aperte um botão "
+                              "quando a imagem aparecer certa. Com a tela errada ela fica preta ou torta, "
+                              "e o teste segue sozinho.\nUse só se o cartão foi para outro console. "
+                              "Se der errado: segure L1 + R1 ao ligar."}
+
     def refresh_ports(self):
         """Ferramentas > Atualizar ports: relê tudo do zero (lista, capas e descrições locais)."""
         def run():
@@ -1275,6 +1296,9 @@ class App:
         if cid == "ferramentas":
             out = [A("Arquivos", "folder", self.open_files),
                    subpage(A("Testar ports", "player-play", lambda: self.open_page("testar")), "testar"),
+                   tip(A("Trocar DTB", "device-tv", self.ask_dtb),
+                       "Refaz a escolha da tela (o mesmo teste do L1 + R1 ao ligar): reinicia e testa as telas "
+                       "do catálogo. Para quando o cartão vai para outro console."),
                    tip(A("Atualizar ports", "refresh", self.refresh_ports),
                        "Lê de novo as pastas de ports dos dois cartões, as capas e as descrições (pasta infos). "
                        "Use se um port copiado não apareceu na lista."),
@@ -4099,6 +4123,9 @@ class App:
             if cmd in ("left", "right") and len(m["buttons"]) > 1:
                 m["sel"] = (m["sel"] + (1 if cmd == "right" else -1)) % len(m["buttons"])
             elif cmd == "ok":
+                lk = m.get("lock")
+                if lk and m["sel"] == lk[0] and self.t < lk[1]:
+                    return                    # trava: o botão só vale depois da contagem
                 self.modal = None
                 if m.get("fns"):
                     m["fns"][m["sel"]]()
@@ -4766,13 +4793,20 @@ class App:
                 if m.get("url"):
                     g.text("SemiBold", 13, m["url"], W / 2, qy + 204, TEXT, "c")
             bw = (mw - 60 - 12 * (len(m["buttons"]) - 1)) / len(m["buttons"])
+            lk = m.get("lock")
             for k, label in enumerate(m["buttons"]):
                 bx, by = mx + 30 + k * (bw + 12), my + mh - 54
-                if k == m["sel"]:
+                locked = lk and k == lk[0] and self.t < lk[1]
+                if locked:
+                    label = f"{label} ({int(lk[1] - self.t) + 1})"   # contagem da trava
+                if locked:
+                    g.rrect(bx, by, bw, 38, 14, ink(40 if k == m["sel"] else 14))
+                elif k == m["sel"]:
                     g.rrect(bx, by, bw, 38, 14, self.accent[0], self.accent[1])
                 else:
                     g.rrect(bx, by, bw, 38, 14, ink(22))
-                g.text("SemiBold", 13, label, bx + bw / 2, by + 19.5, ON_TEXT if k == m["sel"] else TEXT, "c", "m")
+                g.text("SemiBold", 13, label, bx + bw / 2, by + 19.5,
+                       ON_TEXT if k == m["sel"] and not locked else alpha(TEXT, 150) if locked else TEXT, "c", "m")
         if self.reader:
             self.draw_reader(dt)
         if getattr(self, "pad", None):
