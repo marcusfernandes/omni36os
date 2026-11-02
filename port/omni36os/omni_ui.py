@@ -4049,29 +4049,29 @@ class App:
         g.text("Medium", 12, f"Sem tecla em {left:.0f} s, cancela." if left is not None else "",
                W / 2, my + mh - 30, FAINT, "c")
 
-    def read(self, title, icon, text, link=None, on_close=None):
-        """link: (palavra, função) — a palavra aparece como link e A abre a função.
+    def read(self, title, icon, text, links=(), on_close=None):
+        """links: [(palavra, botão "ok"/"x", função)] — a palavra aparece como link e o botão abre a função.
         on_close: chamada quando o leitor fecha (ex.: voltar à janela que o abriu)."""
-        self.reader = {"title": title, "icon": icon, "text": text, "scroll": 0.0, "top": 0, "link": link,
+        self.reader = {"title": title, "icon": icon, "text": text, "scroll": 0.0, "top": 0, "links": links,
+                       "keys": {k: f for _w, k, f in links},
                        "on_close": on_close}
 
     def open_credits(self):
-        self.read("Créditos", "users", omni_help.CREDITOS, link=("mpjsilva", self.repo_qr))
+        self.read("Créditos", "users", omni_help.CREDITOS,
+                  links=[("mpjsilva", "ok", self.qr_mpjsilva), ("h1ghland3r", "x", self.qr_h1ghland3r)])
 
-    def repo_qr(self):
+    def qr(self, title, text, image, url):
         self.reader = None
-        self.modal = {"title": "Omni36OS no GitHub", "icon": "users", "sel": 0,
-                      "text": "Aponte a câmera do celular para abrir o repositório.",
-                      "image": "qr-repo", "url": "github.com/mpjsilva/omni36os",
-                      "buttons": ["OK", "h1ghland3r"],
-                      "fns": [self.open_credits, self.thanks_qr], "on_back": self.open_credits}
+        self.modal = {"title": title, "icon": "users", "sel": 0, "buttons": ["OK"], "text": text,
+                      "image": image, "url": url, "fns": [self.open_credits], "on_back": self.open_credits}
 
-    def thanks_qr(self):
-        self.reader = None
-        self.modal = {"title": "h1ghland3r", "icon": "users", "sel": 0, "buttons": ["OK", "Omni36OS"],
-                      "text": "Aponte a câmera do celular para abrir os links do h1ghland3r.",
-                      "image": "qr-h1ghland3r", "url": "beacons.ai/h1ghland3r",
-                      "fns": [self.open_credits, self.repo_qr], "on_back": self.open_credits}
+    def qr_mpjsilva(self):
+        self.qr("mpjsilva no GitHub", "Aponte a câmera do celular para abrir o GitHub do mpjsilva.",
+                "qr-mpjsilva", "github.com/mpjsilva")
+
+    def qr_h1ghland3r(self):
+        self.qr("h1ghland3r", "Aponte a câmera do celular para abrir os links do h1ghland3r.",
+                "qr-h1ghland3r", "beacons.ai/h1ghland3r")
 
     def ask(self, text, fn, danger=False, cancel=False):
         if danger:
@@ -4249,8 +4249,8 @@ class App:
             step = {"up": -1, "down": 1, "left": -8, "right": 8, "l1": -8, "r1": 8}.get(cmd)
             if step:
                 r["top"] = max(0, min(r.get("max", 0), r["top"] + step))
-            elif cmd == "ok" and r.get("link"):
-                r["link"][1]()
+            elif cmd in (r.get("keys") or {}):
+                r["keys"][cmd]()
             elif cmd in ("back", "ok"):
                 self.reader = None
                 if r.get("on_close"):
@@ -5017,8 +5017,9 @@ class App:
         for weight, size, txt, h_ in lines:
             if y + h_ > ty - 30 and y < ty + th and txt:
                 g.text(weight, size, txt, mx + 32, y, TEXT)
-                word = (r.get("link") or ("\0",))[0]
-                if word in txt:            # o link: na cor do card e sublinhado, por cima do texto
+                for word, _k, _f in r.get("links") or ():
+                    if word not in txt:     # o link: na cor do card e sublinhado, por cima do texto
+                        continue
                     pre = txt[:txt.index(word)]
                     lx = mx + 32 + (g.measure(weight, size, pre)[0] if pre else 0)
                     lw = g.measure(weight, size, word)[0]
@@ -5033,7 +5034,7 @@ class App:
             g.rrect(mx + mw - 14, ty, 4, th, 2, ink(18))
             g.rrect(mx + mw - 14, by, 4, bh, 2, alpha(a1, 220))
         self.draw_footer_at(my + mh - 30, ([("UD", "Rolar"), ("LR", "Pular")] if r["max"] else []) +   # texto curto: nada a rolar
-                            ([("A", "Abrir os links")] if r.get("link") else []), mx + 24)
+                            [("A" if k == "ok" else k.upper(), w) for w, k, _f in r.get("links") or ()], mx + 24)
         self.draw_footer_at(my + mh - 30, [("B", "Voltar")], mx + mw - 110)
 
     def frame(self, dt):
