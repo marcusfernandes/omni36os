@@ -208,12 +208,28 @@ def _read_system(sysd):
 
 
 def _signature(sysd):
+    """O que diz se o cache ainda vale. Só a data da pasta não basta: quem grava o cartão no PC
+    (cartão no leitor ou modo pendrive) nem sempre muda a data da pasta ao copiar um port, e o port
+    novo não aparecia até "Atualizar ports". Nos ports a varredura é só da pasta de cima, então a
+    assinatura é a própria lista dela: nome, tamanho e data de cada item, mais a data do gamelist."""
     sig = []
     for p in (sysd["path"], _gamelist(sysd)):
         try:
             sig.append(os.stat(p).st_mtime) if p else sig.append(0)
         except OSError:
             sig.append(0)
+    if sysd["name"] == "ports":
+        h = hashlib.md5()
+        try:
+            for e in sorted(os.scandir(sysd["path"]), key=lambda e: e.name):
+                try:
+                    st = e.stat(follow_symlinks=False)
+                    h.update(f"{e.name}|{st.st_size}|{int(st.st_mtime)}\n".encode(errors="replace"))
+                except OSError:
+                    h.update(f"{e.name}|?\n".encode(errors="replace"))
+        except OSError:
+            pass
+        sig.append(h.hexdigest())
     return sig
 
 
