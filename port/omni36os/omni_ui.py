@@ -4050,15 +4050,14 @@ class App:
                W / 2, my + mh - 30, FAINT, "c")
 
     def read(self, title, icon, text, links=(), on_close=None):
-        """links: [(palavra, botão "ok"/"x", função)] — a palavra aparece como link e o botão abre a função.
+        """links: [(palavra, função)] — a palavra vira link; ↑↓ levam o foco pelos links na tela e A abre.
         on_close: chamada quando o leitor fecha (ex.: voltar à janela que o abriu)."""
-        self.reader = {"title": title, "icon": icon, "text": text, "scroll": 0.0, "top": 0, "links": links,
-                       "keys": {k: f for _w, k, f in links},
+        self.reader = {"title": title, "icon": icon, "text": text, "scroll": 0.0, "top": 0, "links": links, "focus": None,
                        "on_close": on_close}
 
     def open_credits(self):
         self.read("Créditos", "users", omni_help.CREDITOS,
-                  links=[("mpjsilva", "ok", self.qr_mpjsilva), ("h1ghland3r", "x", self.qr_h1ghland3r)])
+                  links=[("mpjsilva", self.qr_mpjsilva), ("h1ghland3r", self.qr_h1ghland3r)])
 
     def qr(self, title, text, image, url):
         self.reader = None
@@ -4247,10 +4246,14 @@ class App:
         if self.reader:
             r = self.reader
             step = {"up": -1, "down": 1, "left": -8, "right": 8, "l1": -8, "r1": 8}.get(cmd)
-            if step:
+            vis = r.get("vis") or []
+            if cmd in ("up", "down") and r.get("focus") in vis and \
+                    0 <= vis.index(r["focus"]) + step < len(vis):   # próximo link na tela: o foco anda
+                r["focus"] = vis[vis.index(r["focus"]) + step]
+            elif step:
                 r["top"] = max(0, min(r.get("max", 0), r["top"] + step))
-            elif cmd in (r.get("keys") or {}):
-                r["keys"][cmd]()
+            elif cmd == "ok" and r.get("focus") in vis:
+                r["links"][r["focus"]][1]()
             elif cmd in ("back", "ok"):
                 self.reader = None
                 if r.get("on_close"):
@@ -5014,27 +5017,38 @@ class App:
         r["scroll"] = approach(r["scroll"], sum(heights[:r["top"]]), dt, 18)
         g.clip(mx, ty, mw, th)
         y = ty - r["scroll"]
+        seen, vis = set(), []
         for weight, size, txt, h_ in lines:
             if y + h_ > ty - 30 and y < ty + th and txt:
                 g.text(weight, size, txt, mx + 32, y, TEXT)
-                for word, _k, _f in r.get("links") or ():
-                    if word not in txt:     # o link: na cor do card e sublinhado, por cima do texto
+                for i, (word, _f) in enumerate(r.get("links") or ()):
+                    if word not in txt or i in seen:
                         continue
+                    seen.add(i)
+                    if y >= ty and y + h_ <= ty + th:
+                        vis.append(i)
                     pre = txt[:txt.index(word)]
                     lx = mx + 32 + (g.measure(weight, size, pre)[0] if pre else 0)
                     lw = g.measure(weight, size, word)[0]
-                    g.rrect(lx - 2, y - 1, lw + 4, size + 6, 4, MODAL_A)
-                    g.text("SemiBold", size, word, lx, y, a1)
-                    g.rrect(lx, y + size + 3, lw, 1.5, 0.75, a1, feather=0)
+                    if i == r.get("focus"):    # o link com foco: cheio, como um botão
+                        g.rrect(lx - 5, y - 3, lw + 10, size + 10, 6, a1, a2)
+                        g.text("SemiBold", size, word, lx, y, ON_TEXT)
+                    else:                      # os outros: na cor do card e sublinhados
+                        g.rrect(lx - 2, y - 1, lw + 4, size + 6, 4, MODAL_A)
+                        g.text("SemiBold", size, word, lx, y, a1)
+                        g.rrect(lx, y + size + 3, lw, 1.5, 0.75, a1, feather=0)
             y += h_
         g.clip()
+        r["vis"] = vis
+        if vis and r.get("focus") not in vis:   # a rolagem levou o foco: vai para o primeiro visível
+            r["focus"] = vis[0]
         if total > th:   # barra de rolagem
             bh = max(30, th * th / total)
             by = ty + (th - bh) * (r["scroll"] / max(1, sum(heights[:r["max"]])))
             g.rrect(mx + mw - 14, ty, 4, th, 2, ink(18))
             g.rrect(mx + mw - 14, by, 4, bh, 2, alpha(a1, 220))
         self.draw_footer_at(my + mh - 30, ([("UD", "Rolar"), ("LR", "Pular")] if r["max"] else []) +   # texto curto: nada a rolar
-                            [("A" if k == "ok" else k.upper(), w) for w, k, _f in r.get("links") or ()], mx + 24)
+                            ([("A", "Abrir " + r["links"][r["focus"]][0])] if r.get("focus") in (r.get("vis") or ()) else []), mx + 24)
         self.draw_footer_at(my + mh - 30, [("B", "Voltar")], mx + mw - 110)
 
     def frame(self, dt):
