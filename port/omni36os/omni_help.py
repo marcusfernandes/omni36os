@@ -407,6 +407,9 @@ Para fechar um port travado, use SELECT + START (segure 1 s) antes de pensar em 
 CREDITOS = """# Omni36OS
 Sistema só de ports para o R36S, feito por mpjsilva, com a ajuda do Claude (Anthropic) no desenvolvimento. Licença GNU GPL v3.0. github.com/mpjsilva/omni36os
 
+# Agradecimento especial
+h1ghland3r, youtuber que tornou o projeto possível: obrigado pelo tempo que você dedicou testando o projeto e reportando os bugs xD. beacons.ai/h1ghland3r
+
 # Sistema base
 dArkOSen, de djparentx: a imagem usada como base do Omni36OS, com o catálogo de telas dos modelos R36, a ferramenta de calibração da bateria (que o Omni36OS reescreveu), o patch do DTB e o desligamento seguro. github.com/djparentx/dArkOSen-R36S
 

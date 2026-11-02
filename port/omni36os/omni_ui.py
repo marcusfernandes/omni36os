@@ -4060,10 +4060,18 @@ class App:
 
     def repo_qr(self):
         self.reader = None
-        self.modal = {"title": "Omni36OS no GitHub", "icon": "users", "sel": 0, "buttons": ["OK"],
+        self.modal = {"title": "Omni36OS no GitHub", "icon": "users", "sel": 0,
                       "text": "Aponte a câmera do celular para abrir o repositório.",
                       "image": "qr-repo", "url": "github.com/mpjsilva/omni36os",
-                      "fns": [self.open_credits], "on_back": self.open_credits}
+                      "buttons": ["OK", "h1ghland3r"],
+                      "fns": [self.open_credits, self.thanks_qr], "on_back": self.open_credits}
+
+    def thanks_qr(self):
+        self.reader = None
+        self.modal = {"title": "h1ghland3r", "icon": "users", "sel": 0, "buttons": ["OK", "Omni36OS"],
+                      "text": "Aponte a câmera do celular para abrir os links do h1ghland3r.",
+                      "image": "qr-h1ghland3r", "url": "beacons.ai/h1ghland3r",
+                      "fns": [self.open_credits, self.repo_qr], "on_back": self.open_credits}
 
     def ask(self, text, fn, danger=False, cancel=False):
         if danger:
@@ -5025,7 +5033,7 @@ class App:
             g.rrect(mx + mw - 14, ty, 4, th, 2, ink(18))
             g.rrect(mx + mw - 14, by, 4, bh, 2, alpha(a1, 220))
         self.draw_footer_at(my + mh - 30, ([("UD", "Rolar"), ("LR", "Pular")] if r["max"] else []) +   # texto curto: nada a rolar
-                            ([("A", "Abrir o repositório")] if r.get("link") else []), mx + 24)
+                            ([("A", "Abrir os links")] if r.get("link") else []), mx + 24)
         self.draw_footer_at(my + mh - 30, [("B", "Voltar")], mx + mw - 110)
 
     def frame(self, dt):
