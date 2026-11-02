@@ -21,7 +21,7 @@ O Omni36OS transforma o R36S (RK3326) num console de **ports**: jogos de PC e ho
 
 O EmulationStation sai de cena. No boot, sobe direto um launcher gráfico feito do zero, em Python 3 + SDL2. Ele abre os ports e toca músicas e vídeos. Também guarda notas, verifica a saúde do aparelho e reúne todas as ferramentas do sistema numa interface em português, pensada para os botões do console. Não é preciso teclado, PC nem terminal.
 
-Versão atual: **1.15.26** · [Novidades de cada versão](NOVIDADES.md) · [Visão geral](docs/Omni36OS%20visão%20geral.md) · [Melhorias propostas](docs/Omni36OS%20melhorias%20propostas.md)
+Versão atual: **1.15.27** · [Novidades de cada versão](NOVIDADES.md) · [Visão geral](docs/Omni36OS%20visão%20geral.md) · [Melhorias propostas](docs/Omni36OS%20melhorias%20propostas.md)
 
 ## Principais diferenciais
 

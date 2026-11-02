@@ -1,6 +1,6 @@
 # Omni36OS: visão geral
 
-Explicação do que o Omni36OS é e do que ele já faz, na versão 1.15.26 (01/11/2026). Para os detalhes técnicos, veja o [README](../README.md), o [DESENVOLVIMENTO](DESENVOLVIMENTO.md) e a [REFERENCIA](REFERENCIA.md).
+Explicação do que o Omni36OS é e do que ele já faz, na versão 1.15.27 (02/11/2026). Para os detalhes técnicos, veja o [README](../README.md), o [DESENVOLVIMENTO](DESENVOLVIMENTO.md) e a [REFERENCIA](REFERENCIA.md).
 
 ## A ideia
 
@@ -29,7 +29,7 @@ A base é o [dArkOSen](https://github.com/djparentx/dArkOSen-R36S) (Debian trixi
 | **Aplicativos** | Músicas, Vídeos, Imagens (capturas de tela), Notas (também lê os logs), GeForce NOW, Moonlight |
 | **Cartões** | De onde vêm os jogos, ejetar e montar o cartão 2, detalhe e teste de velocidade dos cartões, modo pendrive, pendrive no OTG, verificar e reparar |
 | **Ferramentas** | Arquivos, Testar ports, Atualizar ports, PortMaster, Trocar DTB |
-| **Geral** | Nome, segurança e trava por senha, backup, atualização, Verificar tudo, Sobre (Manual, Cuidados, Novidades, Créditos) |
+| **Geral** | Nome, segurança e trava por senha, backup, atualização, Verificar tudo, Sobre (Manual, Cuidados, Novidades, Créditos com links em QR) |
 
 Cada card **se verifica sozinho** e mostra os pontos de alerta. Quando há conserto seguro, ele aparece como um botão marcado "SUGERIDO".
 
@@ -43,6 +43,7 @@ Cada card **se verifica sozinho** e mostra os pontos de alerta. Quando há conse
   - o cartão 2 sai e entra sem desligar (Ejetar e Montar), com alerta vermelho se sair sem ejetar;
   - o modo pendrive mostra a cópia em andamento e não encerra no meio dela.
 - **Atualização pelo próprio console** (Geral > Procurar atualização), com volta automática para a versão anterior se a nova não abrir.
+- **Sistema enxuto:** uma limpeza única tira o que veio da base e não serve a ports (serviços, pacotes, idiomas) e desliga o monitor de Wi-Fi da base, que desligava o adaptador.
 - **Logs num lugar só:** `logs/<função>` no cartão 1, legíveis pelo Notas ou pelo PC.
 
 ## Por baixo

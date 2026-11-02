@@ -2,6 +2,13 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.15.27 (02/11/2026)
+
+- Wi-Fi: o adaptador não é mais desligado depois de 10 min sem rede (o monitor de Wi-Fi da base desligava o rádio e tirava o driver, e o Wi-Fi não voltava sozinho).
+- Ports copiados pelo PC com o cartão no leitor aparecem na biblioteca sem precisar de "Atualizar ports".
+- Limpeza única do sistema, com o menu na tela: tira serviços, pacotes, documentação e idiomas que um sistema só de ports não usa (cerca de 700 MB livres a mais).
+- Créditos: agradecimento especial ao h1ghland3r, que testou o projeto e reportou os bugs. Os links de Créditos são navegáveis: ↑↓ levam o foco e A abre o QR (GitHub do mpjsilva e links do h1ghland3r).
+
 ## 1.15.26 (01/11/2026)
 
 - Ferramentas > Trocar DTB: troca a tela do console sem o PC. Alerta vermelho com trava de 10 s; o console reinicia mostrando "Modo de busca de DTB" e testa as telas uma a uma. O L1 + R1 ao ligar continua valendo.

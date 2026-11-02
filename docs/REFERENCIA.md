@@ -52,6 +52,7 @@ Repositório público: https://github.com/mpjsilva/omni36os (GPL-3.0). Autor dos
 | `omni_meta.py` | Ficha do port: `ports/infos/<nome do .sh>.txt/.png/.jpg/.webp/.json` → pasta info do port → PortMaster → Steam → Wikipédia → DuckDuckGo; cache em `~/.config/omni36os/steam`. Força IPv4 no `getaddrinfo` (roteador sem resposta AAAA) |
 | `omni_update.py` | Atualização pelo GitHub (maior tag `omni-vX.Y.Z`), com volta automática se a nova não abrir |
 | `omni_painel.py` | Tela certa no primeiro boot (ver abaixo) |
+| `omni_limpeza.py` | Limpeza única (marca `/var/lib/omni36os-update/limpeza-N`, hoje N=2): desliga fn-menu-watcher, es-status-daemon e wifi_monitor (e desfaz suas sobras: blacklist WIFI-MANAGER, wpa_supplicant mascarado), purga Java/compiladores, apaga docs e idiomas. Roda pelo `omni_atalho` com o menu na tela; log em `logs/sistema/limpeza.log` |
 | `omni_atalho.py` | Serviço root: atalhos FN nos jogos, contador de FPS, guarda da bateria (avisos 30/15%, desliga em 10%) |
 | `power_button.py` | Botão de power: menu de energia, inclusive por cima de jogo/ferramenta congelados (SIGSTOP) |
 | `launch-direct.sh` | Laço launcher → jogo/ferramenta → launcher (o `omni_ui.py` grava o pedido em `/tmp/omni36os-next`). Monta o cartão 2 e, durante um port do cartão 2, faz bind de `/roms2/ports` em `/roms/ports` |
