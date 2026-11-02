@@ -5048,7 +5048,7 @@ class App:
             g.rrect(mx + mw - 14, ty, 4, th, 2, ink(18))
             g.rrect(mx + mw - 14, by, 4, bh, 2, alpha(a1, 220))
         self.draw_footer_at(my + mh - 30, ([("UD", "Rolar"), ("LR", "Pular")] if r["max"] else []) +   # texto curto: nada a rolar
-                            ([("A", "Abrir " + r["links"][r["focus"]][0])] if r.get("focus") in (r.get("vis") or ()) else []), mx + 24)
+                            ([("A", "Abrir")] if r.get("focus") in (r.get("vis") or ()) else []), mx + 24)
         self.draw_footer_at(my + mh - 30, [("B", "Voltar")], mx + mw - 110)
 
     def frame(self, dt):
