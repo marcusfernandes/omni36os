@@ -23,9 +23,9 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-VERSION = 1
+VERSION = 2
 MARK = f"/var/lib/omni36os-update/limpeza-{VERSION}"
-SERVICES = ("fn-menu-watcher", "es-status-daemon")
+SERVICES = ("fn-menu-watcher", "es-status-daemon", "wifi_monitor")
 PACKAGES = ("openjdk-21-jre-headless", "default-jre-headless", "rustc", "cargo", "libstd-rust-dev",
             "libstd-rust-1.85", "cmake", "cmake-data", "gcc", "gcc-12", "gcc-14", "gcc-14-aarch64-linux-gnu",
             "gcc-aarch64-linux-gnu", "cpp", "cpp-12", "cpp-14", "cpp-14-aarch64-linux-gnu", "cpp-aarch64-linux-gnu")
@@ -52,6 +52,33 @@ def free_mb():
     return st.f_bavail * st.f_frsize // (1 << 20)
 
 
+def wifi_leftovers():
+    """Desfaz o que o wifi_monitor do dArkOSen deixa ao desligar o Wi-Fi após 10 min sem rede."""
+    bl = "/etc/modprobe.d/blacklist.conf"
+    try:
+        txt = open(bl).read()
+        out, skip = [], False
+        for l in txt.splitlines(keepends=True):
+            if l.startswith("# WIFI-MANAGER START"):
+                skip = True
+            elif l.startswith("# WIFI-MANAGER END"):
+                skip = False
+            elif not skip:
+                out.append(l)
+        open(bl, "w").write("".join(out))
+    except OSError:
+        pass
+    for p in ("/etc/wifi_disabled_modules.list", "/etc/systemd/system-sleep/wifi-manager-hook.sh"):
+        if os.path.exists(p):
+            os.remove(p)
+    try:
+        open("/var/cache/wifi_manager_state", "w").write("ON\n")
+    except OSError:
+        pass
+    subprocess.run(["systemctl", "unmask", "wpa_supplicant"], capture_output=True)
+    log("sobras do wifi_monitor desfeitas")
+
+
 def run(stop=lambda: False):
     """Faz a limpeza. stop(): um jogo abriu (para entre as etapas e tenta de novo depois)."""
     if done():
@@ -62,6 +89,7 @@ def run(stop=lambda: False):
         subprocess.run(["systemctl", "disable", "--now", s], capture_output=True)
         subprocess.run(["systemctl", "mask", s], capture_output=True)
     log("serviços parados e mascarados: " + ", ".join(SERVICES))
+    wifi_leftovers()
     if stop():
         return
     have = subprocess.run(["dpkg-query", "-W", "-f", "${Package}\n", *PACKAGES], capture_output=True,
