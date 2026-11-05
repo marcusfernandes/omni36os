@@ -12,6 +12,7 @@ para no meio se um jogo abrir.
 Na imagem: omni_runtimes.py --dest <pasta> deixa a pasta igual à lista (apaga o que saiu).
 """
 import hashlib
+import omni_i18n
 import json
 import os
 import shutil

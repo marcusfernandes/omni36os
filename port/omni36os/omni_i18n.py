@@ -1266,7 +1266,6 @@ TRANSLATIONS = {
     'ui_backup_wrong_file': {"pt-BR": 'Este arquivo não é um backup de {module}', "en": 'This file is not a backup for {module}'},
     'ui_backup_unknown_type': {"pt-BR": 'não é backup do Omni36OS', "en": 'not an Omni36OS backup'},
     'ui_overclock_wrong_password': {"pt-BR": 'Senha errada: o overclock continua bloqueado', "en": 'Wrong password: overclocking is still locked'},
-    'ui_shortcut_not_saved': {"pt-BR": 'Atalho não gravado', "en": 'Shortcut not saved'},
     'ui_system_update_rolled_back_title': {"pt-BR": 'Atualização desfeita', "en": 'Update rolled back'},
     'ui_system_update_rolled_back_text': {"pt-BR": 'O erro ficou em logs/sistema/falhas.log (Notas > Logs).', "en": 'The error is in logs/sistema/falhas.log (Notes > Logs).'},
 

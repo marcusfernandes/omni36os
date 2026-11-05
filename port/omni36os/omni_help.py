@@ -4,6 +4,10 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ('1.15.29', '05/11/2026', [
+        'Novidades antes de atualizar: a tela agora segue o idioma do console.',
+        'Runtimes: corrigido o erro ao baixar quando falta espaço ou o arquivo vem diferente.',
+    ]),
     ('1.15.28', '04/11/2026', [
         'Tradução completa para inglês: mensagens, avisos de bateria, diálogos das ferramentas, relatório de teste de ports e modo pendrive seguem o idioma escolhido.',
         'Primeiro boot pergunta o idioma antes do nome do jogador. Redefinir o sistema pergunta de novo.',
@@ -666,6 +670,7 @@ The R36S community, which documents models, screens, clones, and repairs and mak
 
 # Reviewed English release-note editions; entry order matches NOVIDADES above.
 NOVIDADES_EN = {
+    '1.15.29': ["What's new before updating: the screen now follows the console language.", 'Runtimes: fixed the download error when space runs out or the file does not match.'],
     '1.15.28': ['Full English translation: messages, battery warnings, tool dialogs, port test reports and USB drive mode follow the chosen language.', 'First boot asks for the language before the player name. Reset the system asks again.', 'In English, error messages no longer appear as success.'],
     '1.15.27': ['Wi-Fi: the adapter is no longer powered off after 10 minutes without a network (the base Wi-Fi monitor disabled the radio and removed the driver, preventing Wi-Fi from reconnecting automatically).', 'Ports copied on a PC with the card in a reader now appear in the library without using Refresh Ports.', 'One-time system cleanup, with an on-screen menu: removes services, packages, documentation, and languages not used by a ports-only system (frees about 700 MB more).', "Credits: special thanks to h1ghland3r for testing the project and reporting bugs. Credit links are navigable: ↑↓ move focus and A opens the QR code (mpjsilva's GitHub and h1ghland3r's links)."],
     '1.15.26': ['Tools > Change DTB: change the console screen without a PC. A red warning includes a 10-second hold; the console restarts in ‘DTB search mode’ and tests screens one by one. L1 + R1 at startup still works.', 'The dArkOSen DTB catalog is included with Omni36OS and updates automatically; the clone-console warning is now based on the model and no longer appears unnecessarily.', 'Cards: Eject Card 2 and Mount Card 2 let you remove and insert the card without shutting down. Removing it without ejecting shows a red warning (also when returning from a game).', 'When Card 2 is absent, ROMS2 is hidden everywhere: Game Source, Files, Images, runtimes, and Help. The Cards page refreshes automatically when the card is inserted or removed.', 'Ports opens with the most recently played port selected.', 'Test Ports: View Reports (opens in Notes) and Missing Runtimes (searches ports and downloads over Wi-Fi). Reports now flag incomplete copies (zero-byte files) and missing runtimes.', 'Test Ports also closes processes a port leaves running separately (such as Cuphead); previously the game remained behind the menu and the screen flickered.', 'FN shortcuts now detect ports that run separately (Cuphead, Blasphemous). For ports that do not support the FPS counter, limit, or screenshot, a warning appears once per play session.', 'SCREENSHOT SAVED appears at the bottom center, no longer underneath the resource monitor. FN + Y in the menu works again with the File Browser enabled.', 'USB drive mode shows when the PC is copying to or from the console, and B no longer interrupts a copy in progress.'],

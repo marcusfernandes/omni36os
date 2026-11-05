@@ -2,6 +2,11 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.15.29 (05/11/2026)
+
+- Novidades antes de atualizar: a tela agora segue o idioma do console.
+- Runtimes: corrigido o erro ao baixar quando falta espaço ou o arquivo vem diferente.
+
 ## 1.15.28 (04/11/2026)
 
 - Internacionalização: opção de trocar o idioma entre Português (Brasil) e Inglês no menu Geral. Toda a interface se adapta ao idioma escolhido.

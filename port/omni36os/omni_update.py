@@ -74,10 +74,17 @@ def check():
 
 
 def news(tag, cur):
-    """[(versão, data, [itens])] do NOVIDADES.md da tag, só as versões depois da atual. [] se falhar."""
-    try:
-        text = _get(f"https://raw.githubusercontent.com/{REPO}/{tag}/NOVIDADES.md", timeout=10).decode("utf-8", "replace")
-    except (OSError, ValueError):
+    """[(versão, data, [itens])] das novidades da tag no idioma do console, só as versões depois da atual.
+    Em inglês lê o NOVIDADES.en.md; sem ele, cai no NOVIDADES.md. [] se falhar."""
+    names = ["NOVIDADES.en.md", "NOVIDADES.md"] if omni_i18n.get_lang() == "en" else ["NOVIDADES.md"]
+    text = None
+    for name in names:
+        try:
+            text = _get(f"https://raw.githubusercontent.com/{REPO}/{tag}/{name}", timeout=10).decode("utf-8", "replace")
+            break
+        except (OSError, ValueError):
+            pass
+    if text is None:
         return []
     out = []
     for m in re.finditer(r"^## (\d+\.\d+\.\d+) \(([^)]*)\)\n(.*?)(?=^## |\Z)", text, re.M | re.S):
