@@ -127,7 +127,7 @@ def _download(info, dest, stop):
                 fo.write(b)
                 h.update(b)
         if h.hexdigest() != info["md5"]:
-            raise ValueError("md5 não confere")
+            raise ValueError(omni_i18n._("tx_rt_md5"))
         os.replace(tmp, dest)
     finally:
         if os.path.exists(tmp):
@@ -151,14 +151,14 @@ def sync(libs=LIBS, stop=lambda: False, prune=False, log=print, names=None):
         for n in names:
             info = idx.get(n)
             if not info:
-                bad.append(f"{n}: fora do índice do PortMaster")
+                bad.append(omni_i18n._("tx_rt_index").format(name=n))
                 continue
             dest = os.path.join(libs, n)
             if os.path.isfile(dest) and _md5(dest, cache) == info["md5"]:
                 continue
             free = shutil.disk_usage(libs).free + (os.path.getsize(dest) if os.path.isfile(dest) else 0)
             if free < info["size"] + SPARE:
-                bad.append(f"{n}: sem espaço")
+                bad.append(omni_i18n._("tx_rt_space").format(name=n))
                 continue
             log(f"baixando {n} ({info['size'] >> 20} MB)")
             try:

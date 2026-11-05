@@ -9,45 +9,46 @@ import json
 import os
 import re
 import shutil
+import omni_i18n
 
 PENDING = os.path.expanduser("~ark/.config/omni36os/correcao_pendente.json")
 
-# (id, regex no relatório, causa, dica, correção automática ou None)
+# (id, regex no relatório, chave da causa, chave da dica, correção automática ou None)
 RULES = [
-    ("copia", r"^Cópia incompleta: (.+)$",
-     "A cópia do port parou no meio: há arquivos vazios (0 bytes).",
-     "Copie o port de novo. No modo pendrive, espere a cópia terminar e ejete no PC antes de desconectar.", None),
+    ("copia", r"^(?:Cópia incompleta|Incomplete copy): (.+)$",
+     omni_i18n._("ports_fix_copy_incomplete_cause"),
+     omni_i18n._("ports_fix_copy_incomplete_tip"), None),
     ("crlf", r"\r: command not found|bad interpreter: .*\^M|/bin/bash\^M|\$'\\r'",
-     "O script foi salvo no Windows (fim de linha CRLF).",
-     "Converter os scripts do port para o formato do Linux.", "crlf"),
+     omni_i18n._("ports_fix_crlf_cause"),
+     omni_i18n._("ports_fix_crlf_tip"), "crlf"),
     ("permissao", r"Permission denied",
-     "Um arquivo do port está sem permissão para rodar (comum depois de copiar pelo PC).",
-     "Dar permissão de execução aos arquivos do port.", "chmod"),
+     omni_i18n._("ports_fix_permission_cause"),
+     omni_i18n._("ports_fix_permission_tip"), "chmod"),
     ("memoria", r"Out of memory|oom-kill|Killed process|^Killed$|\bKilled\b",
-     "Faltou memória: o sistema matou o port.",
-     "Ligar a memória extra (zram) com 768 MB.", "zram"),
-    ("runtime", r"^Runtime faltando: (.+)$",
-     "O port precisa de um runtime do PortMaster que não está no cartão.",
-     "Conecte o Wi-Fi: o Omni36OS baixa os runtimes sozinho. Se não vier, abra Ferramentas › PortMaster e instale o port de novo.", None),
+     omni_i18n._("ports_fix_memory_cause"),
+     omni_i18n._("ports_fix_memory_tip"), "zram"),
+    ("runtime", r"^(?:Runtime faltando|Missing runtime): (.+)$",
+     omni_i18n._("ports_fix_runtime_cause"),
+     omni_i18n._("ports_fix_runtime_tip"), None),
     ("runtime", r"libs/([\w.\-]+)\.squashfs|runtime[^\n]*(not found|missing|não)",
-     "O port precisa de um runtime do PortMaster que não foi baixado.",
-     "Abra Ferramentas › PortMaster (com internet) e instale o port de novo: ele baixa o runtime.", None),
+     omni_i18n._("ports_fix_runtime_download_cause"),
+     omni_i18n._("ports_fix_runtime_download_tip"), None),
     ("glibc", r"GLIBC_[\d.]+' not found",
-     "O port foi feito para um sistema mais novo (glibc).",
-     "Sem conserto aqui: procure outra versão do port.", None),
+     omni_i18n._("ports_fix_glibc_cause"),
+     omni_i18n._("ports_fix_glibc_tip"), None),
     ("biblioteca", r"error while loading shared libraries: ([\w.+\-]+)",
-     "Falta uma biblioteca para o port.",
-     "Reinstale o port pelo PortMaster; se continuar, ele não é compatível com este sistema.", None),
+     omni_i18n._("ports_fix_library_cause"),
+     omni_i18n._("ports_fix_library_tip"), None),
     ("symlink", r"(ln|symlink)[^\n]*Operation not permitted",
-     "O cartão de jogos é exFAT e não aceita atalhos (links simbólicos).",
-     "Instale o port pelo PortMaster, que já contorna isso.", None),
+     omni_i18n._("ports_fix_symlink_cause"),
+     omni_i18n._("ports_fix_symlink_tip"), None),
     ("dados", r"\.(wad|pak|pk3|win|iso|dat|bin|grp|zip)['\"]?[^\n]*(not found|No such file)|"
               r"(game ?data|gamedata|data files?)[^\n]*(not found|missing)",
-     "Faltam os arquivos do jogo original.",
-     "Copie os arquivos do jogo para a pasta do port (veja o README dele).", None),
+     omni_i18n._("ports_fix_data_cause"),
+     omni_i18n._("ports_fix_data_tip"), None),
     ("segfault", r"Segmentation fault|SIGSEGV",
-     "O port travou (falha de memória do próprio programa).",
-     "Teste com o processador em Máximo e sem overclock (Desempenho).", None),
+     omni_i18n._("ports_fix_segfault_cause"),
+     omni_i18n._("ports_fix_segfault_tip"), None),
 ]
 
 
@@ -99,10 +100,9 @@ def note(report, items, line=""):
     """Acrescenta o diagnóstico ao relatório."""
     try:
         with open(report, "a") as f:
-            f.write("\n--- Diagnóstico do Omni36OS ---\n")
+            f.write(omni_i18n._("tx_diag_title"))
             for d in items:
-                f.write(f"Causa provável: {d['causa']}" + (f" ({d['extra']})" if d["extra"] else "") +
-                        f"\nO que fazer: {d['dica']}\n")
+                f.write(omni_i18n._("tx_diag_item").format(cause=d['causa'] + (f" ({d['extra']})" if d["extra"] else ""), tip=d['dica']))
             if line:
                 f.write(line + "\n")
     except OSError:
@@ -165,10 +165,9 @@ def _fix_zram(script, dirs):
 
 
 FIXES = {"chmod": _fix_chmod, "crlf": _fix_crlf, "zram": _fix_zram}
-FIX_DONE = {"chmod": "permissão de execução dada aos arquivos do port",
-            "crlf": "scripts convertidos para o formato do Linux",
-            "zram": "memória extra (zram) ligada com 768 MB"}
-
+FIX_DONE = {"chmod": omni_i18n._("ports_fix_done_chmod"),
+            "crlf": omni_i18n._("ports_fix_done_crlf"),
+            "zram": omni_i18n._("ports_fix_done_zram")}
 
 def apply(report, fix):
     """Aplica a correção e guarda o desfazer para depois do novo teste. Devolve o script do port."""
@@ -217,7 +216,7 @@ def settle(name, ok):
                 os.remove(bak)
             except OSError:
                 pass
-        note(state["report"], [], f"Correção que resolveu: {what}.")
-        return f"A correção funcionou: {what}."
+        note(state["report"], [], omni_i18n._("tx_diag_fixed").format(what=what))
+        return omni_i18n._("ports_fix_success").format(what=what)
     undo(state)
-    return f"A correção ({what}) não resolveu e foi desfeita."
+    return omni_i18n._("ports_fix_failure").format(what=what)

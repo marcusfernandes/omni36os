@@ -27,6 +27,8 @@ import time
 import urllib.parse
 import urllib.request
 
+import omni_i18n
+
 CACHE = os.environ.get("OMNI_META_DIR") or "/home/ark/.config/omni36os/steam"
 STEAM = "https://store.steampowered.com/api"
 PM_LIST = "https://github.com/PortsMaster/PortMaster-New/releases/latest/download/ports.json"
@@ -285,13 +287,15 @@ def portmaster(name, path):
 # --- 2. Steam ---
 
 def steam(term):
-    q = urllib.parse.urlencode({"term": term, "l": "brazilian", "cc": "BR"})
+    lang = "english" if omni_i18n.get_lang() == "en" else "brazilian"
+    country = "US" if lang == "english" else "BR"
+    q = urllib.parse.urlencode({"term": term, "l": lang, "cc": country})
     found = json.loads(_get(f"{STEAM}/storesearch/?{q}")).get("items") or []
     app = next((i for i in found if _key(i.get("name", "")) == _key(term)), None)
     if not app:
         return None                   # só aceita nome igual: a busca da Steam devolve parecidos
     aid = app["id"]
-    d = json.loads(_get(f"{STEAM}/appdetails?appids={aid}&l=brazilian&cc=BR"))[str(aid)]
+    d = json.loads(_get(f"{STEAM}/appdetails?appids={aid}&l={lang}&cc={country}"))[str(aid)]
     d = d.get("data", {}) if d.get("success") else {}
     return {"nome": d.get("name") or app.get("name"), "descricao": _clean(d.get("short_description")),
             "estudio": ", ".join(d.get("developers") or []),
@@ -323,25 +327,27 @@ def _wiki_summary(lang, title):
 
 
 def wikipedia(term):
-    hits = _wiki_get("en", {"action": "query", "list": "search", "srsearch": f"{term} video game",
+    lang = "en" if omni_i18n.get_lang() == "en" else "pt"
+    hits = _wiki_get(lang, {"action": "query", "list": "search", "srsearch": f"{term} video game",
                             "srlimit": 5})["query"]["search"]
     title = next((h["title"] for h in hits if _wiki_ok(h["title"], term)), None)
     if not title:
         return None
-    en = _wiki_summary("en", title)
-    out = {"nome": term, "descricao": en.get("extract", "")}
-    year = re.search(r"\b(19[7-9]\d|20[0-4]\d)\b", en.get("description", "") + " " + out["descricao"][:120])
+    summary = _wiki_summary(lang, title)
+    if lang == "en" and not summary.get("extract"):
+        lang = "pt"
+        hits = _wiki_get(lang, {"action": "query", "list": "search", "srsearch": f"{term} jogo",
+                                "srlimit": 5})["query"]["search"]
+        title = next((h["title"] for h in hits if _wiki_ok(h["title"], term)), None)
+        if title:
+            summary = _wiki_summary(lang, title)
+    out = {"nome": term, "descricao": summary.get("extract", "")}
+    year = re.search(r"\b(19[7-9]\d|20[0-4]\d)\b", summary.get("description", "") + " " + out["descricao"][:120])
     if year:
         out["lancamento"] = year.group(1)
-    img = (en.get("originalimage") or en.get("thumbnail") or {}).get("source", "")
+    img = (summary.get("originalimage") or summary.get("thumbnail") or {}).get("source", "")
     if re.search(r"\.(jpe?g|png)$", img, re.I):
         out["img"] = img
-    pages = _wiki_get("en", {"action": "query", "prop": "langlinks", "lllang": "pt", "titles": title})["query"]["pages"]
-    pt = next((ll["*"] for p in pages.values() for ll in p.get("langlinks", [])), None)
-    if pt:                            # a mesma página em português: a descrição vem dela
-        ext = _wiki_summary("pt", pt).get("extract", "")
-        if ext:
-            out["descricao"] = ext
     return out
 
 
@@ -354,7 +360,8 @@ DDG_UA = {"User-Agent": "Mozilla/5.0 (X11; Linux aarch64) Omni36OS"}   # sem car
 def ddg(term, need_img=True, need_desc=True):
     out = {}
     if need_desc:
-        q = urllib.parse.urlencode({"q": f"{term} video game", "format": "json", "no_html": 1, "kl": "br-pt"})
+        region = "us-en" if omni_i18n.get_lang() == "en" else "br-pt"
+        q = urllib.parse.urlencode({"q": f"{term} video game", "format": "json", "no_html": 1, "kl": region})
         a = json.loads(_get(f"https://api.duckduckgo.com/?{q}", headers=DDG_UA))
         if a.get("AbstractText"):
             out["descricao"] = _clean(a["AbstractText"])
@@ -385,20 +392,23 @@ def _pt(text):
 
 
 def fetch(name, path=""):
+    english = omni_i18n.get_lang() == "en"
     pm = portmaster(name, path)
     term = (pm or {}).get("titulo") or _norm(name)
     info, descs, imgs = {}, [], []
     layers = [("PortMaster", pm), ("Steam", steam(term))]
-    if not any((d or {}).get("img") for _, d in layers) or not any(_pt((d or {}).get("descricao")) for _, d in layers):
-        try:                          # sem capa ou sem descrição em português: a Wikipédia completa
+    active_descs = lambda: any((d or {}).get("descricao") and (not english or not _pt((d or {}).get("descricao")))
+                               for _, d in layers)
+    if not any((d or {}).get("img") for _, d in layers) or not active_descs():
+        try:                          # sem capa ou descrição no idioma atual: a Wikipédia completa
             layers.append(("Wikipédia", wikipedia(term)))
             info["wiki"] = True
         except (OSError, ValueError, KeyError):
             pass
-    if not any((d or {}).get("img") for _, d in layers) or not any((d or {}).get("descricao") for _, d in layers):
-        try:                          # faltou capa ou descrição: o DuckDuckGo completa
+    if not any((d or {}).get("img") for _, d in layers) or not active_descs():
+        try:                          # faltou capa ou descrição no idioma atual: DuckDuckGo completa
             layers.append(("DuckDuckGo", ddg(term, not any((d or {}).get("img") for _, d in layers),
-                                             not any((d or {}).get("descricao") for _, d in layers))))
+                                             not active_descs())))
             info["ddg"] = True        # já tentou: não busca de novo a cada abertura
         except (OSError, ValueError, KeyError):
             pass
@@ -416,8 +426,12 @@ def fetch(name, path=""):
             descs.append(d["descricao"])
         if d.get("img"):
             imgs.append((src, d["img"]))
-    if descs:   # em português se alguma camada tiver; senão a do PortMaster (fala do port)
-        info["descricao"] = next((t for t in descs if _pt(t)), descs[0])
+    if descs:
+        # Prefer the active language; for user-supplied/PortMaster text, retain the best available description.
+        if english:
+            info["descricao"] = next((t for t in descs if not _pt(t)), descs[0])
+        else:
+            info["descricao"] = next((t for t in descs if _pt(t)), descs[0])
     os.makedirs(CACHE, exist_ok=True)
     js, jpg = paths(name)
     prio = {"Steam": 0, "PortMaster": 1, "Wikipédia": 2, "DuckDuckGo": 3}

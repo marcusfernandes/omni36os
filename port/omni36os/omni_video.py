@@ -13,8 +13,9 @@ import signal
 import subprocess
 import threading
 import time
+import omni_i18n
 
-ROOTS = [("/roms/videos", "Cartão 1"), ("/roms2/videos", "Cartão 2")]
+ROOTS = [("/roms/videos", "tx_card1"), ("/roms2/videos", "tx_card2")]
 EXT = (".mp4", ".mkv", ".webm", ".avi", ".mov", ".m4v", ".ogv", ".mpg", ".mpeg", ".3gp", ".flv", ".wmv")
 SCREEN = (640, 480)
 
@@ -26,7 +27,8 @@ def is_video(name):
 def roots():
     """[(pasta, nome)] das pastas de vídeo que existem agora. A do cartão 1 é criada se faltar."""
     out = []
-    for path, name in ROOTS:
+    for path, key in ROOTS:
+        name = omni_i18n._(key)
         base = os.path.dirname(path)
         if not os.path.isdir(path) and path.startswith("/roms/") and os.path.isdir(base):
             try:
@@ -91,7 +93,7 @@ class Player:
         self.close()
         self.info = probe(path)
         if not self.info:
-            self.error = "Este arquivo não parece um vídeo que o Omni36OS consiga abrir."
+            self.error = omni_i18n._("video_invalid_file")
             return False
         self.path, self.error = path, None
         self.size = fit(self.info["w"], self.info["h"])
@@ -109,7 +111,7 @@ class Player:
         try:
             self.proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=0)
         except OSError as e:
-            self.error = f"Não consegui abrir o ffmpeg: {e}"
+            self.error = omni_i18n._("video_ffmpeg_open_error").format(error=e)
             return False
         self.start_pos, self.frames, self.paused, self.ended = max(0.0, pos), 0, False, False
         threading.Thread(target=self._read, args=(self.proc,), daemon=True).start()

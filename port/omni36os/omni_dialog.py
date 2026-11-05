@@ -14,6 +14,7 @@ cai no dialog original (/tmp/omni36os-dialog.real).
 """
 import os
 import re
+import omni_i18n
 import select
 import signal
 import sys
@@ -45,7 +46,7 @@ def release_holder():
 
 
 def parse(argv):
-    o = {"ok": "OK", "cancel": "Cancelar", "yes": "Sim", "no": "Não", "extra": None, "help": None,
+    o = {"ok": "OK", "cancel": omni_i18n._("ui_hint_cancel"), "yes": omni_i18n._("tx_yes"), "no": omni_i18n._("tx_no"), "extra": None, "help": None,
          "title": "", "backtitle": "", "default": None, "stdout": False, "separate": False, "nocancel": False,
          "widget": None, "args": [], "timeout": 0, "defaultno": False}
     i = 0
@@ -79,9 +80,9 @@ def parse(argv):
         o["nocancel"] |= a in ("--no-cancel", "--nocancel")
         o["defaultno"] |= a == "--defaultno"
         if a == "--extra-button" and not o["extra"]:
-            o["extra"] = "Extra"
+            o["extra"] = omni_i18n._("dialog_default_extra")
         if a == "--help-button" and not o["help"]:
-            o["help"] = "Ajuda"
+            o["help"] = omni_i18n._("dialog_default_help")
         i += 1
     if o["widget"] is None:
         return None
@@ -377,7 +378,7 @@ def run_list(w, o, text, items, mode):
             g.text("SemiBold" if cur else "Regular", 13, label, x, yy + 6, (255, 255, 255, 255) if cur else w.TEXT)
         g.clip()
         if mode in ("radio", "check"):
-            g.text("Regular", 11, "X / Y: marcar", mx + mw - 24, lb + 2, w.FAINT, "r")
+            g.text("Regular", 11, omni_i18n._("dialog_checkbox_hint"), mx + mw - 24, lb + 2, w.FAINT, "r")
         w.buttons(labs, bsel, mx, my, mw, mh)
         w.present()
 
@@ -397,7 +398,7 @@ def run_osk(w, o, prompt, init="", password=False):
                 return 1, ""
         g = w.g
         w.frame_start(o["title"], o["backtitle"])
-        mx, my, mw, mh, y = w.panel(o["title"] or "Digite")
+        mx, my, mw, mh, y = w.panel(o["title"] or omni_i18n._("dialog_type_prompt"))
         y2 = y
         if prompt.strip():
             n, _v = w.text_block(prompt, mx + 24, y, mw - 48, y + 40, 0, 12)
@@ -426,7 +427,7 @@ def run_osk(w, o, prompt, init="", password=False):
                     g.rrect(x + ws[cc] / 2 - 10, ky + kh - 6, 20, 3, 1.5, (255, 255, 255, 255) if cur else w.A1)
                 x += ws[cc] + gap
             ky += kh + 4
-        g.text("Regular", 11, "A digita · B apaga · X espaço · Y símbolos · START confirma · SELECT cancela",
+        g.text("Regular", 11, omni_i18n._("dialog_keyboard_help"),
                W / 2, my + mh - 18, w.FAINT, "c")
         w.present()
 
@@ -487,7 +488,7 @@ def run_textbox(w, o, path):
     try:
         text = open(path, errors="ignore").read()
     except OSError:
-        text = f"(não consegui abrir {path})"
+        text = omni_i18n._("dialog_open_error").format(path=path)
     return run_message(w, o, text, "msg")
 
 

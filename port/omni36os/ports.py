@@ -12,6 +12,7 @@
 import os
 
 import omni
+import omni_i18n
 import glob
 import json
 import subprocess
@@ -182,12 +183,12 @@ def launch_port(port_info):
     executable = port_info["executable"]
 
     if not executable:
-        return False, "Nenhum executável encontrado na pasta do port"
+        return False, omni_i18n._("tx_no_exe")
 
     # Carregar ambiente do PortMaster
     env = get_portmaster_env()
     if env is None:
-        return False, "PortMaster control.txt não encontrado"
+        return False, omni_i18n._("tx_no_control")
 
     # Montar comando de lançamento
     full_exec = os.path.join(port_path, executable)
@@ -226,7 +227,7 @@ def launch_port(port_info):
             timeout=None,
         )
 
-        return True, f"Port finalizado com código {result.returncode}"
+        return True, omni_i18n._("tx_port_done").format(code=result.returncode)
 
     except Exception as e:
         return False, str(e)

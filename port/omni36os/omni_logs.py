@@ -15,12 +15,15 @@ import os
 import re
 import shutil
 
+import omni_i18n
+
 ROOT = "/roms/logs"
 FALLBACK = "/tmp/omni36os-logs"
 TESTS = "teste de ports"
 FUNCS = ("sistema", "ports", TESTS, "pendrive", "tela", "rede")
-NAMES = {"sistema": "Sistema", "ports": "Ports", TESTS: "Teste de ports", "pendrive": "Pendrive",
-         "tela": "Tela", "rede": "Rede"}
+NAME_KEYS = {"sistema": "log_sistema", "ports": "log_ports", TESTS: "log_teste_ports",
+             "pendrive": "log_pendrive", "tela": "log_tela", "rede": "log_rede"}
+NAMES = {func: omni_i18n._(key) for func, key in NAME_KEYS.items()}
 
 
 def root():

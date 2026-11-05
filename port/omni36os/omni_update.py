@@ -18,6 +18,7 @@ import subprocess
 import tarfile
 import time
 import urllib.request
+import omni_i18n
 
 REPO = "mpjsilva/omni36os"
 TAG = re.compile(r"^omni-v(\d+)\.(\d+)\.(\d+)$")
@@ -94,7 +95,7 @@ def validate(path, version):
         return bad
     with open(os.path.join(path, "VERSION")) as f:
         if f.read().strip() != version:
-            bad.append("VERSION diferente da tag")
+            bad.append(omni_i18n._("tx_up_version"))
     for dirpath, _dirs, files in os.walk(path):
         for n in files:
             full = os.path.join(dirpath, n)
@@ -103,9 +104,9 @@ def validate(path, version):
                     with open(full, "rb") as f:
                         compile(f.read(), full, "exec")
                 except (SyntaxError, ValueError) as e:
-                    bad.append(f"{n}: linha {getattr(e, 'lineno', '?')}")
+                    bad.append(omni_i18n._("tx_up_line").format(file=n, line=getattr(e, 'lineno', '?')))
             elif n.endswith(".sh") and subprocess.run(["bash", "-n", full], capture_output=True).returncode:
-                bad.append(f"{n}: erro de sintaxe")
+                bad.append(omni_i18n._("tx_up_syntax").format(file=n))
     return bad
 
 
@@ -129,10 +130,10 @@ def install(tag, version):
         _extract(data, NEW)
         bad = validate(NEW, version)
     except (tarfile.TarError, OSError) as e:
-        bad = [f"pacote ilegível: {e}"]
+        bad = [omni_i18n._("tx_up_pkg").format(error=e)]
     if bad:
         shutil.rmtree(NEW, ignore_errors=True)
-        return "Não instalei: a versão baixada tem problemas (" + "; ".join(bad[:3]) + ")."
+        return omni_i18n._("update_package_problems").format(problems="; ".join(bad[:3]))
     for k in KEEP:
         src = os.path.join(OMNI, k)
         if os.path.isdir(src):
@@ -154,7 +155,7 @@ def install(tag, version):
     # reabre pelo omni36os-start (que conta as tentativas); este processo some junto
     subprocess.run(["systemd-run", "--no-block", "--collect", "--unit", f"omni36os-update-{int(time.time())}",
                     "bash", "-c", "sleep 2; systemctl restart omni36os-atalho omni36os-launcher"])
-    return f"Omni36OS {version} instalado. Abrindo de novo..."
+    return omni_i18n._("update_installed").format(version=version)
 
 
 def confirm_ok():
@@ -184,7 +185,7 @@ def can_go_back():
 def go_back():
     """Volta à versão anterior a pedido (Geral > Voltar à versão anterior)."""
     if not can_go_back():
-        return "Não há versão anterior guardada."
+        return omni_i18n._("update_previous_missing")
     with open(os.path.join(PREV, "VERSION")) as f:
         old = f.read().strip()
     tmp = OMNI + ".swap"
@@ -196,4 +197,4 @@ def go_back():
     os.sync()
     subprocess.run(["systemd-run", "--no-block", "--collect", "--unit", f"omni36os-update-{int(time.time())}",
                     "bash", "-c", "sleep 2; systemctl restart omni36os-atalho omni36os-launcher"])
-    return f"Voltando ao Omni36OS {old}..."
+    return omni_i18n._("update_reverting").format(version=old)

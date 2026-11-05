@@ -22,8 +22,9 @@ import sys
 import threading
 import time
 
+import omni_i18n
 import gfx
-from gfx import W, H, hexc, mix, alpha
+from gfx import W, H, hexc, alpha
 
 FAKE = os.environ.get("OMNI_FAKE") == "1"
 DEMO_STEP = float(os.environ.get("OMNI_DEMO_STEP", "0.45"))   # segundos entre passos do OMNI_DEMO (testes: menos)
@@ -43,6 +44,9 @@ import omni_combos  # noqa: E402
 import omni_gfn  # noqa: E402
 import omni_apps  # noqa: E402
 import omni_mouse  # noqa: E402
+
+if os.environ.get("OMNI_PREVIEW_LANG") in ("pt-BR", "en"):
+    omni_i18n.set_lang = lambda _lang: None
 
 # --- paleta ---
 
@@ -89,38 +93,38 @@ LEVEL_ICON = {"ok": "check", "aviso": "alert-triangle", "problema": "x", "info":
 
 CARDS = [
     # id, título, ícone, cor 1, cor 2 (3 x 3: Ports no centro, a abertura entrega o destaque nele)
-    ("tela", "Tela e som", "device-tv", "fbbf24", "f97316"),
-    ("rede", "Rede", "wifi", "38bdf8", "0ea5e9"),
-    ("controles", "Controles", "keyboard", "818cf8", "4f46e5"),
-    ("desempenho", "Desempenho", "gauge", "fb7185", "e11d48"),
-    ("ports", "Ports", "device-gamepad-2", "c084fc", "7c3aed"),     # abre a biblioteca
-    ("apps", "Aplicativos", "apps", "f472b6", "db2777"),
-    ("cartoes", "Cartões", "device-sd-card", "2dd4bf", "0284c7"),
-    ("ferramentas", "Ferramentas", "adjustments", "94a3b8", "475569"),
-    ("geral", "Geral", "settings", "60a5fa", "a78bfa"),
+    ("tela", omni_i18n._("card_tela"), "device-tv", "fbbf24", "f97316"),
+    ("rede", omni_i18n._("card_rede"), "wifi", "38bdf8", "0ea5e9"),
+    ("controles", omni_i18n._("card_controles"), "keyboard", "818cf8", "4f46e5"),
+    ("desempenho", omni_i18n._("card_desempenho"), "gauge", "fb7185", "e11d48"),
+    ("ports", omni_i18n._("card_ports"), "device-gamepad-2", "c084fc", "7c3aed"),     # abre a biblioteca
+    ("apps", omni_i18n._("card_apps"), "apps", "f472b6", "db2777"),
+    ("cartoes", omni_i18n._("card_cartoes"), "device-sd-card", "2dd4bf", "0284c7"),
+    ("ferramentas", omni_i18n._("card_ferramentas"), "adjustments", "94a3b8", "475569"),
+    ("geral", omni_i18n._("card_geral"), "settings", "60a5fa", "a78bfa"),
 ]
 PORTS_AT = next(i for i, c in enumerate(CARDS) if c[0] == "ports")
 COLS = 3
 # Páginas abertas de dentro de outro card: B volta para o card de origem e os
 # alertas delas aparecem no ponto do card de origem.
 TWO_COLS = set()      # cartões sem painel de diagnóstico: as ações vêm em duas colunas (hoje nenhum)
-SUBPAGES = {            "calibracao": ("Calibrar a bateria", "battery-2", "a3e635", "16a34a", "tela"),
-            "usbrede": ("Rede pelo cabo USB", "network", "38bdf8", "4f46e5", "rede"),
-            "seguranca": ("Segurança", "lock", "60a5fa", "a78bfa", "geral"),
-            "backup": ("Backup", "device-floppy", "60a5fa", "a78bfa", "geral"),
-            "checkup": ("Verificar tudo", "stethoscope", "22d3ee", "3b82f6", "geral"),
-            "sobre": ("Sobre", "help-circle", "60a5fa", "a78bfa", "geral"),
-            "atalhos": ("Atalhos", "keyboard", "818cf8", "4f46e5", "controles"),
-            "gfn": ("GeForce NOW", "device-tv", "84cc16", "15803d", "apps"),
-            "moonlight": ("Moonlight", "device-tv", "818cf8", "4338ca", "apps"),
-            "testar": ("Testar ports", "player-play", "34d399", "059669", "ferramentas")}
+SUBPAGES = {            "calibracao": (omni_i18n._("sub_calibracao"), "battery-2", "a3e635", "16a34a", "tela"),
+            "usbrede": (omni_i18n._("sub_usbrede"), "network", "38bdf8", "4f46e5", "rede"),
+            "seguranca": (omni_i18n._("sub_seguranca"), "lock", "60a5fa", "a78bfa", "geral"),
+            "backup": (omni_i18n._("sub_backup"), "device-floppy", "60a5fa", "a78bfa", "geral"),
+            "checkup": (omni_i18n._("sub_checkup"), "stethoscope", "22d3ee", "3b82f6", "geral"),
+            "sobre": (omni_i18n._("sub_sobre"), "help-circle", "60a5fa", "a78bfa", "geral"),
+            "atalhos": (omni_i18n._("sub_atalhos"), "keyboard", "818cf8", "4f46e5", "controles"),
+            "gfn": (omni_i18n._("sub_gfn"), "device-tv", "84cc16", "15803d", "apps"),
+            "moonlight": (omni_i18n._("sub_moonlight"), "device-tv", "818cf8", "4338ca", "apps"),
+            "testar": (omni_i18n._("sub_testar"), "player-play", "34d399", "059669", "ferramentas")}
 PARENT = {cid: v[4] for cid, v in SUBPAGES.items()}
-SOURCE_NAMES = {"roms": "ROMS", "roms2": "ROMS2", "ambos": "ROMS e ROMS2"}
+SOURCE_NAMES = {"roms": "ROMS", "roms2": "ROMS2", "ambos": omni_i18n._("source_both_cards")}
 ZRAM_SIZES = [0, 256, 512, 768]   # MB do zram (Desempenho); 0 = desligado, o padrão
 LIVE = {"usbrede": 3.0, "calibracao": 10.0, "rede": 5.0}   # subpáginas com estado que muda sozinho: relê a cada N s
 
 
-LIB_CARD = ("jogos", "Jogos", "device-gamepad-2", "c084fc", "7c3aed")   # cor da biblioteca (tela inicial)
+LIB_CARD = ("jogos", omni_i18n._("ui_games"), "device-gamepad-2", "c084fc", "7c3aed")   # cor da biblioteca (tela inicial)
 
 
 def card_info(cid):
@@ -177,22 +181,33 @@ def vtuple(v):
 
 
 def news_text(news):
-    """[(versão, data, [itens])] no formato do leitor."""
-    return "\n".join(f"# {v} ({d})\n" + "".join(f"• {x}\n" for x in items) for v, d, items in news).strip()
+    """[(versão, data, [itens])] no formato do leitor, respeitando o idioma ativo."""
+    english = omni_i18n.get_lang() == "en"
+    out = []
+    for version, date, items in news:
+        out.append(f"# {'Version' if english else 'Versão'} {version} ({date})")
+        translated = omni_help.NOVIDADES_EN.get(version, []) if english else []
+        for i, item in enumerate(items):
+            text = translated[i] if i < len(translated) else item
+            out.append(f"• {text}")
+        out.append("")
+    return "\n".join(out).strip()
 
 
 def about_findings():
     """Painel de Geral e Sobre: qual Omni36OS e qual Omni36OS estão rodando."""
     ver = omni_version()
     inst = time.strftime("%d/%m/%Y %H:%M", time.localtime(os.path.getmtime(os.path.join(HERE, "omni_ui.py"))))
-    out = [("info", f"Omni36OS versão {ver}, instalado em {inst}.")]
+    out = [("info", omni_i18n._("ui_about_version_installed").format(version=ver, date=inst))]
     news = next((n for n in omni_help.NOVIDADES if n[0] == ver), None)
     if news:
-        out.append(("info", f"Novidades desta versão: {news[2][0]}"))
+        translated_news = omni_help.NOVIDADES_EN.get(ver, []) if omni_i18n.get_lang() == "en" else []
+        item = translated_news[0] if translated_news else news[2][0]
+        out.append(("info", omni_i18n._("ui_about_news").format(news=item)))
     try:
         with open("/home/ark/.config/.VERSION") as f:
             d = f.read().strip()
-        out.append(("info", f"Omni36OS de {d[2:4]}/{d[:2]}/{d[4:]}." if len(d) == 8 else f"Omni36OS {d}."))
+        out.append(("info", omni_i18n._("ui_about_base_version").format(date=f"{d[2:4]}/{d[:2]}/{d[4:]}") if len(d) == 8 else omni_i18n._("ui_about_base_build").format(version=d)))
     except OSError:
         pass
     return out
@@ -292,23 +307,23 @@ class Data:
     def check(self, name):
         if FAKE:
             time.sleep(0.4)
-            som = ("ok", "Som saindo no alto-falante (automático).")
+            som = ("ok", omni_i18n._("ui_sim_speaker"))
             fake = {
-                "checkup": ([], [("ok", "Tudo certo: nenhum card tem alerta."),
-                                 ("info", "Cada card mostra o detalhe do seu assunto.")]),
-                "bateria": ([], [("ok", "Bateria em 87%, descarregando."), ("ok", "Brilho em 40%."),
-                                 ("ok", "No menu, o processador fica no mínimo para poupar bateria.")]),
-                "atualizar": ([], [("ok", "Volume em 60%."), som]),
-                "desempenho": ([], [("ok", "Temperatura normal: 52 °C."),
-                                    ("ok", "Processador a 1008 MHz, modo Equilibrado."),
-                                    ("info", "Limites: processador 1296 MHz, GPU 520 MHz. ZRAM 0 MB (0 MB em uso).")]),
-                "cartoes": ([], [("ok", "Cartão 1: 16 GB, SanDisk."), ("ok", "Cartão 2: 64 GB."),
-                                 ("ok", "Espaço do sistema: 4.7 GB livres (50% usado)."),
-                                 ("ok", "Espaço do cartão 2: 31.2 GB livres (50% usado).")]),
-                "pc": (["ligar_pendrive"], [("ok", "A partição /roms2 (31.2 GB livres) vai aparecer no PC como pendrive."),
-                                            ("info", "Ligar reinicia o aparelho; o Wi-Fi para até desligar.")]),
+                "checkup": ([], [("ok", omni_i18n._("ui_sim_all_ok")),
+                                 ("info", omni_i18n._("ui_sim_card_detail"))]),
+                "bateria": ([], [("ok", omni_i18n._("ui_sim_battery")), ("ok", omni_i18n._("ui_sim_brightness")),
+                                 ("ok", omni_i18n._("ui_sim_cpu_min"))]),
+                "atualizar": ([], [("ok", omni_i18n._("ui_sim_volume")), som]),
+                "desempenho": ([], [("ok", omni_i18n._("ui_sim_temp")),
+                                    ("ok", omni_i18n._("ui_sim_cpu_balanced")),
+                                    ("info", omni_i18n._("ui_sim_limits"))]),
+                "cartoes": ([], [("ok", omni_i18n._("ui_sim_card1")), ("ok", omni_i18n._("ui_sim_card2")),
+                                 ("ok", omni_i18n._("ui_sim_system_space")),
+                                 ("ok", omni_i18n._("ui_sim_card2_space"))]),
+                "pc": (["ligar_pendrive"], [("ok", omni_i18n._("ui_sim_usb_pc")),
+                                            ("info", omni_i18n._("ui_sim_usb_restart"))]),
             }
-            acts, found = fake.get(name, ([], [("ok", "Tudo certo (dados de teste).")]))
+            acts, found = fake.get(name, ([], [("ok", omni_i18n._("ui_sim_ok_test_data"))]))
             nivel = "problema" if any(l == "problema" for l, _ in found) else \
                 "aviso" if any(l == "aviso" for l, _ in found) else "ok"
             return {"nivel": nivel, "acoes": acts, "achados": found}
@@ -322,11 +337,12 @@ class Data:
 
     def label(self, name):
         if FAKE:
-            return {"restaurar_audio": "Restaurar o áudio do sistema",
-                    "ligar_pendrive": "Ligar o modo pendrive (reinicia)"}.get(name, name)
+            return omni_i18n._(omni_checks.ACTION_KEYS[name][0])
         return omni_checks.ACTIONS[name][0]
 
     def get(self, what):
+        if what == "idioma":
+            return omni_i18n.get_lang()
         if what == "gfn_fn":
             return omni_gfn.fn_mode() if not FAKE else self.__dict__.get("fake_gfn", "sistema")
         if what.startswith("m_"):         # Aplicativos > Músicas (o mesmo arquivo no simulador e no console)
@@ -393,6 +409,44 @@ class Data:
             return "ok"
         if what.startswith("m_"):
             music_save(**{what[2:]: value})
+            return "ok"
+        if what == "idioma":
+            omni_i18n.set_lang(value)
+            refresh_i18n_labels()
+            if getattr(self, "page", None) is not None:
+                self.items = self.build_items(self.page)
+            if getattr(self, "music", None) is not None:
+                self.MUSIC_OPTIONS = self.music_options()
+            global LIB_CARD
+            LIB_CARD = ("jogos", omni_i18n._("ui_games"), "device-gamepad-2", "c084fc", "7c3aed")
+            omni_logs.NAMES.update({func: omni_i18n._(key) for func, key in omni_logs.NAME_KEYS.items()})
+            omni_checks.ACTIONS.update({name: (omni_i18n._(key), fn)
+                                        for name, (key, fn) in omni_checks.ACTION_KEYS.items()})
+            # Recarrega os cartões e subpáginas com o novo idioma
+            global CARDS, SUBPAGES
+            CARDS = [
+                ("tela", omni_i18n._("card_tela"), "device-tv", "fbbf24", "f97316"),
+                ("rede", omni_i18n._("card_rede"), "wifi", "38bdf8", "0ea5e9"),
+                ("controles", omni_i18n._("card_controles"), "keyboard", "818cf8", "4f46e5"),
+                ("desempenho", omni_i18n._("card_desempenho"), "gauge", "fb7185", "e11d48"),
+                ("ports", omni_i18n._("card_ports"), "device-gamepad-2", "c084fc", "7c3aed"),
+                ("apps", omni_i18n._("card_apps"), "apps", "f472b6", "db2777"),
+                ("cartoes", omni_i18n._("card_cartoes"), "device-sd-card", "2dd4bf", "0284c7"),
+                ("ferramentas", omni_i18n._("card_ferramentas"), "adjustments", "94a3b8", "475569"),
+                ("geral", omni_i18n._("card_geral"), "settings", "60a5fa", "a78bfa"),
+            ]
+            SUBPAGES = {
+                "calibracao": (omni_i18n._("sub_calibracao"), "battery-2", "a3e635", "16a34a", "tela"),
+                "usbrede": (omni_i18n._("sub_usbrede"), "network", "38bdf8", "4f46e5", "rede"),
+                "seguranca": (omni_i18n._("sub_seguranca"), "lock", "60a5fa", "a78bfa", "geral"),
+                "backup": (omni_i18n._("sub_backup"), "device-floppy", "60a5fa", "a78bfa", "geral"),
+                "checkup": (omni_i18n._("sub_checkup"), "stethoscope", "22d3ee", "3b82f6", "geral"),
+                "sobre": (omni_i18n._("sub_sobre"), "help-circle", "60a5fa", "a78bfa", "geral"),
+                "atalhos": (omni_i18n._("sub_atalhos"), "keyboard", "818cf8", "4f46e5", "controles"),
+                "gfn": (omni_i18n._("sub_gfn"), "device-tv", "84cc16", "15803d", "apps"),
+                "moonlight": (omni_i18n._("sub_moonlight"), "device-tv", "818cf8", "4338ca", "apps"),
+                "testar": (omni_i18n._("sub_testar"), "player-play", "34d399", "059669", "ferramentas")
+            }
             return "ok"
         if what == "tema":
             apply_theme(value)
@@ -474,20 +528,28 @@ class Slider:
 
 
 # ferramentas perigosas: (segundos de espera, segurar A, o que pode dar errado, como desfazer)
-BOOT_UNDO = ("Segure L1 ao ligar para pular o Omni36OS, ou B para o BaRT. Se a tela não ligar, só gravando "
-             "de novo o cartão do sistema (tenha um backup).")
+BOOT_UNDO = omni_i18n._("ui_danger_boot_undo")
 DANGER = {
-    "dArkOSen_dtb_patcher_v1.2.sh": (10, True, "Um DTB errado deixa a tela preta ou o console sem ligar.", BOOT_UNDO),
-    "60hz_display_timing_patcher.sh": (10, True, "A tela pode não aceitar o novo tempo e ficar preta.", BOOT_UNDO),
-    "Restore dArkOSen.sh": (10, True, "Troca o kernel e o sistema pelos originais do dArkOSen: ajustes feitos depois "
-                                      "somem.", BOOT_UNDO),
-    "fix-sd2-mount.sh": (10, False, "Recompila os DTB do boot; se falhar no meio, o boot pode quebrar.", BOOT_UNDO),
-    "Enable Quick Mode.sh": (5, False, "Muda o que sobe no boot.", "Rode de novo para voltar ao modo normal."),
-    "Remove Kodi.sh": (5, False, "Apaga o Kodi e as configurações dele.", "Só reinstalando o Kodi."),
+    "dArkOSen_dtb_patcher_v1.2.sh": (10, True, omni_i18n._("ui_danger_wrong_dtb"), BOOT_UNDO),
+    "60hz_display_timing_patcher.sh": (10, True, omni_i18n._("ui_danger_bad_timing"), BOOT_UNDO),
+    "Restore dArkOSen.sh": (10, True, omni_i18n._("ui_danger_restore_darken"), BOOT_UNDO),
+    "fix-sd2-mount.sh": (10, False, omni_i18n._("ui_danger_rebuild_dtb"), BOOT_UNDO),
+    "Enable Quick Mode.sh": (5, False, omni_i18n._("ui_danger_boot_mode"), omni_i18n._("ui_danger_run_again")),
+    "Remove Kodi.sh": (5, False, omni_i18n._("ui_danger_remove_kodi"), omni_i18n._("ui_danger_reinstall_kodi")),
 }
-ONOFF = {True: "Ligado", False: "Desligado"}
+ONOFF = {True: omni_i18n._("ui_settings_on"), False: omni_i18n._("ui_settings_off")}
+SWAP_NAMES = {"desligado": omni_i18n._("ui_settings_off"), "ligado": omni_i18n._("ui_settings_on")}
+
+
+def refresh_i18n_labels():
+    """Refresh module-level labels after changing the selected language."""
+    global ONOFF, SWAP_NAMES, VIS_NAMES, BLANK_NAMES
+    ONOFF = {True: omni_i18n._("ui_settings_on"), False: omni_i18n._("ui_settings_off")}
+    VIS_NAMES = {"capa": omni_i18n._("ui_music_cover"), "barras": omni_i18n._("ui_music_bars"), "ondas": omni_i18n._("ui_music_waves"), "anel": omni_i18n._("ui_music_ring"), "aurora": omni_i18n._("ui_music_aurora")}
+    BLANK_NAMES = {30: omni_i18n._("ui_music_timeout_30"), 60: omni_i18n._("ui_music_timeout_60"), 120: omni_i18n._("ui_music_timeout_120"), 300: omni_i18n._("ui_music_timeout_300"), 0: omni_i18n._("ui_music_timeout_never")}
+    SWAP_NAMES = {"desligado": omni_i18n._("ui_settings_off"), "ligado": omni_i18n._("ui_settings_on")}
 HUD_FLAG, CAP_FLAG, SHOT_FLAG = "/dev/shm/omni36os-hud", "/dev/shm/omni36os-fpscap", "/dev/shm/omni36os-shot"
-HUD_NAMES = {"1": "FPS", "2": "FPS e CPU", "3": "FPS, CPU e GPU", "4": "FPS, CPU, GPU e RAM"}   # 0: escondido
+HUD_NAMES = {"1": "FPS", "2": omni_i18n._("ui_hud_fps_cpu"), "3": omni_i18n._("ui_hud_fps_cpu_gpu"), "4": omni_i18n._("ui_hud_fps_cpu_gpu_ram")}   # 0: escondido
 
 
 def hud_step(cur, d):
@@ -523,9 +585,7 @@ PAD_DEV = "/dev/input/by-path/platform-odroidgo3-joypad-event-joystick"   # a gr
 SIM_BUTTONS = {"ok": 305, "back": 304, "x": 307, "y": 308, "l1": 310, "r1": 311, "start": 705, "select": 704,
                "up": 544, "down": 545, "left": 546, "right": 547, "fn": 708}
 # o que o ogage (serviço do dArkOSen) já faz com o FN: nenhum atalho do Omni36OS usa essas combinações
-FN_SYSTEM = [("info", "FN + cima/baixo: brilho da tela. FN + volume: brilho fino."),
-             ("info", "FN + L1/R1, esquerda/direita, A, L3 e R3: ajustes do sistema (gamma, Wi-Fi, Bluetooth, saves)."),
-             ("info", "SELECT + FN: fala a carga da bateria. FN + power: desliga na hora, gravando tudo.")]
+FN_SYSTEM = [("info", "tx_fn1"), ("info", "tx_fn2"), ("info", "tx_fn3")]
 
 
 class Choice:
@@ -543,9 +603,8 @@ UI_SHOT = "/dev/shm/omni36os-power/shot"
 SHOT_DIR = "/roms/imagens"
 
 
-SWAP_NAMES = {"desligado": "Desligado", "ligado": "Ligado"}
-VIS_NAMES = {"capa": "Capa do álbum", "barras": "Barras", "ondas": "Ondas", "anel": "Anel", "aurora": "Aurora"}
-BLANK_NAMES = {30: "Em 30 s", 60: "Em 1 min", 120: "Em 2 min", 300: "Em 5 min", 0: "Manter ligada"}
+VIS_NAMES = {"capa": omni_i18n._("ui_music_cover"), "barras": omni_i18n._("ui_music_bars"), "ondas": omni_i18n._("ui_music_waves"), "anel": omni_i18n._("ui_music_ring"), "aurora": omni_i18n._("ui_music_aurora")}
+BLANK_NAMES = {30: omni_i18n._("ui_music_timeout_30"), 60: omni_i18n._("ui_music_timeout_60"), 120: omni_i18n._("ui_music_timeout_120"), 300: omni_i18n._("ui_music_timeout_300"), 0: omni_i18n._("ui_music_timeout_never")}
 MUSIC_CFG = "/tmp/omni36os-musica.json" if FAKE else "/home/ark/.config/omni36os/musica.json"
 MUSIC_DEF = {"vis": "capa", "tela": 60, "sub": False}
 
@@ -602,51 +661,41 @@ def tip(item, text):
 
 # Mini explicações por rótulo (o começo basta); Cartões põe as dele direto nos itens.
 TIPS = {
-    "Wi-Fi": "Liga e desliga o Wi-Fi, conecta a uma rede, esquece as salvas e mostra o IP do console.",
-    "Atualizar status": "Roda a verificação deste card de novo e atualiza o painel.",
-    "Testar o controle": "Mostra cada botão, direcional e analógico na tela enquanto você aperta. Bom para achar "
-                         "botão falhando ou analógico descalibrado.",
-    "Consertar atalhos": "Reinicia o serviço que cuida de brilho e volume pelos botões. Use quando eles pararem "
-                         "de responder.",
-    "Calibrar a bateria": "Mede a sua bateria de cheia até vazia para a % ficar certa. Leva algumas horas de uso "
-                          "sem o carregador.",
-    "Iniciar a calibração": "Comece com a bateria cheia e sem o carregador. Use o console normalmente até "
-                            "desligar; a medição continua sozinha.",
-    "Parar a calibração": "Interrompe a medição. O que já foi medido fica guardado.",
-    "Aplicar a curva": "Usa a última calibração completa: a % da bateria passa a seguir a sua bateria.",
-    "Voltar à curva de fábrica": "Apaga a curva calibrada e volta à % padrão do sistema.",
-    "Trocar a senha": "Troca a senha do usuário omni, usada no SSH e no SFTP.",
-    "Senha do Samba": "Troca a senha das pastas compartilhadas na rede (Samba).",
-    "Trava por senha": "Pede a senha ao ligar o console, antes de abrir o menu.",
-    "Limite do processador": "Frequência máxima do processador. Acima de 1296 MHz é overclock: esquenta mais. "
-                             "Automático sobe só o necessário para o jogo chegar no FPS.",
-    "Limite da GPU": "Frequência máxima da GPU. Acima de 520 MHz é overclock: esquenta mais. "
-                     "Automático sobe só o necessário para o jogo chegar no FPS.",
-    "Memória extra (zram)": "Usa parte da RAM comprimida como memória extra. Ajuda ports pesados que fecham por "
-                            "falta de memória, com um pouco mais de uso do processador.",
-    "Desbloquear overclock": "Mostra e permite 1368 a 1512 MHz no processador e 600 MHz na GPU. Pode esquentar e "
-                             "travar; o aviso explica como desfazer.",
-    "Bloquear overclock": "Volta os limites ao padrão (1296 MHz e 520 MHz) e esconde as velocidades de overclock.",
-    "Ligar: modo universal": "O console dá o IP ao PC (funciona em qualquer PC). Depois use ssh omni@10.44.44.1.",
-    "Ligar: internet pelo PC": "Usa a internet do PC no console. O PC precisa compartilhar a conexão pelo cabo.",
-    "Serviços remotos": "Ligados: gerenciador de arquivos pela web e Samba, para mexer no cartão pelo PC. "
-                        "Desligados: só o SSH continua.",
-    "Desligar a rede USB": "Desliga a rede e devolve a porta OTG ao modo normal.",
-    "Compatibilidade": "Confere se o kernel, a porta e os programas deste sistema suportam a rede USB.",
-    "Origem dos jogos": "Onde o Omni36OS procura os jogos e ports: ROMS, ROMS2 ou ROMS e ROMS2.",
-    "Detalhes da tela": "Mostra o modelo da tela e qual opção escolher no SELECT MODEL ao atualizar.",
-    "Verificar tudo": "Junta numa lista só os avisos de todos os cards, cada um com o card de origem.",
-    "Sobre": "Manual, cuidados, novidades desta versão e créditos.",
-    "Verificar e reparar": "Reinicia, procura e corrige erros na partição dos jogos (/roms2, ou /roms sem segundo cartão) e volta sozinho. Leva alguns "
-                           "minutos.",
-    "Arquivos": "Copiar, mover, renomear e apagar nos cartões e no pendrive, aqui dentro.",
-    "Testar ports": "Abre um port por 15 s, mostra a causa provável se falhar e oferece a correção.",
-    "Escolher o port": "Escolha um port da lista para abrir e testar.",
-    "Limpar avisos de falha": "Apaga os avisos de ports que falharam no teste.",
-    "Manual": "Como usar cada card do Omni36OS.",
-    "Cuidados": "O que pode dar errado com overclock, DTB e cartões, e como evitar.",
-    "Novidades": "O que mudou em cada versão.",
-    "Créditos": "Quem fez o Omni36OS e os projetos em que ele se apoia.",
+    omni_i18n._("ui_wifi_action_on"): omni_i18n._("ui_tip_wifi"),
+    omni_i18n._("ui_card_option_wifi_status"): omni_i18n._("ui_tip_recheck"),
+    omni_i18n._("ui_card_button_test"): omni_i18n._("ui_tip_test_controller"),
+    omni_i18n._("ui_card_option_fix_shortcuts"): omni_i18n._("ui_tip_hotkey_service"),
+    omni_i18n._("ui_card_option_calibrate_battery"): omni_i18n._("ui_tip_battery_calibration"),
+    omni_i18n._("ui_calibration_start"): omni_i18n._("ui_tip_calibration_start"),
+    omni_i18n._("ui_calibration_stop"): omni_i18n._("ui_tip_calibration_stop"),
+    omni_i18n._("ui_calibration_apply"): omni_i18n._("ui_tip_calibration_apply"),
+    omni_i18n._("ui_calibration_restore"): omni_i18n._("ui_tip_calibration_restore"),
+    omni_i18n._("ui_card_option_password"): omni_i18n._("ui_tip_password_ssh"),
+    omni_i18n._("ui_card_option_samba_password"): omni_i18n._("ui_tip_password_samba"),
+    omni_i18n._("ui_card_option_password_lock"): omni_i18n._("ui_tip_password_lock"),
+    omni_i18n._("ui_card_option_cpu_limit"): omni_i18n._("ui_tip_cpu"),
+    omni_i18n._("ui_card_option_gpu_limit"): omni_i18n._("ui_tip_gpu"),
+    omni_i18n._("ui_card_option_zram"): omni_i18n._("ui_tip_zram"),
+    omni_i18n._("ui_card_option_unlock_oc"): omni_i18n._("ui_tip_oc_unlock"),
+    omni_i18n._("ui_card_option_lock_oc"): omni_i18n._("ui_card_lock_oc_tip"),
+    omni_i18n._("ui_usb_action_universal"): omni_i18n._("ui_tip_usb_universal"),
+    omni_i18n._("ui_usb_action_internet"): omni_i18n._("ui_tip_usb_internet"),
+    omni_i18n._("ui_card_option_remote_services"): omni_i18n._("ui_tip_remote_services"),
+    omni_i18n._("ui_usb_action_off"): omni_i18n._("ui_tip_usb_off"),
+    omni_i18n._("ui_usbnet_compat_title"): omni_i18n._("ui_tip_usb_compat"),
+    omni_i18n._("ui_card_option_game_source"): omni_i18n._("ui_tip_game_source"),
+    omni_i18n._("ui_card_option_screen_details"): omni_i18n._("ui_tip_screen_details"),
+    omni_i18n._("sub_checkup"): omni_i18n._("ui_tip_check_all"),
+    omni_i18n._("sub_sobre"): omni_i18n._("ui_tip_about"),
+    omni_i18n._("ui_card_option_check_repair"): omni_i18n._("ui_tip_check_repair"),
+    omni_i18n._("ui_card_option_files"): omni_i18n._("ui_tip_files"),
+    omni_i18n._("ui_card_option_test_ports"): omni_i18n._("ui_tip_test_ports"),
+    omni_i18n._("ui_card_choose_port"): omni_i18n._("ui_tip_pick_port"),
+    omni_i18n._("ui_card_option_clear_failures"): omni_i18n._("ui_tip_clear_failures"),
+    omni_i18n._("ui_card_option_manual"): omni_i18n._("ui_tip_manual"),
+    omni_i18n._("ui_card_option_cautions"): omni_i18n._("ui_tip_cautions"),
+    omni_i18n._("ui_card_option_news"): omni_i18n._("ui_tip_news"),
+    omni_i18n._("ui_card_option_credits"): omni_i18n._("ui_tip_credits"),
 }
 
 
@@ -736,6 +785,7 @@ class App:
         self.levels = None            # painel de brilho, contraste e volume (Tela e som)
         self.viewer = None            # imagem em tela cheia (Arquivos)
         self.music = None             # Aplicativos > Músicas (tela cheia)
+        self.MUSIC_OPTIONS = self.music_options()
         self.want_shot = False        # FN + Y no menu: grava a tela no próximo quadro
         self.reader = None            # texto longo com rolagem (Ajuda)
         self.find_top = self.find_max = 0   # rolagem do diagnóstico (L1/R1)
@@ -784,7 +834,7 @@ class App:
         # Tela de carregamento: as verificações rodam antes do menu aparecer,
         # para não disputar o processador com a animação depois.
         self.loading = True
-        self.load_done, self.load_total, self.load_label = 0, 1, "Preparando..."
+        self.load_done, self.load_total, self.load_label = 0, 1, omni_i18n._("ui_preparing")
         self.load_shown = 0.0
         self.t_start = time.monotonic()
         self.refresh_at = None
@@ -829,56 +879,54 @@ class App:
             out, acts = [], []
             if not FAKE:
                 omni_checks.check_services(out, acts)
-            return joined({"achados": out or [("ok", "Botões e atalhos funcionando.")], "acoes": acts})
+            return joined({"achados": out or [("ok", omni_i18n._("ui_controls_ok"))], "acoes": acts})
         if cid == "testar":
             return self._testar()
         if cid == "ports":
             idx = self.games()
             n = sum(len(s["games"]) for s in idx)
-            return {"nivel": "ok", "acoes": [], "achados": [("ok", f"{n} Jogos e ports na biblioteca.")]}
+            return {"nivel": "ok", "acoes": [], "achados": [("ok", omni_i18n._("ui_library_count").format(count=n))]}
         if cid == "backup":
             return self._backup()
         if cid == "ferramentas":
             return self._ferramentas()
         if cid == "rede" and FAKE:
             on = getattr(self, "fake_wifi", True)
-            return {"nivel": "ok", "acoes": [], "achados": [("ok", "Conectado a Casa, sinal 72%."),
-                                                            ("ok", "IP do console: 192.168.0.42")] if on else
-                    [("info", "Wi-Fi desligado.")]}
+            return {"nivel": "ok", "acoes": [], "achados": [("ok", omni_i18n._("ui_fake_wifi_connected")),
+                                                            ("ok", omni_i18n._("ui_fake_console_ip"))] if on else
+                    [("info", omni_i18n._("ui_fake_wifi_off"))]}
         if cid == "rede":
             return omni_checks.finish(omni_sistema.wifi_status(), [], {})
         if cid == "moonlight":
             if not FAKE and not omni_apps.installed("moonlight"):
-                return {"nivel": "info", "acoes": [], "achados": [("info", "Não instalado. Aperte Instalar (precisa de Wi-Fi).")]}
+                return {"nivel": "info", "acoes": [], "achados": [("info", omni_i18n._("ui_app_not_installed"))]}
             return {"nivel": "ok", "acoes": [], "achados": [
-                ("ok", "Moonlight Embedded, em /roms/apps."),
-                ("info", "No PC: Sunshine. PC e console na mesma rede.")]}
+                ("ok", omni_i18n._("ui_moonlight_path")),
+                ("info", omni_i18n._("ui_moonlight_network"))]}
         if cid == "gfn":
             if not FAKE and not omni_gfn.installed():
-                return {"nivel": "info", "acoes": [], "achados": [("info", "Não instalado. Aperte Instalar (precisa de Wi-Fi).")]}
+                return {"nivel": "info", "acoes": [], "achados": [("info", omni_i18n._("ui_app_not_installed"))]}
             v = "beta" if FAKE else (omni_gfn.version() or "instalado")
             return {"nivel": "ok", "acoes": [], "achados": [
-                ("ok", f"GeForce NOW {v}, em /roms/apps."),
-                ("info", "Processamento na nuvem: o console fica no máximo sem overclock.")]}
+                ("ok", omni_i18n._("ui_gfn_version_path").format(version=v)),
+                ("info", omni_i18n._("ui_gfn_cloud_info"))]}
         if cid in ("usbrede", "calibracao"):
             if FAKE:
-                return {"nivel": "ok", "acoes": [], "achados": [("ok", f"{cid}: tudo certo (dados de teste).")]}
+                return {"nivel": "ok", "acoes": [], "achados": [("ok", omni_i18n._("ui_fake_check_ok").format(page=cid))]}
             fn = {"usbrede": omni_sistema.usbnet_status, "calibracao": omni_sistema.cal_status}[cid]
             return omni_checks.finish(fn(), [], {})
         if cid == "atalhos":
             hud = FAKE or os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "hud", "omni_hud.so"))
             return {"nivel": "ok" if hud else "aviso", "acoes": [], "achados": [
-                ("ok" if hud else "aviso", "Os atalhos valem dentro dos jogos. Aqui você liga, desliga e troca os botões."
-                 if hud else "Falta o hud/omni_hud.so: contador, limite e captura não funcionam."),
-                *FN_SYSTEM]}
+                ("ok" if hud else "aviso", omni_i18n._("ui_hotkeys_working" if hud else "ui_hotkeys_missing")),
+                *[(lvl, omni_i18n._(key)) for lvl, key in FN_SYSTEM]]}
         if cid == "seguranca":
             locked = (os.environ.get("OMNI_TRAVA") == "1") if FAKE else omni_sistema.lock_on()
             return {"nivel": "ok", "acoes": [], "achados": [
-                ("ok", "Trava ligada: o console pede a senha ao ligar. A senha fica em EASYROMS/senha/senha.txt."
-                 if locked else "Trava desligada: o console abre direto nos jogos."),
-                ("ok", "Usuário do sistema e do Samba: omni (senha padrão omni). Trocar a senha muda as duas.")]}
+                ("ok", omni_i18n._("ui_password_locked_info") if locked else omni_i18n._("ui_password_unlocked_info")),
+                ("ok", omni_i18n._("ui_system_user_password_info"))]}
         if cid == "tela":                 # Tela e som: brilho e contraste + as duas verificações (o som já diz volume e saída)
-            now = [("info", f"Brilho {D.get('brilho')}%  ·  Contraste {D.get('contraste')}%")]
+            now = [("info", omni_i18n._("ui_brightness_contrast").format(brightness=D.get('brilho'), contrast=D.get('contraste')))]
             if FAKE:
                 return joined({"achados": now, "acoes": []}, D.check("atualizar"), D.check("bateria"))
             a, b, c = D.check("atualizar"), D.check("sem_som"), D.check("bateria")
@@ -888,11 +936,11 @@ class App:
         if cid == "apps":
             here = omni_musica.roots() if not FAKE else [("/roms/musicas", "Cartão 1")]
             return {"nivel": "ok", "acoes": [], "achados": [
-                ("ok", "Pastas de música: " + ", ".join(f"{n} ({p})" for p, n in here)) if here else
-                ("info", "Crie a pasta musicas no cartão (ROMS ou ROMS2) e coloque seus mp3 nela."),
-                ("info", "Soltas na pasta, as músicas tocam juntas; cada subpasta vira uma lista."),
-                ("info", "Vídeos: pasta videos dos cartões. Notas: pasta notas do cartão 1."),
-                ("info", "No Arquivos, abrir uma música, um vídeo ou um texto abre o app certo.")]}
+                ("ok", omni_i18n._("ui_music_folders").format(folders=", ".join(f"{n} ({p})" for p, n in here))) if here else
+                ("info", omni_i18n._("ui_music_folder_create")),
+                ("info", omni_i18n._("ui_music_subfolders")),
+                ("info", omni_i18n._("ui_media_folders")),
+                ("info", omni_i18n._("ui_files_open_app"))]}
         if FAKE and cid == "cartoes":
             return joined(D.check("cartoes"), D.check("pc"))
         name = {"tela": "atualizar"}.get(cid, cid)
@@ -906,12 +954,12 @@ class App:
             self.warm.insert(0, "home")
             self.load_total = len(todo) + len(self.warm)
         for k, (cid, title, *_) in enumerate(todo):
-            self.load_label = f"Verificando {title.lower()}..."
+            self.load_label = omni_i18n._("ui_checking_item").format(item=title.lower())
             self.load_done = k
             try:
                 out[cid] = self.card_check(cid)
             except Exception as e:
-                out[cid] = {"nivel": "problema", "achados": [("problema", f"Erro: {e}")], "acoes": []}
+                out[cid] = {"nivel": "problema", "achados": [("problema", omni_i18n._("ui_error_prefix").format(error=e))], "acoes": []}
         return out
 
     def save_shot(self):
@@ -926,9 +974,9 @@ class App:
             if not FAKE:
                 os.chown(folder, 1000, 1000)
                 os.chown(path, 1000, 1000)
-            self.toast = ("Captura salva em imagens", "ok", self.t + 2.5)
+            self.toast = (omni_i18n._("ui_screenshot_saved"), "ok", self.t + 2.5)
         except OSError as e:
-            self.toast = (f"Captura não salva: {e}", "aviso", self.t + 3)
+            self.toast = (omni_i18n._("ui_screenshot_failed").format(error=e), "aviso", self.t + 3)
 
     def load_state(self):
         if not RESUME or RESUME == "testar" or FAKE:
@@ -1023,15 +1071,13 @@ class App:
         f = omni_checks.cpu_facts()
         out = []
         omni_checks.check_temp(f, out)
-        out.append(("ok", f"No menu, processador, GPU e memória ficam no mínimo ({f['freq_mhz']} MHz agora). "
-                          "Os limites abaixo valem quando um port abre."))
-        omni_checks.check_overclock(f, out, [])   # tirar o OC é o seletor "Limite do processador" daqui
+        out.append(("ok", omni_i18n._("ui_performance_menu_info").format(freq=f['freq_mhz'])) )
+        omni_checks.check_overclock(f, out, [])   # tirar o OC é o seletor omni_i18n._("ui_card_option_cpu_limit") daqui
         acts = []
         z = omni.zram_facts()
-        cpu = f"automático (até {omni.auto_ceiling()} MHz)" if not f["cpu_max_mhz"] else f"{f['cpu_max_mhz']} MHz"
-        gpu = f"automática (até {omni.gpu_auto_ceiling()} MHz)" if not f["gpu_max_mhz"] else f"{f['gpu_max_mhz']} MHz"
-        out.append(("info", f"Limites: processador {cpu}, GPU {gpu}. "
-                            f"ZRAM {z['zram_mb']} MB ({z['zram_usado_mb']} MB em uso)."))
+        cpu = omni_i18n._("ui_frequency_auto").format(freq=omni.auto_ceiling()) if not f["cpu_max_mhz"] else f"{f['cpu_max_mhz']} MHz"
+        gpu = omni_i18n._("ui_frequency_auto_f").format(freq=omni.gpu_auto_ceiling()) if not f["gpu_max_mhz"] else f"{f['gpu_max_mhz']} MHz"
+        out.append(("info", omni_i18n._("ui_performance_limits").format(cpu=cpu, gpu=gpu, zram=z['zram_mb'], used=z['zram_usado_mb'])))
         return omni_checks.finish(out, acts, f)
 
     def _testar(self):
@@ -1041,19 +1087,19 @@ class App:
         self.port_count = sum(len(g["ports"]) for g in groups)
         acks = set() if FAKE else omni.port_acks()
         for g in groups:
-            out.append(("ok", f"{len(g['ports'])} Ports em {g['label']}."))
+            out.append(("ok", omni_i18n._("ui_ports_group_count").format(count=len(g['ports']), label=g['label'])) )
         names = {os.path.basename(p)[:-3] for g in groups for p in g["ports"]}
         fails = sorted(n for n, r in res.items() if r[0] == "falhou" and n in names
                        and f"{n}|{r[1]}" not in acks)
         seen = sum(1 for n, r in res.items() if r[0] == "falhou" and n in names and f"{n}|{r[1]}" in acks)
         if seen:
-            out.append(("info", f"{seen} Falha(s) já vista(s): continuam marcadas na lista até um novo teste."))
+            out.append(("info", omni_i18n._("ui_port_test_seen_failures").format(count=seen)))
         oks = sum(1 for n, r in res.items() if r[0] == "ok" and n in names)
         for n in fails:
-            out.append(("aviso", f"{n} falhou no teste de {res[n][1]}. Relatório em logs/teste de ports/teste_{n}.txt (Notas > Logs)."))
+            out.append(("aviso", omni_i18n._("ui_port_test_failed").format(name=n, test=res[n][1], report=f"logs/teste de ports/teste_{n}.txt")))
         if oks:
-            out.append(("ok", f"{oks} Port(s) passaram no último teste."))
-        out.append(("info", "O teste abre o port por 15 s e fecha sozinho. Se ele fechar antes, é falha."))
+            out.append(("ok", omni_i18n._("ui_port_test_passed").format(count=oks)))
+        out.append(("info", omni_i18n._("ui_port_test_duration")) )
         return omni_checks.finish(out, [], {}) if not FAKE else {
             "nivel": "aviso" if fails else "ok", "achados": out, "acoes": []}
 
@@ -1065,18 +1111,15 @@ class App:
 
         def go():
             if FAKE:
-                self.toast = ("Reiniciaria no teste de tela", "ok", self.t + 3)
+                self.toast = (omni_i18n._("ui_dtb_fake_restarting"), "ok", self.t + 3)
                 return
             self.worker(omni.dtb_retest, lambda r: self.__setattr__(
                 "toast", (str(r), "problema" if str(r).startswith("Erro") else "ok", self.t + 5)),
-                busy="Preparando o teste de tela...")
-        self.modal = {"title": "Trocar o DTB da tela?", "icon": "alert-triangle", "sel": 1,
-                      "buttons": ["Trocar", "Cancelar"], "fns": [go, lambda: None],
+                busy=omni_i18n._("ui_dtb_retest_busy"))
+        self.modal = {"title": omni_i18n._("ui_dtb_retest_title"), "icon": "alert-triangle", "sel": 1,
+                      "buttons": [omni_i18n._("ui_dtb_retest_button"), omni_i18n._("ui_cancel")], "fns": [go, lambda: None],
                       "lock": (0, self.t + lock), "danger": True,
-                      "text": "O console reinicia e testa as telas do catálogo, uma por uma: aperte um botão "
-                              "quando a imagem aparecer certa. Com a tela errada ela fica preta ou torta, "
-                              "e o teste segue sozinho.\nUse só se o cartão foi para outro console. "
-                              "Se der errado: segure L1 + R1 ao ligar."}
+                      "text": omni_i18n._("ui_dtb_retest_text")}
 
     def refresh_ports(self):
         """Ferramentas > Atualizar ports: relê tudo do zero (lista, capas e descrições locais)."""
@@ -1088,14 +1131,14 @@ class App:
 
         def done(res):
             if isinstance(res, Exception):
-                self.toast = (f"Erro ao ler os ports: {res}", "problema", self.t + 4)
+                self.toast = (omni_i18n._("ui_refresh_ports_error").format(error=res), "problema", self.t + 4)
                 return
             if not FAKE:
                 self.games_idx = None
                 self.games(force=False)
             self.__dict__.pop("meta_cache", None)      # capas e descrições lidas de novo
-            self.toast = (f"{res} Port" + ("s" if res != 1 else "") + " na lista", "ok", self.t + 3)
-        self.worker(run, done, busy="Lendo os ports...")
+            self.toast = (omni_i18n._("ui_refresh_ports_done").format(count=res), "ok", self.t + 3)
+        self.worker(run, done, busy=omni_i18n._("ui_refresh_ports_busy"))
 
     def check_runtimes(self):
         """Ferramentas > Runtimes faltando: varre os ports e, com internet, oferece baixar o que falta."""
@@ -1108,23 +1151,23 @@ class App:
 
         def done(res):
             if isinstance(res, Exception):
-                self.toast = (f"Erro na busca: {res}", "problema", self.t + 4)
+                self.toast = (omni_i18n._("ui_runtime_search_error").format(error=res), "problema", self.t + 4)
                 return
             if not res:
-                self.toast = ("Nenhum runtime faltando", "ok", self.t + 3)
+                self.toast = (omni_i18n._("ui_runtime_none"), "ok", self.t + 3)
                 return
             names = sorted(res)
             lines = "\n".join(f"{n[:-9]}: {', '.join(res[n][:3])}" + ("..." if len(res[n]) > 3 else "")
                               for n in names[:6])
             more = f"\n+{len(names) - 6} outros" if len(names) > 6 else ""
-            head = f"{len(names)} Runtime" + ("s faltando" if len(names) > 1 else " faltando")
+            head = omni_i18n._("ui_runtime_missing_title").format(count=len(names))
             if not (FAKE or R.online()):
-                self.modal = {"title": head, "icon": "database", "sel": 0, "buttons": ["OK"],
-                              "text": f"{lines}{more}\nConecte o Wi-Fi e busque de novo para baixar."}
+                self.modal = {"title": head, "icon": "database", "sel": 0, "buttons": [omni_i18n._("btn_ok")],
+                              "text": f"{lines}{more}\n{omni_i18n._('ui_runtime_wifi_hint')}"}
                 return
-            self.modal = {"title": head, "icon": "database", "sel": 0, "buttons": ["Baixar", "Agora não"],
+            self.modal = {"title": head, "icon": "database", "sel": 0, "buttons": [omni_i18n._("ui_download"), omni_i18n._("ui_not_now")],
                           "fns": [lambda: download(names), lambda: None],
-                          "text": f"{lines}{more}\nBaixar agora do PortMaster?"}
+                          "text": f"{lines}{more}\n{omni_i18n._('ui_runtime_download_prompt')}"}
 
         def download(names):
             def get():
@@ -1134,17 +1177,17 @@ class App:
 
             def fin(res):
                 if isinstance(res, Exception):
-                    self.toast = (f"Erro ao baixar: {res}", "problema", self.t + 4)
+                    self.toast = (omni_i18n._("ui_runtime_download_error").format(error=res), "problema", self.t + 4)
                     return
                 got, bad = res
                 if bad:
-                    self.modal = {"title": f"{len(got)} Baixado(s), {len(bad)} com erro", "icon": "database",
-                                  "sel": 0, "buttons": ["OK"], "text": "\n".join(bad[:6])}
+                    self.modal = {"title": omni_i18n._("ui_runtime_download_result").format(got=len(got), failed=len(bad)), "icon": "database",
+                                  "sel": 0, "buttons": [omni_i18n._("btn_ok")], "text": "\n".join(bad[:6])}
                 else:
-                    self.toast = (f"{len(got)} Runtime" + ("s baixados" if len(got) != 1 else " baixado"),
+                    self.toast = (omni_i18n._("ui_runtime_downloaded").format(count=len(got)),
                                   "ok", self.t + 3)
-            self.worker(get, fin, busy="Baixando runtimes...")
-        self.worker(run, done, busy="Procurando runtimes...")
+            self.worker(get, fin, busy=omni_i18n._("ui_runtime_downloading"))
+        self.worker(run, done, busy=omni_i18n._("ui_runtime_searching"))
 
     def games(self, force=False):
         if FAKE:
@@ -1155,33 +1198,34 @@ class App:
 
     def _backup(self):
         if FAKE:
-            return {"nivel": "ok", "acoes": [], "achados": [("info", "Omni36OS: nenhum backup ainda.")]}
-        out = [("info", f"Ao exportar, você escolhe onde salvar. Último lugar: {omni_backup.backup_dir()}.")]
+            return {"nivel": "ok", "acoes": [], "achados": [("info", omni_i18n._("ui_backup_none"))]}
+        out = [("info", omni_i18n._("ui_backup_location").format(path=omni_backup.backup_dir()))]
         last = omni_backup.last_backups()
         for mod, (name, *_x) in omni_backup.MODULES.items():
             if mod in last:
-                out.append(("ok", f"{name}: último backup em {last[mod][1]}."))
+                out.append(("ok", omni_i18n._("ui_backup_last").format(name=name, date=last[mod][1])))
             else:
-                out.append(("info", f"{name}: nenhum backup ainda."))
-        out.append(("info", "Só configurações: saves, estados, cores, temas e bancos de dados ficam de fora."))
+                out.append(("info", omni_i18n._("ui_backup_module_none").format(name=name)))
+        out.append(("info", omni_i18n._("ui_backup_scope")))
         return omni_checks.finish(out, [], {})
 
     def _cartoes(self):
         out = []
         for c in omni_checks.sd_facts()["cartoes"]:
             fab = f", {c['fabricante']}" if c["fabricante"] != "desconhecido" else ""   # sem marca: só no teste
-            out.append(("ok", f"Cartão {1 if c['cartao'] == 'sistema' else 2}: {c['tamanho_gb']} GB{fab}."))
+            out.append(("ok", omni_i18n._("ui_sd_card_summary").format(card=1 if c['cartao'] == 'sistema' else 2, size=c['tamanho_gb'], manufacturer=fab)))
         omni_checks.check_disk(out)
         for part, r in omni.last_scan().items():
             ok = r["resultado"] == "clean"
-            txt = {"clean": "sem erros", "repaired": "erros encontrados e reparados",
-                   "failed": "a verificação falhou"}.get(r["resultado"], r["resultado"])
-            out.append(("ok" if ok else "aviso", f"Última verificação de /{part} ({r['quando']}): {txt}."))
+            status = r["resultado"]
+            key = {"clean": "ui_scan_clean", "repaired": "ui_scan_repaired", "failed": "ui_scan_failed"}.get(status)
+            txt = omni_i18n._(key) if key else omni_i18n._("ui_scan_unknown").format(result=status)
+            out.append(("ok" if ok else "aviso", omni_i18n._("ui_scan_last_result").format(part=part, date=r['quando'], result=txt)))
         return omni_checks.finish(out, [], {})
 
     def _got_findings(self, res):
         if isinstance(res, Exception):
-            self.findings = {"nivel": "problema", "achados": [("problema", f"Erro: {res}")], "acoes": []}
+            self.findings = {"nivel": "problema", "achados": [("problema", omni_i18n._("ui_error_prefix").format(error=res))], "acoes": []}
             return
         # alertas das subpáginas (ex.: Cartões SD em Desempenho) aparecem aqui também
         extra_alerts = []
@@ -1190,7 +1234,7 @@ class App:
             if parent == self.page and r:
                 n = sum(1 for lvl, _ in r["achados"] if lvl in ("aviso", "problema"))
                 if n:
-                    extra_alerts.append((r["nivel"], f"{SUBPAGES[sub][0]}: {n} alerta(s). Abra \"{SUBPAGES[sub][0]}\" para ver."))
+                    extra_alerts.append((r["nivel"], omni_i18n._("tx_alerts").format(page=SUBPAGES[sub][0], count=n)))
         if extra_alerts:
             order = {"problema": 0, "aviso": 1, "ok": 2, "info": 3}
             res = dict(res, achados=sorted(extra_alerts + list(res["achados"]), key=lambda x: order.get(x[0], 9)))
@@ -1206,7 +1250,7 @@ class App:
             act = Action(D.label(a), "bolt", lambda a=a: self.do_action(a),
                          confirm=f"{D.label(a)}?")
             act.suggested, act.act = True, a
-            act.tip = "Sugerido pela verificação deste card: resolve um dos avisos do painel."
+            act.tip = omni_i18n._("ui_suggested_action_tip")
             extra.append(act)
         self.items = extra + base
         self.item_sel = min(self.item_sel, len(self.items) - 1)
@@ -1216,168 +1260,147 @@ class App:
 
     def _build_items(self, cid):
         A = Action
-        recheck = A("Atualizar status", "refresh", self.reload_findings)
+        recheck = A(omni_i18n._("ui_recheck"), "refresh", self.reload_findings)
         if cid == "checkup":
             return [recheck]
         if cid == "controles":
-            return [A("Testar o controle", "device-gamepad-2", self.open_pad),
-                    tip(Choice("Inverter botões", "arrows-exchange", "inverter", ["desligado", "ligado"], SWAP_NAMES),
-                        "Ligado troca A com B e X com Y."),
-                    subpage(A("Atalhos", "keyboard", lambda: self.open_page("atalhos")), "atalhos"),
-                    A("Consertar atalhos", "tool", lambda: self.native("fix_hotkeys", "Reiniciando os atalhos..."),
-                      confirm="Reiniciar o serviço de atalhos (brilho e volume pelos botões)?"),
+            return [A(omni_i18n._("ui_card_button_test"), "device-gamepad-2", self.open_pad),
+                    tip(Choice(omni_i18n._("ui_card_option_switch_buttons"), "arrows-exchange", "inverter", ["desligado", "ligado"], SWAP_NAMES),
+                        omni_i18n._("ui_card_toggle_buttons_tip")),
+                    subpage(A(omni_i18n._("ui_card_option_shortcuts"), "keyboard", lambda: self.open_page("atalhos")), "atalhos"),
+                    A(omni_i18n._("ui_card_option_fix_shortcuts"), "tool", lambda: self.native("fix_hotkeys", omni_i18n._("ui_card_restart_hotkeys")),
+                      confirm=omni_i18n._("ui_card_fix_hotkeys_confirm")),
                     recheck]
         if cid == "apps":
-            return [tip(A("Músicas", "music", self.open_music),
-                        "Toca os mp3 das pastas musicas dos cartões (EASYROMS/musicas e ROMS2/musicas). "
-                        "As opções ficam dentro do app: START."),
-                    tip(A("Vídeos", "movie", lambda: self.open_videos()),
-                        "Toca os vídeos das pastas videos dos cartões (EASYROMS/videos e ROMS2/videos): mp4, mkv, webm e outros."),
-                    tip(A("Imagens", "photo-search", lambda: self.open_images()),
-                        "Capturas de tela (FN + Y): as do menu e as de cada jogo. Esquerda/direita passam as imagens."),
-                    tip(A("Notas", "notes", lambda: self.open_notes()),
-                        "Bloco de notas: textos simples na pasta notas do cartão 1 (EASYROMS/notas). "
-                        "Em Logs do sistema dá para ler os logs de /roms/logs."),
+            return [tip(A(omni_i18n._("ui_card_music_subtitle"), "music", self.open_music),
+                        omni_i18n._("ui_build_apps_music_tip")),
+                    tip(A(omni_i18n._("ui_card_videos"), "movie", lambda: self.open_videos()),
+                        omni_i18n._("ui_build_apps_videos_tip")),
+                    tip(A(omni_i18n._("ui_card_images"), "photo-search", lambda: self.open_images()),
+                        omni_i18n._("ui_build_apps_images_tip")),
+                    tip(A(omni_i18n._("ui_card_notes"), "notes", lambda: self.open_notes()),
+                        omni_i18n._("ui_build_apps_notes_tip")),
                     tip(subpage(A("GeForce NOW", "device-tv", lambda: self.open_page("gfn")), "gfn"),
-                        "Jogos da nuvem com a sua conta GeForce NOW (OpenNOW). Precisa de Wi-Fi bom."),
+                        omni_i18n._("ui_build_apps_gfn_tip")),
                     tip(subpage(A("Moonlight", "device-tv", lambda: self.open_page("moonlight")), "moonlight"),
-                        "Jogos do seu PC pela rede de casa (com o Sunshine instalado no PC).")]
+                        omni_i18n._("ui_build_apps_moonlight_tip"))]
         if cid == "tela":
-            return [tip(A("Brilho, contraste e volume", "adjustments", self.open_levels),
-                        "Abre os três ajustes: cima/baixo escolhe, esquerda/direita ajusta, A confirma e B desfaz."),
-                    Choice("Tema", "palette", "tema", list(THEMES), {"escuro": "Escuro", "claro": "Claro"}),
-                    Choice("Cor do LED", "bulb", "led", ["verde", "vermelho"], {"verde": "Verde", "vermelho": "Vermelho"}),
-                    A("Detalhes da tela", "info-circle", lambda: self.run_info("Tela e modelo", "detect_hardware_and_screen")),
-                    subpage(A("Calibrar a bateria", "battery-2", lambda: self.open_page("calibracao")), "calibracao"),
-                    tagged(A("Restaurar áudio", "rotate", lambda: self.do_action("restaurar_audio"),
-                             confirm="Restaurar o áudio do sistema?\nSaída de som padrão e volume em 40%."),
+            return [tip(A(omni_i18n._("ui_build_display_levels"), "adjustments", self.open_levels),
+                        omni_i18n._("ui_card_levels_tip")),
+                    Choice(omni_i18n._("ui_card_option_theme"), "palette", "tema", list(THEMES), {"escuro": omni_i18n._("ui_settings_theme_dark"), "claro": omni_i18n._("ui_settings_theme_light")}),
+                    Choice(omni_i18n._("ui_card_option_led"), "bulb", "led", ["verde", "vermelho"], {"verde": omni_i18n._("ui_settings_green"), "vermelho": omni_i18n._("ui_settings_red")}),
+                    A(omni_i18n._("ui_card_option_screen_details"), "info-circle", lambda: self.run_info(omni_i18n._("ui_card_screen_and_model"), "detect_hardware_and_screen")),
+                    subpage(A(omni_i18n._("ui_card_option_calibrate_battery"), "battery-2", lambda: self.open_page("calibracao")), "calibracao"),
+                    tagged(A(omni_i18n._("ui_card_option_restore_audio"), "rotate", lambda: self.do_action("restaurar_audio"),
+                             confirm=omni_i18n._("ui_card_audio_restore_prompt")),
                            "restaurar_audio")]
         if cid == "geral":
-            return [A(f"Nome do jogador: {self.player or '(sem nome)'}", "users", lambda: self.ask_name(first=False)),
-                    subpage(A("Segurança", "lock", lambda: self.open_page("seguranca")), "seguranca"),
-                    subpage(A("Backup", "device-floppy", lambda: self.open_page("backup")), "backup"),
-                    tip(A("Procurar atualização", "refresh", self.update_check),
-                        "Procura uma versão nova do Omni36OS no GitHub (precisa de Wi-Fi). Antes de instalar, ela é "
-                        "conferida inteira; se não abrir depois, a versão de agora volta sozinha."),
-                    *([tip(A("Voltar à versão anterior", "rotate", self.update_back,
-                             confirm="Voltar à versão anterior do Omni36OS?\nA de agora fica guardada e dá para voltar "
-                                     "a ela do mesmo jeito.", cancel=True),
-                           "Troca pela versão guardada da última atualização.")]
+            lang_names = {lang: name for lang, name in omni_i18n.available_languages()}
+            current_lang = omni_i18n.get_lang()
+            return [Choice(omni_i18n._("label_language"), "language", "idioma",
+                          [l for l, _ in omni_i18n.available_languages()], lang_names),
+                    A(f"{omni_i18n._('menu_player_name')}: {self.player or omni_i18n._('ui_player_name_empty')}", "users", lambda: self.ask_name(first=False)),
+                    subpage(A(omni_i18n._("sub_seguranca"), "lock", lambda: self.open_page("seguranca")), "seguranca"),
+                    subpage(A(omni_i18n._("sub_backup"), "device-floppy", lambda: self.open_page("backup")), "backup"),
+                    tip(A(omni_i18n._("menu_update_check"), "refresh", self.update_check),
+                        omni_i18n._("ui_build_general_update_tip")),
+                    *([tip(A(omni_i18n._("menu_update_back"), "rotate", self.update_back,
+                             confirm=omni_i18n._("ui_update_back_confirm"), cancel=True),
+                           omni_i18n._("ui_build_general_update_back_tip"))]
                       if not FAKE and omni_update.can_go_back() else []),
-                    subpage(A("Verificar tudo", "stethoscope", lambda: self.open_page("checkup")), "checkup"),
-                    subpage(A("Sobre", "help-circle", lambda: self.open_page("sobre")), "sobre"),
-                    A("Redefinir o sistema", "rotate", self.ask_reset)]
+                    subpage(A(omni_i18n._("sub_checkup"), "stethoscope", lambda: self.open_page("checkup")), "checkup"),
+                    subpage(A(omni_i18n._("sub_sobre"), "help-circle", lambda: self.open_page("sobre")), "sobre"),
+                    A(omni_i18n._("menu_reset"), "rotate", self.ask_reset)]
         if cid == "atalhos":
             combos = D.get("at_combos")
             out = [tip(Choice(f"{name} · {omni_combos.text(combos[k])}", icon, "at_" + k, [True, False], ONOFF),
                        omni_combos.tip(k, combos))
                    for k, (name, icon, *_x) in omni_combos.ACTIONS.items()]
-            return out + [tip(A("Personalizar um atalho", "pencil", self.pick_atalho),
-                              "Escolha um atalho e aperte a tecla nova: ele vira FN + essa tecla. SELECT + START (fechar "
-                              "o jogo) é fixo. Os nomes nesta página, nas dicas e no manual mudam junto."),
-                          tip(A("Voltar aos botões padrão", "rotate", self.reset_combos,
-                                confirm="Voltar todos os atalhos aos botões padrão?\nO que está ligado ou desligado "
-                                        "não muda."),
-                              "FN + X, FN + B e FN + Y, como vieram.")]
+            return out + [tip(A(omni_i18n._("ui_card_custom_shortcut"), "pencil", self.pick_atalho),
+                              omni_i18n._("ui_build_shortcuts_custom_tip")),
+                          tip(A(omni_i18n._("ui_card_restore_default_buttons"), "rotate", self.reset_combos,
+                                confirm=omni_i18n._("ui_shortcuts_restore_confirm")),
+                              omni_i18n._("ui_build_shortcuts_restore_tip"))]
         if cid == "seguranca":
             locked = (os.environ.get("OMNI_TRAVA") == "1") if FAKE else omni_sistema.lock_on()
-            return [A("Trocar a senha", "lock", self.ask_password),
-                    A("Senha do Samba", "device-floppy", self.ask_samba),
-                    A("Trava por senha: " + ("ligada" if locked else "desligada"), "lock", self.ask_lock)]
+            return [A(omni_i18n._("ui_card_option_password"), "lock", self.ask_password),
+                    A(omni_i18n._("ui_card_option_samba_password"), "device-floppy", self.ask_samba),
+                    A(omni_i18n._("ui_build_security_lock").format(state=omni_i18n._("ui_build_on") if locked else omni_i18n._("ui_build_off")), "lock", self.ask_lock)]
         if cid == "desempenho":
-            return [tip(Choice("Limite do processador", "gauge", "cpu_max", D.get("cpu_freqs"),
-                               {f: "Automático" if not f else f"{f} MHz" + (" (OC)" if f > 1296 else "")
+            return [tip(Choice(omni_i18n._("ui_card_option_cpu_limit"), "gauge", "cpu_max", D.get("cpu_freqs"),
+                               {f: omni_i18n._("ui_choice_automatic") if not f else f"{f} MHz" + (" (OC)" if f > 1296 else "")
                                 for f in D.get("cpu_freqs")}),
-                        "Até onde o processador vai nos ports. No menu ele fica sempre no mínimo, para esfriar e "
-                        "poupar bateria. Automático: no jogo começa no mínimo e sobe só até o jogo chegar em 30 "
-                        "FPS (com o limite de FN + B) ou 60; o teto é 1296 MHz, ou tudo com o overclock "
-                        "desbloqueado."),
-                    tip(Choice("Limite da GPU", "device-gamepad-2", "gpu_max", D.get("gpu_freqs"),
-                               {f: "Automático" if not f else f"{f} MHz" + (" (OC)" if f > 520 else "")
+                        omni_i18n._("ui_build_cpu_tip")),
+                    tip(Choice(omni_i18n._("ui_card_option_gpu_limit"), "device-gamepad-2", "gpu_max", D.get("gpu_freqs"),
+                               {f: omni_i18n._("ui_choice_automatic") if not f else f"{f} MHz" + (" (OC)" if f > 520 else "")
                                 for f in D.get("gpu_freqs")}),
-                        "Até onde a GPU vai nos ports. No menu ela fica sempre no mínimo. Automático: no jogo "
-                        "começa no mínimo e sobe só até o jogo chegar no FPS; o teto é 520 MHz, ou 600 MHz com o "
-                        "overclock desbloqueado. Com o processador também em Automático, sobe primeiro quem está "
-                        "segurando o jogo."),
-                    tip(Choice("Memória extra (zram)", "database", "zram", ZRAM_SIZES,
-                               {m: f"{m} MB" if m else "Desligada" for m in ZRAM_SIZES}),
-                        "Memória comprimida para ports que pedem mais RAM. Desligada é o normal."),
-                    A("Bloquear overclock", "lock", self.lock_oc,
-                      confirm="Bloquear o overclock?\nOs limites voltam a 1296 MHz no processador e 520 MHz na "
-                              "GPU.") if D.get("oc") else
-                    A("Desbloquear overclock", "gauge", self.ask_overclock)]
+                        omni_i18n._("ui_build_gpu_tip")),
+                    tip(Choice(omni_i18n._("ui_card_option_zram"), "database", "zram", ZRAM_SIZES,
+                               {m: f"{m} MB" if m else omni_i18n._("ui_choice_zram_off") for m in ZRAM_SIZES}),
+                        omni_i18n._("ui_build_zram_tip")),
+                    A(omni_i18n._("ui_card_option_lock_oc"), "lock", self.lock_oc,
+                      confirm=omni_i18n._("ui_build_lock_oc_confirm")) if D.get("oc") else
+                    A(omni_i18n._("ui_card_option_unlock_oc"), "gauge", self.ask_overclock)]
         if cid == "cartoes":
             on = D.get("pendrive")
-            tog = A("Desligar o modo pendrive" if on else "Ligar o modo pendrive (PC)", "power",
+            tog = A(omni_i18n._("ui_usb_mode_off" if on else "ui_usb_mode_on"), "power",
                     lambda: self.do_action("desligar_pendrive" if on else "ligar_pendrive"),
-                    confirm=("Desligar o modo pendrive?\nO aparelho reinicia e o Wi-Fi volta." if on else
-                             "Ligar o modo pendrive?\nO console reinicia como pendrive. Ao ejetar no PC, tirar o cabo "
-                             "ou apertar B, ele volta sozinho ao normal, com o Wi-Fi."))
+                    confirm=omni_i18n._("ui_usb_mode_off_confirm" if on else "ui_usb_mode_on_confirm"))
             tog.act = "desligar_pendrive" if on else "ligar_pendrive"
             mounted = getattr(self, "fake_usb", False) if FAKE else os.path.ismount("/mnt/usbdrive")
-            return [*([Choice("Origem dos jogos", "folder", "fonte", list(SOURCE_NAMES), SOURCE_NAMES)]
+            return [*([Choice(omni_i18n._("ui_card_option_game_source"), "folder", "fonte", list(SOURCE_NAMES), SOURCE_NAMES)]
                       if FAKE or os.path.ismount("/roms2") else []),   # sem ROMS2: só ROMS, sem escolha
                     *self.card2_items(),
-                    tip(A("Detalhe dos cartões" if self.sd_count() > 1 else "Detalhe do cartão", "info-circle",
+                    tip(A(omni_i18n._("ui_card_option_cards_detail") if self.sd_count() > 1 else omni_i18n._("ui_card_option_card_detail"), "info-circle",
                           self.speed_test),
-                        "Marca, tamanho, espaço livre e ocupado e um teste de velocidade de cada cartão (até 1 minuto). Cartão "
-                        "lento deixa os ports lentos para abrir."),
-                    tip(tog, "O console vira um pendrive para o PC: ligue o cabo na porta OTG e copie jogos direto "
-                             "para o cartão. Reinicia ao ligar e ao desligar; o Wi-Fi para enquanto estiver ligado."),
-                    *([tip(Choice("Partição no PC", "device-floppy", "part", ["roms2", "roms"],
+                        omni_i18n._("ui_build_cards_detail_tip")),
+                    tip(tog, omni_i18n._("ui_tip_usb_mode")),
+                    *([tip(Choice(omni_i18n._("ui_card_option_partition_pc"), "device-floppy", "part", ["roms2", "roms"],
                                   {"roms2": "ROMS2", "roms": "ROMS"}),
-                           "Qual partição o PC enxerga no modo pendrive: ROMS2 (cartão 2) ou ROMS (cartão 1).")]
+                           omni_i18n._("ui_tip_partition"))]
                       if FAKE or os.path.ismount("/roms2") else []),   # sem cartão 2: sempre ROMS, sem escolha
-                    tip(A("Desmontar pendrive", "player-eject", lambda: self.native("usb_umount", "Desmontando..."))
+                    tip(A(omni_i18n._("ui_card_option_unmount_usb"), "player-eject", lambda: self.native("usb_umount", omni_i18n._("ui_usb_drive_connecting")))
                         if mounted else
-                        A("Montar pendrive", "plug", lambda: self.native("usb_mount", "Montando o pendrive...")),
+                        A(omni_i18n._("ui_card_option_mount_usb"), "plug", lambda: self.native("usb_mount", omni_i18n._("ui_usb_drive_mounting"))),
                         self.pendrive_tip(mounted)),
-                    tip(tagged(A("Limpar lixo do Mac", "x", lambda: self.do_action("limpar_mac", "Procurando o lixo do Mac... (até 1 minuto)"),
-                                 confirm="Apagar os arquivos ._ e .DS_Store que o Mac cria?\nSeus jogos não são tocados."),
+                    tip(tagged(A(omni_i18n._("ui_card_option_clean_mac"), "x", lambda: self.do_action("limpar_mac", omni_i18n._("ui_clean_mac_busy")),
+                                 confirm=omni_i18n._("ui_clean_mac_confirm")),
                                "limpar_mac"),
-                        "Apaga os arquivos ._ e .DS_Store que o Mac deixa ao copiar. Eles aparecem como jogos "
-                        "falsos na lista. Seus jogos não são tocados."),
-                    A("Verificar e reparar os jogos", "device-sd-card", lambda: self.run_tool_toast("schedule_scan"),
-                      confirm="Verificar e reparar a partição dos jogos?\nO aparelho reinicia, verifica o cartão e "
-                              "volta sozinho. Leva alguns minutos.", danger=True),
-                    tip(A("Restaurar boot", "arrow-back-up", lambda: self.run_tool_toast("usb_restore"),
-                          confirm="Voltar o arquivo de boot original?\nO aparelho reinicia.", danger=True),
-                        "Se o modo pendrive deixou a porta presa, volta o arquivo de boot (DTB) original salvo "
-                        "antes da primeira vez e reinicia.")]
+                        omni_i18n._("ui_tip_clean_mac")),
+                    A(omni_i18n._("ui_card_option_check_repair"), "device-sd-card", lambda: self.run_tool_toast("schedule_scan"),
+                      confirm=omni_i18n._("ui_repair_confirm"), danger=True),
+                    tip(A(omni_i18n._("ui_card_option_restore_boot"), "arrow-back-up", lambda: self.run_tool_toast("usb_restore"),
+                          confirm=omni_i18n._("ui_restore_boot_confirm"), danger=True),
+                        omni_i18n._("ui_tip_restore_boot"))]
         if cid == "ferramentas":
-            out = [A("Arquivos", "folder", self.open_files),
-                   subpage(A("Testar ports", "player-play", lambda: self.open_page("testar")), "testar"),
-                   tip(A("Atualizar ports", "refresh", self.refresh_ports),
-                       "Lê de novo as pastas de ports dos dois cartões, as capas e as descrições (pasta infos). "
-                       "Use se um port copiado não apareceu na lista."),
-                   tip(Choice("Busca automática", "photo-search", "busca", ["ligada", "desligada"],
-                              {"ligada": "Ligada", "desligada": "Desligada"}),
-                       "Com o Wi-Fi conectado, busca uma vez a capa e a descrição de cada port na biblioteca. "
-                       "Nunca durante um jogo.")]
+            out = [A(omni_i18n._("ui_card_option_files"), "folder", self.open_files),
+                   subpage(A(omni_i18n._("ui_ports_test"), "player-play", lambda: self.open_page("testar")), "testar"),
+                   tip(A(omni_i18n._("ui_card_update_ports"), "refresh", self.refresh_ports),
+                       omni_i18n._("ui_build_refresh_ports_tip")),
+                   tip(Choice(omni_i18n._("ui_card_option_search_auto"), "photo-search", "busca", ["ligada", "desligada"],
+                              {"ligada": omni_i18n._("ui_settings_on"), "desligada": omni_i18n._("ui_settings_off")}),
+                       omni_i18n._("ui_search_auto_tip"))]
             out += [tip(A(t["name"], "device-gamepad-2" if "PortMaster" in t["name"] else "folder",
                           lambda t=t: self.ask_tool(t)),
-                        f"{t.get('desc', '')} Abre em tela cheia e o Omni36OS volta ao fechar.".strip())
+                        f"{t.get('desc', '')} {omni_i18n._('ui_tip_tool_suffix')}".strip())
                     for t in self.tool_list()]
-            out.append(tip(A("Trocar DTB", "device-tv", self.ask_dtb),
-                           "Refaz a escolha da tela (o mesmo teste do L1 + R1 ao ligar): reinicia e testa as telas "
-                           "do catálogo. Para quando o cartão vai para outro console."))
+            out.append(tip(A(omni_i18n._("ui_card_change_dtb"), "device-tv", self.ask_dtb),
+                           omni_i18n._("ui_tip_change_dtb")))
             return out
         if cid == "rede":
             on = getattr(self, "fake_wifi", True) if FAKE else omni_sistema.wifi_on()
-            return [tip(A("Desligar o Wi-Fi" if on else "Ligar o Wi-Fi", "wifi-off" if on else "wifi",
+            return [tip(A(omni_i18n._("ui_build_wifi_off" if on else "ui_build_wifi_on"), "wifi-off" if on else "wifi",
                           lambda: self.wifi_toggle(not on)),
-                        "Desliga o adaptador para poupar bateria." if on else
-                        "Liga o adaptador USB de Wi-Fi; ele volta para a última rede salva."),
-                    tip(A("Procurar redes", "refresh", self.wifi_scan),
-                        "Lista as redes por perto, a mais forte primeiro. A rede com cadeado pede a senha."),
-                    tip(A("Redes salvas", "device-floppy", self.wifi_saved),
-                        "As redes que o console já conhece: conecte de novo ou esqueça uma."),
-                    tip(A("Desconectar", "plug-connected-x", lambda: self.wifi_run(omni_sistema.wifi_disconnect if not FAKE else
-                                                                    (lambda: "Desconectado."), "Desconectando...")),
-                        "Sai da rede atual sem desligar o Wi-Fi."),
-                    tip(subpage(A("Rede pelo cabo USB", "network", lambda: self.open_page("usbrede")), "usbrede"),
-                        "O cabo USB vira uma rede entre o console e o PC: SSH, arquivos pela web e Samba, ou "
-                        "internet do PC no console. Não reinicia."),
+                        omni_i18n._("ui_tip_wifi_off" if on else "ui_tip_wifi_on")),
+                    tip(A(omni_i18n._("ui_build_network_search"), "refresh", self.wifi_scan),
+                        omni_i18n._("ui_build_network_scan_tip")),
+                    tip(A(omni_i18n._("ui_build_network_saved"), "device-floppy", self.wifi_saved),
+                        omni_i18n._("ui_build_network_saved_tip")),
+                    tip(A(omni_i18n._("ui_build_network_disconnect"), "plug-connected-x", lambda: self.wifi_run(omni_sistema.wifi_disconnect if not FAKE else
+                                                                    (lambda: omni_i18n._("ui_usb_net_disconnected")), omni_i18n._("ui_usb_net_disconnect_busy"))),
+                        omni_i18n._("ui_tip_disconnect")),
+                    tip(subpage(A(omni_i18n._("ui_usb_network"), "network", lambda: self.open_page("usbrede")), "usbrede"),
+                        omni_i18n._("ui_usb_net_intro_tip")),
                     recheck]
         if cid == "usbrede":
             S = omni_sistema if not FAKE else None
@@ -1386,81 +1409,75 @@ class App:
             if not S:
                 def fake(m, txt):
                     return lambda: self.__dict__.setdefault("fake_vals", {}).update(usbnet=m) or txt
-                run_u = lambda f: (lambda: self.worker(f, self._sys_done, busy="Aguarde..."))
-                uni = run_u(fake("universal", "Modo universal ligado. Use ssh omni@10.44.44.1"))
-                net = run_u(fake("internet", "Rede USB ligada, internet pelo PC."))
-                off = run_u(fake("desligada", "Rede USB desligada."))
+                run_u = lambda f: (lambda: self.worker(f, self._sys_done, busy=omni_i18n._("ui_usbnet_mode_busy")))
+                uni = run_u(fake("universal", omni_i18n._("ui_usbnet_fake_universal")))
+                net = run_u(fake("internet", omni_i18n._("ui_usbnet_fake_internet")))
+                off = run_u(fake("desligada", omni_i18n._("ui_usbnet_fake_off")))
             else:
-                uni = run(S.usbnet_universal, "Ligando a rede USB...")
-                net = run(S.usbnet_internet, "Pedindo IP ao PC... (até 30 s)")
-                off = run(S.usbnet_stop, "Desligando...")
-            on = lambda m, txt: f"{txt}: ligado" if mode == m else f"Ligar: {txt}"
-            return [A(on("universal", "modo universal"), "check" if mode == "universal" else "usb", uni,
-                      confirm="Ligar a rede USB no modo universal?\nO console dá o IP ao PC: ligue o cabo de dados "
-                              "na porta OTG e use ssh omni@10.44.44.1."),
-                    A(on("internet", "internet pelo PC"), "check" if mode == "internet" else "wifi", net,
-                      confirm="Ligar a rede USB usando a internet do PC?\nO PC precisa já estar compartilhando a "
-                              "conexão pelo cabo."),
-                    Choice("Serviços remotos", "device-floppy", "remoto", ["desligados", "ligados"],
-                           {"desligados": "Desligados", "ligados": "Ligados"}),
-                    A("Desligar a rede USB" if mode != "desligada" else "Rede USB: desligada", "power", off),
-                    A("Compatibilidade", "info-circle", lambda: self.worker(
+                uni = run(S.usbnet_universal, omni_i18n._("ui_usbnet_universal_busy"))
+                net = run(S.usbnet_internet, omni_i18n._("ui_usbnet_ip_busy"))
+                off = run(S.usbnet_stop, omni_i18n._("ui_usbnet_off_busy"))
+            on = lambda m, txt: omni_i18n._("ui_usbnet_mode_active").format(label=txt) if mode == m else omni_i18n._("ui_usbnet_mode_enable").format(label=txt)
+            return [A(on("universal", omni_i18n._("ui_usbnet_mode_universal")), "check" if mode == "universal" else "usb", uni,
+                      confirm=omni_i18n._("ui_usbnet_enable_universal_confirm")),
+                    A(on("internet", omni_i18n._("ui_usbnet_mode_internet")), "check" if mode == "internet" else "wifi", net,
+                      confirm=omni_i18n._("ui_usbnet_enable_internet_confirm")),
+                    Choice(omni_i18n._("ui_remote_services_label"), "device-floppy", "remoto", ["desligados", "ligados"],
+                           {"desligados": omni_i18n._("ui_remote_off"), "ligados": omni_i18n._("ui_remote_on")}),
+                    A(omni_i18n._("ui_usb_action_off") if mode != "desligada" else omni_i18n._("ui_usb_network_off"), "power", off),
+                    A(omni_i18n._("ui_usbnet_compat_title"), "info-circle", lambda: self.worker(
                         (S and S.usbnet_compat) or (lambda: "teste"),
-                        lambda r: self.read("Compatibilidade da rede USB", "network", str(r)), busy="Verificando..."))]
+                        lambda r: self.read(omni_i18n._("ui_usbnet_compat_title"), "network", str(r)), busy=omni_i18n._("ui_usbnet_compat_busy")))]
         if cid == "calibracao":
             S = omni_sistema if not FAKE else None
             run = lambda fn, busy: (lambda: self.worker(fn if S else (lambda: "teste"), self._sys_done, busy=busy))
             running = S.cal_running() if S else os.environ.get("OMNI_CALIBRANDO") == "1"
-            toggle = A("Parar a calibração", "x", run(S and S.cal_stop, "Parando...")) if running else \
-                A("Iniciar a calibração", "player-play", run(S and S.cal_start, "Começando..."),
-                  confirm="Iniciar uma calibração nova?\nA bateria precisa estar cheia e sem o carregador. "
-                          "A sessão anterior é apagada.")
+            toggle = A(omni_i18n._("ui_calibration_stop"), "x", run(S and S.cal_stop, omni_i18n._("ui_calibration_stop_busy"))) if running else \
+                A(omni_i18n._("ui_calibration_start"), "player-play", run(S and S.cal_start, omni_i18n._("ui_calibration_start_busy")),
+                  confirm=omni_i18n._("ui_calibration_start_confirm"))
             return [toggle,
-                    A("Aplicar a curva", "check", run(S and S.cal_apply, "Calculando a curva..."),
-                      confirm="Aplicar a curva da última calibração?\nA % da bateria passa a seguir a sua bateria."),
-                    A("Voltar à curva de fábrica", "rotate", run(S and S.cal_restore, "Restaurando..."),
-                      confirm="Voltar à curva de fábrica?\nA curva calibrada é apagada.", danger=True)]
+                    A(omni_i18n._("ui_calibration_apply"), "check", run(S and S.cal_apply, omni_i18n._("ui_calibration_apply_busy")),
+                      confirm=omni_i18n._("ui_calibration_apply_confirm")),
+                    A(omni_i18n._("ui_calibration_restore"), "rotate", run(S and S.cal_restore, omni_i18n._("ui_calibration_restore_busy")),
+                      confirm=omni_i18n._("ui_calibration_restore_confirm"), danger=True)]
         if cid == "gfn":
             ok = FAKE or omni_gfn.installed()
-            get = A("Atualizar" if ok else "Instalar", "refresh", lambda: self.worker(
-                (lambda: "teste") if FAKE else omni_gfn.install, self._sys_done, busy="Baixando o GeForce NOW..."),
-                confirm=None if ok else "Baixar o GeForce NOW (OpenNOW, uns 14 MB)?\nPrecisa de Wi-Fi.")
-            items = [tip(Choice("FN no GeForce NOW", "keyboard", "gfn_fn", ["sistema", "gfn"],
-                                {"sistema": "Sistema", "gfn": "GeForce NOW"}),
-                         "Sistema: os atalhos FN do Omni valem. GeForce NOW: o FN abre o menu da sessão.")]
-            return ([tip(A("Abrir o GeForce NOW", "player-play", self.open_gfn),
-                         "Entre com a sua conta. Start + Select fecha (no menu).")] + items + [get]) if ok else [get] + items
+            get = A(omni_i18n._("ui_gfn_update" if ok else "ui_install"), "refresh", lambda: self.worker(
+                (lambda: "teste") if FAKE else omni_gfn.install, self._sys_done, busy=omni_i18n._("ui_gfn_update_busy")),
+                confirm=None if ok else omni_i18n._("ui_gfn_download_confirm"))
+            items = [tip(Choice(omni_i18n._("ui_gfn_fn"), "keyboard", "gfn_fn", ["sistema", "gfn"],
+                                {"sistema": omni_i18n._("ui_system"), "gfn": "GeForce NOW"}),
+                         omni_i18n._("ui_gfn_fn_tip"))]
+            return ([tip(A(omni_i18n._("ui_gfn_open"), "player-play", self.open_gfn),
+                         omni_i18n._("ui_gfn_login_tip"))] + items + [get]) if ok else [get] + items
         if cid == "moonlight":
             ok = FAKE or omni_apps.installed("moonlight")
-            get = A("Atualizar" if ok else "Instalar", "refresh", lambda: self.worker(
+            get = A(omni_i18n._("ui_gfn_update" if ok else "ui_install"), "refresh", lambda: self.worker(
                 (lambda: "teste") if FAKE else (lambda: omni_apps.install("moonlight")), self._sys_done,
-                busy="Baixando o Moonlight..."),
-                confirm=None if ok else "Baixar o Moonlight (do PortMaster, uns 10 MB)?\nPrecisa de Wi-Fi.")
-            return [tip(A("Abrir o Moonlight", "player-play", lambda: self.open_app("moonlight")),
-                        "Na 1ª vez, pareie: o Moonlight mostra um código para digitar no Sunshine do PC."), get] \
+                busy=omni_i18n._("ui_moonlight_update_busy")),
+                confirm=None if ok else omni_i18n._("ui_moonlight_download_confirm"))
+            return [tip(A(omni_i18n._("ui_moonlight_open"), "player-play", lambda: self.open_app("moonlight")),
+                        omni_i18n._("ui_moonlight_pair_tip")), get] \
                 if ok else [get]
         if cid == "testar":
-            return [A("Escolher o port", "player-play", self.open_picker),
-                    tip(A("Ver relatórios", "notes", lambda: self.open_logs(omni_logs.TESTS, from_page=True)),
-                        "Abre no Notas os relatórios dos testes (logs/teste de ports/teste_<port>.txt), só para leitura."),
-                    tip(A("Runtimes faltando", "database", self.check_runtimes),
-                       "Procura nos ports os runtimes do PortMaster que não estão no cartão. Com o Wi-Fi "
-                        "conectado, pergunta se você quer baixar."),
-                    A("Limpar avisos de falha", "check", lambda: self.run_tool_toast("clear_port_alerts")), recheck]
+            return [A(omni_i18n._("ui_card_choose_port"), "player-play", self.open_picker),
+                    tip(A(omni_i18n._("ui_test_reports"), "notes", lambda: self.open_logs(omni_logs.TESTS, from_page=True)),
+                        omni_i18n._("ui_test_reports_tip")),
+                    tip(A(omni_i18n._("ui_missing_runtimes"), "database", self.check_runtimes),
+                       omni_i18n._("ui_missing_runtimes_tip")),
+                    A(omni_i18n._("ui_port_alerts_clear"), "check", lambda: self.run_tool_toast("clear_port_alerts")), recheck]
         if cid == "backup":
             where = "/roms/backup/omni36os" if FAKE else omni_backup.backup_dir()
-            return [tip(A("Exportar", "device-floppy", lambda: self.backup_where("omni36os")),
-                        "Salva as configurações do Omni36OS (testes de ports, processador, GPU, RAM e gamma) num "
-                        ".tar.gz. Você escolhe onde: cartão do sistema, segundo cartão ou pendrive."),
-                    tip(A("Importar", "arrow-back-up", lambda: self.backup_browse("omni36os", where)),
-                        "Abre as pastas para escolher um backup. Antes de importar, o que vale agora é salvo como "
-                        "\"antes-de-importar\".")]
+            return [tip(A(omni_i18n._("ui_backup_export"), "device-floppy", lambda: self.backup_where("omni36os")),
+                        omni_i18n._("ui_backup_export_tip")),
+                    tip(A(omni_i18n._("ui_backup_import"), "arrow-back-up", lambda: self.backup_browse("omni36os", where)),
+                        omni_i18n._("ui_backup_import_tip"))]
         if cid == "sobre":
-            return [A("Manual", "book", lambda: self.read("Manual", "book", omni_help.manual(D.get("at_combos")))),
-                    A("Cuidados", "alert-triangle", lambda: self.read("Cuidados", "alert-triangle", omni_help.roms2_text(omni_help.CUIDADOS))),
-                    A("Novidades", "tag", lambda: self.read(f"Novidades · Omni36OS {omni_version()}", "tag",
+            return [A(omni_i18n._("ui_manual_title"), "book", lambda: self.read(omni_i18n._("ui_manual_title"), "book", omni_help.manual(D.get("at_combos")))),
+                    A(omni_i18n._("ui_cautions_title"), "alert-triangle", lambda: self.read(omni_i18n._("ui_cautions_title"), "alert-triangle", omni_help.cuidados_text())),
+                    A(omni_i18n._("ui_news_title"), "tag", lambda: self.read(f"{omni_i18n._('ui_news_title')} · Omni36OS {omni_version()}", "tag",
                                                           omni_help.novidades_text())),
-                    A("Créditos", "users", self.open_credits)]
+                    A(omni_i18n._("ui_credits_title"), "users", self.open_credits)]
         return [recheck]
 
     # --- atualização ---
@@ -1468,43 +1485,40 @@ class App:
     def update_check(self):
         def done(r):
             if isinstance(r, Exception):
-                self.toast = ("Sem resposta do GitHub. O Wi-Fi está ligado?", "aviso", self.t + 4)
+                self.toast = (omni_i18n._("ui_update_no_response"), "aviso", self.t + 4)
             elif not r["nova"]:
-                self.toast = (f"Você já está na versão mais nova ({r['atual']})", "ok", self.t + 3.5)
+                self.toast = (omni_i18n._("ui_update_current").format(version=r['atual']), "ok", self.t + 3.5)
             else:
                 self.update_offer(r)
         fake = {"atual": omni_version(), "nova": "9.9.9", "tag": "omni-v9.9.9", "novidades": omni_help.NOVIDADES[:2]}
-        self.worker((lambda: fake) if FAKE else omni_update.check, done, busy="Procurando atualização...")
+        self.worker((lambda: fake) if FAKE else omni_update.check, done, busy=omni_i18n._("ui_update_searching"))
 
     def update_offer(self, r):
-        """Janela da versão nova: "Agora não" vem escolhido; "Novidades" mostra o que muda e volta aqui."""
+        """Janela da versão nova: omni_i18n._("ui_not_now") vem escolhido; omni_i18n._("ui_news_button") mostra o que muda e volta aqui."""
         install = lambda: self.worker((lambda: "Teste: instalaria") if FAKE else
                                       (lambda: omni_update.install(r["tag"], r["nova"])),
-                                      self._sys_done, busy="Baixando e conferindo... (até 2 minutos)")
+                                      self._sys_done, busy=omni_i18n._("ui_update_downloading"))
         news = r.get("novidades") or []
         first = news[0][2][0] if news and news[0][2] else ""
         self.modal = {"title": f"Omni36OS {r['nova']}", "icon": "refresh", "sel": 2,
-                      "buttons": ["Atualizar", "Novidades", "Agora não"],
-                      "text": f"Versão nova disponível (você tem a {r['atual']}).\n"
-                              + (f"{first}\n" if first else "")
-                              + "O Omni36OS baixa, confere e abre de novo. Se a nova não abrir, a de agora volta "
-                                "sozinha. Deixe o carregador ligado.",
+                      "buttons": [omni_i18n._("ui_update_button"), omni_i18n._("ui_news_button"), omni_i18n._("ui_not_now")],
+                      "text": omni_i18n._("ui_update_offer_text").format(current=r['atual'], first=(f"{first}\n" if first else "")),
                       "fns": [install,
-                              lambda: self.read(f"Novidades até a {r['nova']}", "refresh",
-                                                news_text(news) or "Não consegui ler as novidades desta versão.",
+                              lambda: self.read(omni_i18n._("ui_update_news_until").format(version=r['nova']), "refresh",
+                                                news_text(news) or omni_i18n._("ui_update_news_unavailable"),
                                                 on_close=lambda: self.update_offer(r)),
                               lambda: None]}
 
     def update_back(self):
-        self.worker(omni_update.go_back, self._sys_done, busy="Voltando...")
+        self.worker(omni_update.go_back, self._sys_done, busy=omni_i18n._("ui_update_reverting"))
 
     # --- ações ---
 
-    def do_action(self, name, busy="Fazendo..."):
+    def do_action(self, name, busy=omni_i18n._("ui_working")):
         self.worker(lambda: D.action(name), self._action_done, busy=busy)
 
     def _action_done(self, res):
-        txt = f"Erro: {res}" if isinstance(res, Exception) else (str(res).splitlines() or ["Feito."])[0]
+        txt = omni_i18n._("ui_error_prefix").format(error=res) if isinstance(res, Exception) else (str(res).splitlines() or [omni_i18n._("ui_done")])[0]
         self.toast = (txt, "problema" if isinstance(res, Exception) else "ok", self.t + 3.5)
         if self.page:
             keep = self.item_sel
@@ -1515,25 +1529,23 @@ class App:
     def run_info(self, title, tool):
         def done(res):
             self.modal = {"title": title, "text": str(res), "icon": "info-circle", "buttons": ["OK"], "sel": 0}
-        self.worker(lambda: D.run(tool), done, busy="Lendo...")
+        self.worker(lambda: D.run(tool), done, busy=omni_i18n._("ui_reading"))
 
     def busy_game(self):
         if HUB == "jogo":
-            self.toast = ("Feche o jogo antes: o Omni36OS está por cima dele", "aviso", self.t + 3.5)
+            self.toast = (omni_i18n._("ui_close_game_first"), "aviso", self.t + 3.5)
             return True
         return False
 
     def run_tool_toast(self, tool):
-        self.worker(lambda: D.run(tool), self._action_done, busy="Fazendo...")
+        self.worker(lambda: D.run(tool), self._action_done, busy=omni_i18n._("ui_working"))
 
     def card2_alert(self):
         """Alerta vermelho: o cartão 2 saiu sem Ejetar. O OK só libera depois de 5 s."""
         self.sheet = self.danger = None
-        self.modal = {"title": "Cartão 2 removido sem ejetar", "icon": "alert-triangle", "sel": 0,
+        self.modal = {"title": omni_i18n._("ui_card2_removed_title"), "icon": "alert-triangle", "sel": 0,
                       "buttons": ["OK"], "fns": [lambda: None], "lock": (0, self.t + 5), "danger": True,
-                      "text": "Tirar o cartão montado pode deixar arquivos pela metade ou corromper a "
-                              "partição. Antes de tirar, use sempre Cartões › Ejetar cartão 2.\nAo colocar "
-                              "de novo, use Cartões › Verificar e reparar os jogos."}
+                      "text": omni_i18n._("ui_card2_removed_text")}
 
     def card2_items(self):
         """Ejetar (montado) ou Montar (no slot, desmontado) o cartão 2. Manual: nada fica vigiando o slot."""
@@ -1543,7 +1555,7 @@ class App:
             def run():
                 if FAKE:
                     self.fake_card2 = fn == "mount"
-                    return "Cartão 2 montado." if fn == "mount" else "Cartão 2 ejetado. Pode tirar."
+                    return omni_i18n._("ui_card2_mounted") if fn == "mount" else omni_i18n._("ui_card2_ejected")
                 return omni.card2_mount() if fn == "mount" else omni.card2_eject()
 
             def done(res):
@@ -1556,12 +1568,12 @@ class App:
                     self.item_sel = min(self.item_sel, len(self.items) - 1)
             self.worker(run, done, busy=busy)
         if st == "montado":
-            return [tip(Action("Ejetar cartão 2", "player-eject", lambda: go("eject", "Ejetando o cartão 2..."),
-                          confirm="Ejetar o cartão 2?\nOs ports dele somem da lista até montar de novo."),
-                        "Grava o que falta e desmonta o cartão 2 (ROMS2) para tirar sem desligar o console.")]
+            return [tip(Action(omni_i18n._("ui_eject_card2"), "player-eject", lambda: go("eject", omni_i18n._("ui_ejecting_card2")),
+                          confirm=omni_i18n._("ui_eject_card2_confirm")),
+                        omni_i18n._("ui_card2_eject_tip"))]
         if st == "fora":
-            return [tip(Action("Montar cartão 2", "device-sd-card", lambda: go("mount", "Montando o cartão 2...")),
-                        "Monta o cartão 2 (ROMS2) que foi colocado com o console ligado.")]
+            return [tip(Action(omni_i18n._("ui_mount_card2"), "device-sd-card", lambda: go("mount", omni_i18n._("ui_mounting_card2"))),
+                        omni_i18n._("ui_card2_mount_tip"))]
         return []
 
     def sd_count(self):
@@ -1583,11 +1595,11 @@ class App:
         def done(res):
             if isinstance(res, dict):
                 self.findings = res
-                self.toast = ("Pronto: detalhes, espaço e velocidade no painel", "ok", self.t + 3)
+                self.toast = (omni_i18n._("ui_sd_test_done"), "ok", self.t + 3)
             else:
-                self.modal = {"title": "Cartões", "text": str(res), "icon": "brand-speedtest",
+                self.modal = {"title": omni_i18n._("tx_cards"), "text": str(res), "icon": "brand-speedtest",
                               "buttons": ["OK"], "sel": 0}
-        self.worker(fn, done, busy="Lendo e testando... (até 1 minuto)")
+        self.worker(fn, done, busy=omni_i18n._("ui_sd_testing"))
 
     def show_list(self, title, icon, rows, on_ok, ok_label, start=None):
         """rows: {"head", "tag", "tagc"} (título de grupo) ou {"name", "right", "icon", ...}.
@@ -1706,12 +1718,12 @@ class App:
             g.rrect(mx + mw - 14, by, 4, bh, 2, alpha(a1, 220))
         extra = pk.get("hints")
         if extra is None:
-            extra = [("L1/R1", "Letra")] if pk.get("letters") else [("LR", "Pular")]
+            extra = [("L1/R1", omni_i18n._("ui_hint_letter"))] if pk.get("letters") else [("LR", omni_i18n._("ui_hint_skip"))]
         if app:
-            self.draw_footer_at(H - 29, [("A", pk["ok_label"])] + extra + [("B", "Voltar")], center=W / 2)
+            self.draw_footer_at(H - 29, [("A", pk["ok_label"])] + extra + [("B", omni_i18n._("ui_back"))], center=W / 2)
             return
         self.draw_footer_at(my + mh - 30, [("A", pk["ok_label"])] + extra, mx + 24)
-        self.draw_footer_at(my + mh - 30, [("B", "Voltar")], mx + mw - 110)
+        self.draw_footer_at(my + mh - 30, [("B", omni_i18n._("ui_back"))], mx + mw - 110)
 
     # --- ferramentas do Omni36OS ---
 
@@ -1719,7 +1731,7 @@ class App:
         """Programas de tela cheia que continuam fora do launcher (PortMaster)."""
         if FAKE:
             return [{"path": "/opt/system/Tools/PortMaster.sh", "name": "PortMaster",
-                     "desc": "Loja de ports (precisa de internet)."}]
+                      "desc": omni_i18n._("tx_port_store")}]
         if not getattr(self, "tools_cache", None):
             self.tools_cache = omni_tools.tools()
         return self.tools_cache
@@ -1727,13 +1739,12 @@ class App:
     def _ferramentas(self):
         ts = self.tool_list()
         self.tool_count = len(ts) + 1
-        out = [("info", "Testar o controle fica em Controles; senha em Geral; Wi-Fi e rede pelo cabo em Rede; "
-                        "pendrive em Cartões; calibração em Tela e som; overclock em Desempenho.")]
+        out = [("info", omni_i18n._("ui_tools_status_tip"))]
         return {"nivel": "ok", "achados": out, "acoes": []} if FAKE else omni_checks.finish(out, [], {})
 
     def ask_tool(self, t):
-        self.modal = {"title": t["name"], "icon": "adjustments", "sel": 0, "buttons": ["Abrir", "Voltar"],
-                      "text": t["desc"] + "\nAbre em tela cheia e o Omni36OS volta quando ela fechar.",
+        self.modal = {"title": t["name"], "icon": "adjustments", "sel": 0, "buttons": [omni_i18n._("ui_open"), omni_i18n._("ui_back")],
+                      "text": t["desc"] + "\n" + omni_i18n._("tx_opens_full"),
                       "fn": lambda: self.run_tool(t)}
 
     def run_tool(self, t):
@@ -1748,16 +1759,13 @@ class App:
     def pendrive_tip(self, mounted):
         """Dica de Montar/Desmontar = o estado do pendrive (reconhecido ou não). Relida a cada abertura."""
         if FAKE:
-            return ("Pendrive reconhecido: SanDisk Cruzer Blade, 29.8 GB, VFAT. Montado em /mnt/usbdrive, 21.4 GB "
-                    "livres. Desmonte antes de tirar." if mounted else
-                    "Nenhum pendrive reconhecido. Confira se ele está na porta OTG (com adaptador, se precisar); "
-                    "pendrives que pedem muita energia podem não ligar no R36S.")
+            return omni_i18n._("ui_pendrive_fake_mounted" if mounted else "ui_pendrive_fake_unmounted")
         try:
             return omni_tools.pendrive_status()
         except Exception:
-            return "Lê um pendrive ligado na porta OTG em /mnt/usbdrive. Aceita FAT, exFAT e NTFS."
+            return omni_i18n._("ui_pendrive_fallback_tip")
 
-    def native(self, name, busy="Fazendo..."):
+    def native(self, name, busy=omni_i18n._("ui_working")):
         """Ferramenta reescrita em Python (omni_tools.NATIVE): roda aqui e mostra o resultado."""
         if FAKE and name in ("usb_mount", "usb_umount"):
             self.fake_usb = name == "usb_mount"
@@ -1767,11 +1775,10 @@ class App:
 
     def _sys_done(self, res):
         """Resultado de uma ferramenta do sistema: aviso curto ou janela, e a página relê o estado."""
-        txt = f"Erro: {res}" if isinstance(res, Exception) else str(res)
-        bad = isinstance(res, Exception) or txt.startswith(("Erro", "Não", "Falta", "Desligue", "Tire", "Carregue",
-                                                            "Poucas", "Pare", "Ligue", "O PC"))
+        txt = omni_i18n._("ui_error_prefix").format(error=res) if isinstance(res, Exception) else str(res)
+        bad = isinstance(res, Exception) or omni_i18n.is_failure(txt)
         if len(txt) > 60:
-            self.modal = {"title": "Pronto" if not bad else "Atenção", "icon": "alert-triangle" if bad else "check",
+            self.modal = {"title": omni_i18n._("ui_modal_ready") if not bad else omni_i18n._("ui_modal_attention"), "icon": "alert-triangle" if bad else "check",
                           "buttons": ["OK"], "sel": 0, "text": txt}
         else:
             self.toast = (txt, "aviso" if bad else "ok", self.t + 3.5)
@@ -1868,12 +1875,16 @@ class App:
                 x += ws[c] + gap
             ky += kh + gap
         if multi:
-            hints = [("B", "Apagar", TEXT), ("X", "Espaço", TEXT), ("Y", "Letras" if tk.symbols else "Símbolos", TEXT),
-                     ("L1/R1", "Linha", TEXT), ("START", "Salvar", TEXT), ("SELECT", "Sair", TEXT)]
+            hints = [("B", omni_i18n._("ui_hint_erase"), TEXT), ("X", omni_i18n._("ui_hint_space"), TEXT),
+                     ("Y", omni_i18n._("ui_hint_letters") if tk.symbols else omni_i18n._("ui_hint_symbols"), TEXT),
+                     ("L1/R1", omni_i18n._("ui_hint_line"), TEXT), ("START", omni_i18n._("ui_hint_save"), TEXT),
+                     ("SELECT", omni_i18n._("ui_hint_exit"), TEXT)]
         else:
-            hints = [("A", "Digitar", TEXT), ("B", "Apagar", TEXT), ("X", "Espaço", TEXT),
-                     ("Y", "Letras" if tk.symbols else "Símbolos", TEXT), ("START", "OK", TEXT),
-                     *([] if k.get("locked") else [("SELECT", "Cancelar", TEXT)])]
+            hints = [("A", omni_i18n._("ui_hint_type"), TEXT), ("B", omni_i18n._("ui_hint_erase"), TEXT),
+                     ("X", omni_i18n._("ui_hint_space"), TEXT),
+                     ("Y", omni_i18n._("ui_hint_letters") if tk.symbols else omni_i18n._("ui_hint_symbols"), TEXT),
+                     ("START", omni_i18n._("ui_hint_ok"), TEXT),
+                     *([] if k.get("locked") else [("SELECT", omni_i18n._("ui_hint_cancel"), TEXT)])]
         self.draw_footer_at(my + mh - 28, hints, center=W / 2)
 
     def draw_kbd_page(self, tk, mx, my, mw, a1):
@@ -1897,9 +1908,9 @@ class App:
                 cx = mx + 35 + g.measure("Medium", 15, text[a:tk.pos])[0]
                 g.rrect(cx, y + 1, 2, 19, 1, a1)
         if len(spans) > lines:
-            g.text("Regular", 11, f"linha {cur + 1} de {len(spans)}", mx + mw - 30, fy + lines * lh + 22, FAINT, "r")
+            g.text("Regular", 11, omni_i18n._("ui_files_line_count").format(current=cur + 1, total=len(spans)), mx + mw - 30, fy + lines * lh + 22, FAINT, "r")
         if not text:
-            g.text("Regular", 13, "Escreva a nota. Enter começa uma linha nova.", mx + 44, fy + 8 + 10, FAINT, "l", "m")
+            g.text("Regular", 13, omni_i18n._("ui_note_placeholder"), mx + 44, fy + 8 + 10, FAINT, "l", "m")
         return fy + lines * lh + 40
 
     def _hint_glyph_w(self, letter):
@@ -1909,6 +1920,35 @@ class App:
             return 36
         return self.g.measure("Bold", 9, letter)[0] + 12 + 6
 
+    def localize_hints(self, hints):
+        aliases = {
+            "Letra": "ui_hint_letter", "Pular": "ui_hint_skip", "Apagar": "ui_hint_erase",
+            "Espaço": "ui_hint_space", "Letras": "ui_hint_letters", "Símbolos": "ui_hint_symbols",
+            "Linha": "ui_hint_line", "Salvar": "ui_hint_save", "Sair": "ui_hint_exit",
+            "Digitar": "ui_hint_type", "OK": "ui_hint_ok", "Cancelar": "ui_hint_cancel",
+            "Colar": "ui_hint_clipboard_paste", "Opções": "ui_hint_options", "Pasta": "ui_hint_folder",
+            "Escolher": "ui_hint_choose", "Ajustar": "ui_hint_adjust", "Confirmar": "ui_hint_confirm",
+            "Desfazer": "ui_hint_undo", "De novo": "ui_hint_repeat", "Continuar": "ui_hint_continue",
+            "Pausar": "ui_hint_pause", "Editar": "ui_hint_edit", "Rolar": "ui_hint_scroll",
+            "Página": "ui_hint_page", "Fechar": "ui_hint_close", "Mudar": "ui_hint_change",
+            "Abrir": "ui_hint_open", "Tocar": "ui_hint_play", "Tocar tudo": "ui_hint_play_all",
+            "Tocando": "ui_hint_now_playing", "Música": "ui_hint_music", "Jogar": "ui_hint_play_game",
+            "Voltar": "ui_hint_back", "Energia": "ui_hint_power", "Analógico": "ui_hint_analog",
+            "Pular página": "ui_hint_jump", "Lista": "ui_hint_playback_list", "Visual": "ui_hint_visualizer",
+            "Mostrar/esconder": "ui_hint_show_hide", "Outra imagem": "ui_hint_other_image",
+            "10 s": "ui_hint_seek_10s", "−1 min": "ui_hint_seek_minus_min", "+1 min": "ui_hint_seek_plus_min",
+            "−10 s": "ui_hint_seek_minus_10", "+10 s": "ui_hint_seek_plus_10",
+        }
+        for key, translations in omni_i18n.TRANSLATIONS.items():
+            if key.startswith("ui_hint_"):
+                for label in translations.values():
+                    aliases.setdefault(label, key)
+        out = []
+        for hint in hints:
+            key = aliases.get(hint[1])
+            out.append((hint[0], omni_i18n._(key) if key else hint[1], *hint[2:]))
+        return out
+
     def hints_width(self, hints):
         return sum(self._hint_glyph_w(h[0]) + self.g.measure("Medium", 12, h[1])[0] + 16 for h in hints) - 16
 
@@ -1916,6 +1956,7 @@ class App:
         """Legenda com a arte de cada botão: A/B/X/Y (círculo), LR/UD (setas do direcional) ou o nome
         numa pílula (START, L1/R1...). `center`: centraliza a linha nesse x."""
         g = self.g
+        hints = self.localize_hints(hints)
         if center is not None:
             x = center - self.hints_width(hints) / 2
         for h in hints:
@@ -1941,17 +1982,17 @@ class App:
     def ask_password(self):
         def second(new):
             if len(new) < 3:
-                self.toast = ("A senha precisa de pelo menos 3 letras", "aviso", self.t + 3.5)
+                self.toast = (omni_i18n._("ui_password_min_length"), "aviso", self.t + 3.5)
                 return
 
             def check(again):
                 if again != new:
-                    self.toast = ("As duas senhas não batem: nada mudou", "aviso", self.t + 3.5)
+                    self.toast = (omni_i18n._("ui_passwords_mismatch"), "aviso", self.t + 3.5)
                     return
                 fn = (lambda: "teste") if FAKE else (lambda: omni_sistema.change_password(new))
-                self.worker(fn, self._sys_done, busy="Trocando a senha...")
-            self.keyboard("Repita a nova senha", check, secret=True)
-        self.keyboard("Nova senha do usuário omni", second, secret=True, hint="SSH, Samba e SFTP usam esta senha")
+                self.worker(fn, self._sys_done, busy=omni_i18n._("ui_password_changing"))
+            self.keyboard(omni_i18n._("ui_password_repeat"), check, secret=True)
+        self.keyboard(omni_i18n._("ui_password_prompt"), second, secret=True, hint=omni_i18n._("ui_password_hint"))
 
     # --- jogador, trava e Samba ---
 
@@ -1962,9 +2003,9 @@ class App:
                 return
             news = self.unseen_news()
             if not self.player:
-                self.ask_name(first=True)
+                self.ask_language(lambda: self.ask_name(first=True))
             elif news:
-                self.read(f"Bem-vindo ao Omni36OS {omni_version()}", "refresh", news_text(news))
+                self.read(omni_i18n._("tx_welcome").format(version=omni_version()), "refresh", news_text(news))
         locked = (os.environ.get("OMNI_TRAVA") == "1") if FAKE else omni_sistema.lock_on()
         if locked and RESUME == "":
             self.lock_screen(after_lock)
@@ -1991,44 +2032,52 @@ class App:
                 self.g.flush()
                 self.open_page("geral")
                 self.toast = (str(res), "ok", self.t + 3)
-                self.ask_name(first=True)
-            self.worker((lambda: "Sistema zerado.") if FAKE else omni_sistema.reset_custom, done, busy="Zerando...")
-        self.warn("Redefinir o sistema", "Volta o Omni36OS ao primeiro boot: apaga o nome do jogador, a trava por "
-                  "senha e o tema, desliga a memória extra (zram) e volta processador (Equilibrado, 1296 MHz), "
-                  "GPU (520 MHz), atalhos (FN + X, FN + B, FN + Y, todos ligados) ao padrão.", go, secs=5,
-                  risk="O nome e a senha da trava somem; o Omni36OS pergunta o nome de novo. Ports, jogos, testes e as "
-                       "senhas do sistema e do Samba não mudam.",
-                  undo="Não tem volta automática: ajuste de novo em Tela e som e em Controles. Se exportou um backup antes, Backup > "
-                       "Importar devolve nome, tema, atalhos, processador e GPU.")
+                self.ask_language(lambda: self.ask_name(first=True))
+            self.worker((lambda: "Sistema zerado.") if FAKE else omni_sistema.reset_custom, done, busy=omni_i18n._("ui_reset_busy"))
+        self.warn(omni_i18n._("tx_reset_title"), omni_i18n._("tx_reset_text"), go, secs=5,
+                  risk=omni_i18n._("tx_reset_risk"),
+                  undo=omni_i18n._("tx_reset_undo"))
 
     def lock_screen(self, then):
         def check(pw):
             ok = (pw == os.environ.get("OMNI_TRAVA_SENHA", "1234")) if FAKE else omni_sistema.lock_check(pw)
             if ok:
-                self.toast = (f"Bem-vindo de volta, {self.player}!" if self.player else "Destravado", "ok",
-                              self.t + 3)
+                self.toast = ((omni_i18n._("ui_hello_player").format(player=self.player) if self.player
+                               else omni_i18n._("ui_hello_unlocked")), "ok", self.t + 3)
                 then()
             else:
-                self.toast = ("Senha errada", "problema", self.t + 3)
+                self.toast = (omni_i18n._("ui_password_wrong"), "problema", self.t + 3)
                 self.lock_screen(then)
-        self.keyboard("Console travado: digite a senha", check, secret=True, locked=True,
-                      hint="Esqueceu? Veja EASYROMS/senha/senha.txt no PC")
+        self.keyboard(omni_i18n._("ui_lock_password_prompt"), check, secret=True, locked=True,
+                      hint=omni_i18n._("ui_lock_password_hint"))
+
+    def ask_language(self, then):
+        """Primeiro boot: escolhe o idioma antes do nome. Cada opção vem no próprio idioma; B mantém o atual."""
+        rows = [{"name": "Português (Brasil)", "lang": "pt-BR"}, {"name": "English", "lang": "en"}]
+
+        def pick(row):
+            self.picker = None
+            D.set("idioma", row["lang"])
+            then()
+        self.show_list("Idioma / Language", "adjustments", rows, pick, "OK",
+                       start=1 if omni_i18n.get_lang() == "en" else 0)
+        self.picker["on_back"] = then
 
     def ask_name(self, first=False):
         def done(name):
             name = " ".join(name.split())[:20]
             if not name:
                 if first:
-                    self.toast = ("Sem nome por enquanto: dá para pôr depois em Geral", "ok", self.t + 4)
+                    self.toast = (omni_i18n._("ui_player_no_name_yet"), "ok", self.t + 4)
                 return
             self.player = name if FAKE else omni_sistema.set_player_name(name)
-            self.toast = (f"Prazer, {self.player}!", "ok", self.t + 3.5)
+            self.toast = (omni_i18n._("ui_player_pleasure").format(player=self.player), "ok", self.t + 3.5)
             if self.page:
                 keep = self.item_sel
                 self.items = self.build_items(self.page)
                 self.item_sel = min(keep, len(self.items) - 1)
-        self.keyboard("Qual é o seu nome?" if first else "Nome do jogador", done, value=self.player,
-                      hint="Aparece na saudação do menu")
+        self.keyboard(omni_i18n._("ui_player_name_prompt") if first else omni_i18n._("ui_player_name_title"), done,
+                      value=self.player, hint=omni_i18n._("ui_player_greeting_hint"))
 
     # --- Wi-Fi ---
 
@@ -2045,72 +2094,79 @@ class App:
     def wifi_toggle(self, on):
         if FAKE:
             self.fake_wifi = on
-        self.wifi_run((lambda: "Wi-Fi ligado." if on else "Wi-Fi desligado.") if FAKE else
-                      (lambda: omni_sistema.wifi_set(on)), "Ligando o Wi-Fi..." if on else "Desligando o Wi-Fi...")
+        self.wifi_run((lambda: omni_i18n._("msg_wifi_on" if on else "msg_wifi_off")) if FAKE else
+                      (lambda: omni_sistema.wifi_set(on)),
+                      omni_i18n._("ui_wifi_turning_on" if on else "ui_wifi_turning_off"))
 
     def wifi_connect(self, rede, senha=None):
-        self.wifi_run((lambda: f"Conectado a {rede}. IP: 192.168.0.42") if FAKE else
-                      (lambda: omni_sistema.wifi_connect(rede, senha)), f"Conectando a {rede}... (até 45 s)")
+        self.wifi_run((lambda: omni_i18n._("ui_wifi_connected").format(network=rede)) if FAKE else
+                      (lambda: omni_sistema.wifi_connect(rede, senha)),
+                      omni_i18n._("ui_network_connecting").format(network=rede))
 
     def wifi_scan(self):
         def done(nets):
             if isinstance(nets, Exception) or not nets:
-                self.toast = ("Nenhuma rede encontrada. O adaptador de Wi-Fi está no USB?", "aviso", self.t + 3.5)
+                self.toast = (omni_i18n._("ui_wifi_none_found"), "aviso", self.t + 3.5)
                 return
             if self.page == "rede":           # o Wi-Fi pode ter sido ligado agora: a página mostra o estado novo
                 self.items = self.build_items("rede")
                 self.recheck("rede")
             rows = [{"name": n["rede"], "icon": "lock" if n["senha"] else "wifi", "net": n,
-                     "right": ("Conectada" if n["atual"] else "Salva" if n["salva"] else f"{n['sinal']}%", MUTED)}
+                     "right": (omni_i18n._("ui_wifi_connected_label") if n["atual"] else omni_i18n._("ui_wifi_saved_label") if n["salva"] else f"{n['sinal']}%", MUTED)}
                     for n in nets]
 
             def ok(row):
                 n = row["net"]
                 self.picker = None
                 if n["senha"] and not n["salva"]:
-                    self.keyboard(f"Senha de {n['rede']}", lambda pw: pw and self.wifi_connect(n["rede"], pw),
-                                  secret=True, hint="Digite a senha da rede")
+                    self.keyboard(omni_i18n._("ui_wifi_password").format(network=n["rede"]),
+                                  lambda pw: pw and self.wifi_connect(n["rede"], pw),
+                                  secret=True, hint=omni_i18n._("ui_wifi_password_hint"))
                 else:
                     self.wifi_connect(n["rede"])
-            self.show_list("Redes por perto", "wifi", rows, ok, "Conectar")
+            self.show_list(omni_i18n._("ui_network_nearby_title"), "wifi", rows, ok,
+                           omni_i18n._("ui_wifi_connect_button"))
         fake = [{"rede": "Casa", "sinal": 72, "senha": True, "atual": True, "salva": True},
                 {"rede": "Vizinho 5G", "sinal": 40, "senha": True, "atual": False, "salva": False},
                 {"rede": "Café aberto", "sinal": 28, "senha": False, "atual": False, "salva": False}]
-        self.worker((lambda: fake) if FAKE else omni_sistema.wifi_scan, done, busy="Procurando redes...")
+        self.worker((lambda: fake) if FAKE else omni_sistema.wifi_scan, done, busy=omni_i18n._("ui_wifi_searching"))
 
     def wifi_saved(self):
         def done(names):
             if isinstance(names, Exception) or not names:
-                self.toast = ("Nenhuma rede salva ainda", "aviso", self.t + 3.5)
+                self.toast = (omni_i18n._("ui_wifi_none_saved"), "aviso", self.t + 3.5)
                 return
             rows = [{"name": n, "icon": "wifi"} for n in names]
 
             def ok(row):
                 self.picker = None
-                self.modal = {"title": row["name"], "icon": "wifi", "sel": 0, "buttons": ["Conectar", "Esquecer", "Voltar"],
-                              "text": "Conectar a esta rede ou esquecê-la (a senha salva é apagada)?",
+                self.modal = {"title": row["name"], "icon": "wifi", "sel": 0, "buttons": [omni_i18n._("ui_connect"), omni_i18n._("ui_forget"), omni_i18n._("ui_back")],
+                              "text": omni_i18n._("ui_wifi_open_connect"),
                               "fns": [lambda: self.wifi_connect(row["name"]),
-                                      lambda: self.wifi_run((lambda: f"{row['name']} esquecida.") if FAKE else
+                                      lambda: self.wifi_run((lambda: omni_i18n._("ui_wifi_forgotten").format(network=row["name"])) if FAKE else
                                                             (lambda: omni_sistema.wifi_forget(row["name"])),
-                                                            "Esquecendo..."),
+                                                            omni_i18n._("ui_wifi_forgetting")),
                                       lambda: None]}
-            self.show_list("Redes salvas", "device-floppy", rows, ok, "Escolher")
-        self.worker((lambda: ["Casa", "Trabalho"]) if FAKE else omni_sistema.wifi_saved, done, busy="Lendo as redes...")
+            self.show_list(omni_i18n._("ui_network_saved_title"), "device-floppy", rows, ok,
+                           omni_i18n._("ui_wifi_choose_button"))
+        self.worker((lambda: ["Casa", "Trabalho"]) if FAKE else omni_sistema.wifi_saved, done,
+                    busy=omni_i18n._("ui_wifi_reading_saved"))
 
     def ask_samba(self):
         def first(new):
             if len(new) < 3:
-                self.toast = ("A senha precisa de pelo menos 3 letras", "aviso", self.t + 3.5)
+                self.toast = (omni_i18n._("ui_password_min_length"), "aviso", self.t + 3.5)
                 return
 
             def again(rep):
                 if rep != new:
-                    self.toast = ("As duas senhas não batem: nada mudou", "aviso", self.t + 3.5)
+                    self.toast = (omni_i18n._("ui_passwords_mismatch"), "aviso", self.t + 3.5)
                     return
                 fn = (lambda: "teste") if FAKE else (lambda: omni_sistema.samba_password(new))
-                self.worker(fn, self._sys_done, busy="Redefinindo...")
-            self.keyboard("Repita a senha do Samba", again, secret=True)
-        self.keyboard("Nova senha do Samba", first, secret=True, hint="Para abrir as pastas do console pelo PC")
+                self.worker(fn, self._sys_done, busy=omni_i18n._("ui_samba_password_busy"))
+            self.keyboard(omni_i18n._("ui_samba_password_repeat"), again, secret=True)
+        self.keyboard(omni_i18n._("ui_samba_password_new"), first, secret=True,
+                      hint=omni_i18n._("ui_samba_password_hint"))
 
     def ask_lock(self):
         locked = (os.environ.get("OMNI_TRAVA") == "1") if FAKE else omni_sistema.lock_on()
@@ -2126,32 +2182,29 @@ class App:
                 def check(pw):
                     ok = True if FAKE else omni_sistema.lock_check(pw)
                     if not ok:
-                        self.toast = ("Senha errada: a trava continua", "problema", self.t + 3.5)
+                        self.toast = (omni_i18n._("ui_password_wrong_lock"), "problema", self.t + 3.5)
                         return
-                    self.worker((lambda: "teste") if FAKE else omni_sistema.lock_clear, refresh, busy="Desligando...")
-                self.keyboard("Senha atual da trava", check, secret=True)
-            self.modal = {"title": "Trava por senha", "icon": "lock", "sel": 0, "buttons": ["Desligar", "Voltar"],
-                          "text": "A trava está ligada: o console pede a senha ao ligar.\nA senha fica em "
-                                  "EASYROMS/senha/senha.txt (abra o cartão no PC se esquecer).", "fn": off}
+                    self.worker((lambda: "teste") if FAKE else omni_sistema.lock_clear, refresh, busy=omni_i18n._("ui_lock_disabling_busy"))
+                self.keyboard(omni_i18n._("ui_name_current_password"), check, secret=True)
+            self.modal = {"title": omni_i18n._("ui_password_lock"), "icon": "lock", "sel": 0, "buttons": [omni_i18n._("ui_off"), omni_i18n._("ui_back")],
+                          "text": omni_i18n._("ui_lock_enabled_text"), "fn": off}
             return
 
         def first(pw):
             if len(pw) < 3:
-                self.toast = ("A senha precisa de pelo menos 3 letras", "aviso", self.t + 3.5)
+                self.toast = (omni_i18n._("ui_password_min_length"), "aviso", self.t + 3.5)
                 return
 
             def again(rep):
                 if rep != pw:
-                    self.toast = ("As duas senhas não batem: nada mudou", "aviso", self.t + 3.5)
+                    self.toast = (omni_i18n._("ui_passwords_mismatch"), "aviso", self.t + 3.5)
                     return
                 self.worker((lambda: "teste") if FAKE else (lambda: omni_sistema.lock_set(pw)), refresh,
-                            busy="Ligando a trava...")
-            self.keyboard("Repita a senha da trava", again, secret=True)
-        self.modal = {"title": "Trava por senha", "icon": "lock", "sel": 0, "buttons": ["Ligar", "Voltar"],
-                      "text": "Ao ligar o console, o Omni36OS pede esta senha antes de mostrar os jogos.\n"
-                              "Ela fica guardada em texto simples em EASYROMS/senha/senha.txt, para você "
-                              "recuperar pelo PC. Apagar esse arquivo desliga a trava.",
-                      "fn": lambda: self.keyboard("Senha da trava", first, secret=True)}
+                            busy=omni_i18n._("ui_lock_enabling"))
+            self.keyboard(omni_i18n._("ui_name_repeat_password"), again, secret=True)
+        self.modal = {"title": omni_i18n._("ui_password_lock"), "icon": "lock", "sel": 0, "buttons": [omni_i18n._("ui_on"), omni_i18n._("ui_back")],
+                      "text": omni_i18n._("ui_lock_disabled_text"),
+                      "fn": lambda: self.keyboard(omni_i18n._("ui_lock_password_title"), first, secret=True)}
 
     # --- teste do controle ---
 
@@ -2159,7 +2212,7 @@ class App:
                  11: "CIMA", 12: "BAIXO", 13: "ESQUERDA", 14: "DIREITA", 5: "GUIDE", 15: "MISC"}
 
     def open_pad(self):
-        self.pad = {"down": set(), "axes": [0] * 6, "last": "Aperte qualquer botão", "exit_at": None, "count": 0}
+        self.pad = {"down": set(), "axes": [0] * 6, "last": omni_i18n._("ui_pad_prompt"), "exit_at": None, "count": 0}
 
     def pad_event(self, kind, num, val, now):
         p = self.pad
@@ -2167,7 +2220,8 @@ class App:
             if val:
                 p["down"].add(num)
                 p["count"] += 1
-                p["last"] = f"{self.PAD_NAMES.get(num, f'botão {num}')}  (SDL {num})"
+                name = self.PAD_NAMES.get(num) or omni_i18n._("ui_pad_button").format(number=num)
+                p["last"] = f"{name}  (SDL {num})"
             else:
                 p["down"].discard(num)
             both = {4, 6} <= p["down"]
@@ -2182,7 +2236,7 @@ class App:
         if p["exit_at"] and now >= p["exit_at"]:
             self.pad = None
             self.held.clear()
-            self.toast = (f"Teste do controle: {p['count']} toques", "ok", self.t + 3)
+            self.toast = (omni_i18n._("ui_pad_test_done").format(count=p['count']), "ok", self.t + 3)
 
     def draw_pad(self, dt):
         g, p = self.g, self.pad
@@ -2193,7 +2247,7 @@ class App:
         g.stroke(mx, my, mw, mh, 22, ink(25))
         g.rrect(mx + 20, my + 16, 36, 36, 12, a1, a2)
         g.icon("device-gamepad-2", mx + 28, my + 24, 20, ON_TEXT)
-        g.text("Bold", 18, "Testar o controle", mx + 68, my + 22, TEXT)
+        g.text("Bold", 18, omni_i18n._("ui_card_button_test"), mx + 68, my + 22, TEXT)
         d = p["down"]
         lit = lambda b: (a1 if b in d else ink(22))
         txt = lambda b: ON_TEXT if b in d else MUTED
@@ -2230,7 +2284,7 @@ class App:
             g.circle(sx + vx * 34, sy + vy * 34, 15, a1 if b in d else a2)
             g.text("Regular", 10, f"{vx:+.2f} {vy:+.2f}", sx, sy + 56, MUTED, "c")
         g.text("SemiBold", 13, p["last"], W / 2, my + 222, TEXT, "c", "m")
-        self.draw_footer_at(my + mh - 33, [("SELECT + START", "Segure por 1 segundo para sair")], center=W / 2)
+        self.draw_footer_at(my + mh - 33, [("SELECT + START", omni_i18n._("ui_hint_hold_exit"))], center=W / 2)
 
     # --- arquivos ---
 
@@ -2238,12 +2292,12 @@ class App:
         if path is None:
             roots = [r for r in (["/roms", "/roms2", "/mnt/usbdrive"] if not FAKE else ["/roms", "/roms2"])
                      if FAKE or os.path.ismount(r) or (r == "/roms" and os.path.isdir(r))]   # ROMS2 só montado
-            names = {"/roms": "Cartão 1 (/roms)", "/roms2": "Cartão 2 (/roms2)",
-                     "/mnt/usbdrive": "Pendrive (/mnt/usbdrive)"}
+            names = {"/roms": omni_i18n._("tx_card1") + " (/roms)", "/roms2": omni_i18n._("tx_card2") + " (/roms2)",
+                 "/mnt/usbdrive": omni_i18n._("tx_pendrive") + " (/mnt/usbdrive)"}
             rows = [{"name": names[r], "icon": "device-sd-card" if r != "/mnt/usbdrive" else "usb", "path": r,
                      "dir": True} for r in roots]
             self.files_at = None
-            self.show_list("Arquivos", "folder", rows, lambda r: self.open_files(r["path"]), "Abrir")
+            self.show_list(omni_i18n._("ui_card_option_files"), "folder", rows, lambda r: self.open_files(r["path"]), omni_i18n._("ui_hint_open"))
             self.picker["hints"] = []
             return
         self.files_at = path
@@ -2253,12 +2307,12 @@ class App:
                   "right": None if d else (omni_sistema.human(sz) if not FAKE else f"{sz} B", MUTED)}
                  for n, d, sz in items]
         clip = getattr(self, "clip", None)
-        self.show_list(path, "folder", rows, self.file_ok, "Abrir", start)
+        self.show_list(path, "folder", rows, self.file_ok, omni_i18n._("ui_hint_open"), start)
         pk = self.picker
         pk["on_back"] = lambda: self.file_up()
         pk["on_x"] = self.file_menu
         pk["on_start"] = self.folder_menu
-        pk["hints"] = [("START", "Colar")] if clip else [("X", "Opções"), ("START", "Pasta")]
+        pk["hints"] = [("START", omni_i18n._("ui_hint_clipboard_paste"))] if clip else [("X", omni_i18n._("ui_hint_options")), ("START", omni_i18n._("ui_hint_folder"))]
 
     def file_up(self):
         path = self.files_at
@@ -2327,16 +2381,16 @@ class App:
         path = os.path.join(v["dir"], v["pics"][v["i"]])
         if not g.picture(path, 0, 0, W, H):
             g.icon("file", W / 2 - 24, H / 2 - 40, 48, MUTED)
-            g.text("Medium", 14, "Não consegui abrir esta imagem.", W / 2, H / 2 + 24, TEXT, "c", "m")
+            g.text("Medium", 14, omni_i18n._("ui_image_file_open_error"), W / 2, H / 2 + 24, TEXT, "c", "m")
         k = 1.0 if v["info"] else 0.0
         if v["info"] and self.t - v["info_t"] > 3:          # a legenda some sozinha; A traz de volta
             k = max(0.0, 1 - (self.t - v["info_t"] - 3) / 0.4)
         if k > 0:
             g.rrect(0, 0, W, 46, 0, (0, 0, 0, int(150 * k)), feather=0)
             g.text("SemiBold", 13, v["pics"][v["i"]], 16, 23, alpha(TEXT, 255 * k), "l", "m")
-            g.text("Medium", 12, f"{v['i'] + 1} de {len(v['pics'])}", W - 16, 23, alpha(MUTED, 255 * k), "r", "m")
+            g.text("Medium", 12, omni_i18n._("ui_video_position_count").format(current=v['i'] + 1, total=len(v['pics'])), W - 16, 23, alpha(MUTED, 255 * k), "r", "m")
             g.rrect(0, H - 40, W, 40, 0, (0, 0, 0, int(150 * k)), feather=0)
-            self.draw_footer_at(H - 29, [("LR", "Outra imagem"), ("A", "Mostrar/esconder"), ("B", "Voltar")],
+            self.draw_footer_at(H - 29, [("LR", omni_i18n._("ui_hint_other_image")), ("A", omni_i18n._("ui_hint_show_hide")), ("B", omni_i18n._("ui_back"))],
                                 center=W / 2)
 
     # --- Aplicativos > Imagens (capturas de tela) ---
@@ -2346,9 +2400,9 @@ class App:
         (o FN + Y num jogo grava em <pasta do jogo>/imagens), nos dois cartões."""
         if FAKE:
             base = os.environ.get("OMNI_IMAGENS", os.path.join(HERE, "imagens", "capturas"))
-            cands = [("Menu do Omni36OS", base)]
+            cands = [(omni_i18n._("tx_omni_menu"), base)]
         else:
-            cands = [("Menu do Omni36OS", SHOT_DIR)]
+            cands = [(omni_i18n._("tx_omni_menu"), SHOT_DIR)]
             for card in ("/roms", "/roms2"):
                 if card == "/roms2" and not os.path.ismount(card):
                     continue
@@ -2376,15 +2430,15 @@ class App:
         if folder is None:
             groups = self.shot_folders()
             if not groups:
-                self.toast = ("Nenhuma captura ainda: FN + Y grava a tela", "aviso", self.t + 4)
+                self.toast = (omni_i18n._("tx_no_shot"), "aviso", self.t + 4)
                 return
             if len(groups) == 1 and start is None:
                 return self.open_images(groups[0][1])
             rows = [{"name": n, "icon": "folder", "path": d,
-                     "right": (f"{c} Imagem" + ("s" if c != 1 else "") + " · " + time.strftime("%d/%m", time.localtime(t)), MUTED)}
+                     "right": (omni_i18n._("tx_images" if c != 1 else "tx_image").format(count=c) + " · " + time.strftime("%d/%m", time.localtime(t)), MUTED)}
                     for n, d, c, t in groups]
-            self.show_list("Imagens", "photo-search", rows, lambda r: self.open_images(r["path"]), "Abrir", start)
-            self.picker.update(app=IMAGE_COLORS, sub="Capturas de tela", hints=[])
+            self.show_list(omni_i18n._("ui_card_images"), "photo-search", rows, lambda r: self.open_images(r["path"]), omni_i18n._("ui_hint_open"), start)
+            self.picker.update(app=IMAGE_COLORS, sub=omni_i18n._("tx_shots"), hints=[])
             return
         try:
             pics = [f for f in os.listdir(folder) if is_image(f)]
@@ -2400,13 +2454,13 @@ class App:
                 for f in pics]
         groups = self.shot_folders()
         many = len(groups) > 1
-        title = next((n for n, d, *_ in groups if d == folder), "Imagens") if many else "Imagens"
+        title = next((n for n, d, *_ in groups if d == folder), omni_i18n._("ui_card_images")) if many else omni_i18n._("ui_card_images")
         k = next((i for i, r in enumerate(rows) if r["path"] == start), None) if isinstance(start, str) else start
 
         def show(r):
             self.open_viewer(r["path"], pics=pics, back=lambda cur: self.open_images(folder, cur))
-        self.show_list(title, "photo-search", rows, show, "Ver", k)
-        self.picker.update(app=IMAGE_COLORS, sub=folder, hints=[("X", "Apagar")])
+        self.show_list(title, "photo-search", rows, show, omni_i18n._("ui_view"), k)
+        self.picker.update(app=IMAGE_COLORS, sub=folder, hints=[("X", omni_i18n._("ui_note_erase"))])
         self.picker["on_x"] = lambda r: self.image_delete(r, folder)
         if many:
             self.picker["on_back"] = lambda: self.open_images(start=0)
@@ -2416,10 +2470,11 @@ class App:
             try:
                 os.remove(r["path"])
             except OSError as e:
-                self.toast = (f"Não consegui apagar: {e.strerror}", "problema", self.t + 3.5)
+                self.toast = (omni_i18n._("ui_cannot_delete").format(error=e.strerror), "problema", self.t + 3.5)
             self.open_images(folder)
-        self.modal = {"title": "Apagar a imagem?", "icon": "trash", "sel": 1, "buttons": ["Apagar", "Cancelar"],
-                      "text": f"\"{r['name']}\" some do cartão. Não dá para desfazer.", "fns": [go, lambda: None]}
+        self.modal = {"title": omni_i18n._("ui_image_delete_confirm"), "icon": "trash", "sel": 1,
+                      "buttons": [omni_i18n._("btn_delete"), omni_i18n._("btn_cancel")],
+                      "text": omni_i18n._("ui_note_delete_text").format(name=r['name']), "fns": [go, lambda: None]}
 
     # --- Aplicativos > Músicas ---
 
@@ -2457,7 +2512,7 @@ class App:
             rows += [{"song": os.path.join(path, s["f"]), "name": s["t"], "artist": s["a"]} for s in li["songs"]]
             m["rows"] = rows
             m["sel"] = next((i for i, r in enumerate(rows) if keep and r.get("dir") == keep), 0)
-        self.worker(read, done, busy="Lendo as músicas...")
+        self.worker(read, done, busy=omni_i18n._("ui_songs_reading"))
 
     def music_play(self, start_song=None):
         m, path = self.music, self.music["stack"][-1][0]
@@ -2468,14 +2523,14 @@ class App:
 
         def done(pl):
             if isinstance(pl, Exception) or not pl or not self.music:
-                self.toast = ("Nenhuma música nesta pasta.", "aviso", self.t + 3)
+                self.toast = (omni_i18n._("ui_music_empty"), "aviso", self.t + 3)
                 return
             i = next((k for k, s in enumerate(pl) if s[0] == start_song), 0)
             if m["player"].play(pl, i):
                 m["mode"], m["last"] = "tocando", self.t
             else:
-                self.toast = (m["player"].error or "Não consegui tocar.", "problema", self.t + 4)
-        self.worker(make, done, busy="Montando a lista..." if deep else None)
+                self.toast = (m["player"].error or omni_i18n._("ui_play_failed"), "problema", self.t + 4)
+        self.worker(make, done, busy=omni_i18n._("ui_build_menu_busy") if deep else None)
 
     def music_close(self):
         self.music_screen(True)
@@ -2568,11 +2623,11 @@ class App:
             path = roots[0][0]
         if path is None:
             if not roots:
-                self.toast = ("Crie a pasta videos no cartão e copie seus vídeos para ela", "aviso", self.t + 4)
+                self.toast = (omni_i18n._("ui_video_empty_folder"), "aviso", self.t + 4)
                 return
             rows = [{"name": n, "icon": "device-sd-card", "path": p, "dir": True} for p, n in roots]
-            self.show_list("Vídeos", "movie", rows, lambda r: self.open_videos(r["path"]), "Abrir")
-            self.picker.update(hints=[], app=VIDEO_COLORS, sub="Escolha o cartão")
+            self.show_list(omni_i18n._("ui_card_videos"), "movie", rows, lambda r: self.open_videos(r["path"]), omni_i18n._("ui_hint_open"))
+            self.picker.update(hints=[], app=VIDEO_COLORS, sub=omni_i18n._("ui_folder_select"))
             return
         top = path in [p for p, _ in roots]
         try:
@@ -2586,10 +2641,10 @@ class App:
         rows += [{"name": n, "icon": "movie", "path": os.path.join(path, n)} for n in vids]
         if not rows:
             self.picker = None
-            self.toast = ("Nenhum vídeo ainda: copie para a pasta videos do cartão", "aviso", self.t + 4)
+            self.toast = (omni_i18n._("ui_video_empty"), "aviso", self.t + 4)
             return
-        title = "Vídeos" if top else os.path.basename(path)
-        self.show_list(title, "movie", rows, lambda r: self.video_pick(path, r), "Abrir", start)
+        title = omni_i18n._("ui_card_videos") if top else os.path.basename(path)
+        self.show_list(title, "movie", rows, lambda r: self.video_pick(path, r), omni_i18n._("ui_hint_open"), start)
         self.picker.update(hints=[], app=VIDEO_COLORS, sub=path)
         if not (top and len(roots) == 1):
             self.picker["on_back"] = lambda: self.open_videos(None if top else os.path.dirname(path))
@@ -2618,8 +2673,8 @@ class App:
                     omni.video_clocks()
                 self.video = {"pl": pl, "name": os.path.splitext(os.path.basename(path))[0], "ui": self.t}
             else:
-                self.toast = (pl.error or "Não consegui abrir este vídeo", "problema", self.t + 4)
-        self.worker(lambda: pl.open(path), done, busy="Abrindo o vídeo...")
+                self.toast = (pl.error or omni_i18n._("ui_video_open_failed"), "problema", self.t + 4)
+        self.worker(lambda: pl.open(path), done, busy=omni_i18n._("ui_video_open_busy"))
 
     def video_input(self, cmd):
         v, pl = self.video, self.video["pl"]
@@ -2647,7 +2702,7 @@ class App:
         if frame is not None:
             g.video(frame, serial, w, h, (W - w) // 2, (H - h) // 2)
         elif pl.ended:
-            g.text("Medium", 14, "Não consegui tocar este vídeo.", W / 2, H / 2, TEXT, "c", "m")
+            g.text("Medium", 14, omni_i18n._("ui_video_play_failed"), W / 2, H / 2, TEXT, "c", "m")
         else:
             g.arc(W / 2, H / 2, 26, 4, self.t * 400, self.t * 400 + 280, alpha(hexc("38bdf8"), 255))
         if not (pl.paused or pl.ended or frame is None or self.t - v["ui"] < 3):
@@ -2668,8 +2723,8 @@ class App:
         if pl.paused:
             g.circle(W / 2, H / 2, 34, (0, 0, 0, 150))
             g.icon("player-pause", W / 2 - 18, H / 2 - 18, 36, ON_TEXT)
-        hints = ([("A", "De novo")] if pl.ended else [("A", "Continuar" if pl.paused else "Pausar")]) + \
-            [("LR", "10 s"), ("L1", "−1 min"), ("R1", "+1 min"), ("B", "Voltar")]
+        hints = ([("A", omni_i18n._("ui_hint_repeat"))] if pl.ended else [("A", omni_i18n._("ui_hint_continue") if pl.paused else omni_i18n._("ui_hint_pause"))]) + \
+            [("LR", omni_i18n._("ui_hint_seek_10s")), ("L1", omni_i18n._("ui_hint_seek_minus_min")), ("R1", omni_i18n._("ui_hint_seek_plus_min")), ("B", omni_i18n._("ui_back"))]
         self.draw_footer_at(H - 40, [(*h, ON_TEXT) for h in hints], center=W / 2)
 
     # --- Notas ---
@@ -2686,16 +2741,16 @@ class App:
         except OSError:
             names = []
         names.sort(key=lambda n: -os.path.getmtime(os.path.join(folder, n)))
-        rows = [{"name": "Nova nota", "icon": "plus", "new": True},
-                {"name": "Logs do sistema", "icon": "folder", "logs": True,
-                 "right": ("Só leitura", MUTED)}]
+        rows = [{"name": omni_i18n._("ui_new_note"), "icon": "plus", "new": True},
+                {"name": omni_i18n._("ui_note_system_logs"), "icon": "folder", "logs": True,
+                 "right": (omni_i18n._("ui_readonly"), MUTED)}]
         rows += [{"name": os.path.splitext(n)[0], "icon": "file-text", "path": os.path.join(folder, n),
                   "right": (time.strftime("%d/%m %H:%M", time.localtime(os.path.getmtime(os.path.join(folder, n)))), MUTED)}
                  for n in names]
-        self.show_list("Notas", "notes", rows, self.note_pick, "Abrir", start)
+        self.show_list(omni_i18n._("ui_card_notes"), "notes", rows, self.note_pick, omni_i18n._("ui_open"), start)
         self.picker.update(app=NOTE_COLORS, sub=folder)
         self.picker["on_x"] = self.note_delete
-        self.picker["hints"] = [("X", "Apagar")] if names else []
+        self.picker["hints"] = [("X", omni_i18n._("ui_note_erase"))] if names else []
 
     def note_pick(self, r):
         if r.get("logs"):
@@ -2713,7 +2768,7 @@ class App:
             if not os.path.exists(path):
                 self.note_write(path, "")
             self.open_note(path, edit=True)
-        self.keyboard("Nome da nota", create, hint="Ex.: senhas do wifi, dicas")
+        self.keyboard(omni_i18n._("ui_note_name_prompt"), create, hint=omni_i18n._("ui_note_name_hint"))
 
     # --- Notas > Logs do sistema (só leitura) ---
 
@@ -2738,11 +2793,11 @@ class App:
                 if not n:
                     continue                  # pasta vazia: não aparece
                 rows.append({"name": omni_logs.NAMES.get(d, d.capitalize()), "icon": "folder", "func": d,
-                             "right": (f"{n} Arquivo" + ("s" if n != 1 else ""), MUTED)})
+                             "right": (omni_i18n._("ui_logs_files_count").format(count=n), MUTED)})
             if not rows:
-                self.toast = ("Nenhum log ainda", "info", self.t + 3)
+                self.toast = (omni_i18n._("ui_logs_none"), "info", self.t + 3)
                 return
-            self.show_list("Logs", "file-text", rows, lambda r: self.open_logs(r["func"]), "Abrir", start)
+            self.show_list(omni_i18n._("ui_logs_title"), "file-text", rows, lambda r: self.open_logs(r["func"]), omni_i18n._("ui_open"), start)
             self.picker.update(app=NOTE_COLORS, sub=root, hints=[])
             self.picker["on_back"] = lambda: self.open_notes(start=1)
             return
@@ -2756,10 +2811,10 @@ class App:
                  "right": (time.strftime("%d/%m %H:%M", time.localtime(os.path.getmtime(os.path.join(folder, f)))), MUTED)}
                 for f in names]
         if not rows:
-            self.toast = ("Nenhum relatório ainda" if func == omni_logs.TESTS else "Pasta vazia", "info", self.t + 3)
+            self.toast = (omni_i18n._("ui_logs_no_report") if func == omni_logs.TESTS else omni_i18n._("ui_folder_empty"), "info", self.t + 3)
             return
         self.show_list(omni_logs.NAMES.get(func, func), "file-text", rows, lambda r: self.open_log(r["path"]),
-                       "Abrir", start)
+                       omni_i18n._("ui_open"), start)
         self.picker.update(app=NOTE_COLORS, sub=folder, hints=[])
         if not from_page:                 # atalho (Testar ports): o B volta direto para a página
             self.picker["on_back"] = lambda: self.open_logs()
@@ -2775,27 +2830,28 @@ class App:
                     f.seek(size - self.LOG_TAIL)
                 data = f.read()
         except OSError as e:
-            self.toast = (f"Não consegui abrir: {e.strerror}", "problema", self.t + 3.5)
+            self.toast = (omni_i18n._("ui_cannot_open").format(error=e.strerror), "problema", self.t + 3.5)
             return
         text = data.decode("utf-8", errors="replace").replace("\r\n", "\n")
         text = re.sub(r"\x1b\[[0-9;?]*[A-Za-z]", "", text)          # cores do terminal
         if size > self.LOG_TAIL:
-            text = "(Só o fim do arquivo)\n" + text[text.find("\n") + 1:]
+            text = omni_i18n._("ui_read_truncated") + "\n" + text[text.find("\n") + 1:]
         self.note = {"path": path, "text": text, "top": 10 ** 9, "scroll": 0.0, "jump": True,   # abre no fim
                      "notes": False, "ro": True}
 
     def note_delete(self, r):
         if r.get("new") or r.get("logs"):
             return
-        self.modal = {"title": "Apagar a nota?", "icon": "trash", "sel": 1, "buttons": ["Apagar", "Cancelar"],
-                      "text": f"\"{r['name']}\" some do cartão. Não dá para desfazer.",
+        self.modal = {"title": omni_i18n._("ui_note_delete_confirm"), "icon": "trash", "sel": 1,
+                      "buttons": [omni_i18n._("btn_delete"), omni_i18n._("btn_cancel")],
+                      "text": omni_i18n._("ui_note_delete_text").format(name=r['name']),
                       "fns": [lambda: self.note_remove(r["path"]), lambda: None]}
 
     def note_remove(self, path):
         try:
             os.remove(path)
         except OSError as e:
-            self.toast = (f"Não consegui apagar: {e.strerror}", "problema", self.t + 3.5)
+            self.toast = (omni_i18n._("ui_cannot_delete").format(error=e.strerror), "problema", self.t + 3.5)
         self.open_notes()
 
     def note_write(self, path, text):
@@ -2815,12 +2871,12 @@ class App:
         """A nota inteira para ler (cima/baixo rolam, L1/R1 pulam a página); A edita a nota toda."""
         try:
             if os.path.getsize(path) > 256 * 1024:
-                self.toast = ("Texto grande demais para o bloco de notas", "aviso", self.t + 3.5)
+                self.toast = (omni_i18n._("ui_note_too_large"), "aviso", self.t + 3.5)
                 return
             with open(path, encoding="utf-8", errors="replace") as f:
                 text = f.read()
         except OSError as e:
-            self.toast = (f"Não consegui abrir: {e.strerror}", "problema", self.t + 3.5)
+            self.toast = (omni_i18n._("ui_cannot_open").format(error=e.strerror), "problema", self.t + 3.5)
             return
         self.note = {"path": path, "text": text, "top": 0, "scroll": 0.0,
                      "notes": path.startswith(self.notes_dir() + "/")}
@@ -2832,20 +2888,20 @@ class App:
         try:
             self.note_write(n["path"], n["text"])
         except OSError as e:
-            self.toast = (f"Não consegui salvar: {e.strerror}", "problema", self.t + 3.5)
+            self.toast = (omni_i18n._("ui_note_open_error").format(error=e.strerror), "problema", self.t + 3.5)
 
     def note_edit(self):
         """A nota toda no teclado, como numa máquina de escrever: o texto sobe quando a linha enche.
         L1/R1 levam o cursor para a linha de cima ou de baixo; START salva, SELECT desiste."""
         n = self.note
         if len(n["text"]) > self.NOTE_LIMIT:
-            self.toast = ("Nota grande demais para editar aqui: edite pelo PC", "aviso", self.t + 3.5)
+            self.toast = (omni_i18n._("ui_note_edit_too_large"), "aviso", self.t + 3.5)
             return
 
         def done(val):
             n["text"] = val
             self.note_save()
-            self.toast = ("Nota salva", "ok", self.t + 2)
+            self.toast = (omni_i18n._("ui_note_saved"), "ok", self.t + 2)
         name = os.path.splitext(os.path.basename(n["path"]))[0] if n["notes"] else os.path.basename(n["path"])
         self.keyboard(name, done, value=n["text"], texto=True)
 
@@ -2887,7 +2943,7 @@ class App:
                 self.note_edit()
         elif cmd == "back":
             self.note = None
-            if n["notes"] and self.picker and self.picker.get("title") == "Notas":
+            if n["notes"] and self.picker and self.picker.get("title") == omni_i18n._("ui_card_notes"):
                 self.open_notes()         # a nota sobe para o topo da lista
         else:
             step = {"up": -1, "down": 1, "l1": -10, "r1": 10, "left": -10, "right": 10}.get(cmd)
@@ -2927,16 +2983,19 @@ class App:
             g.rrect(W - 28, ly, 4, th, 2, ink(18))
             g.rrect(W - 28, ly + (th - bh) * n["scroll"] / (n["max"] * rh), 4, bh, 2, alpha(a1, 220))
         if not text.strip():
-            g.text("Regular", 13, "Nota vazia: A para escrever.", W / 2, 240, MUTED, "c")
-        hints = ([] if n.get("ro") else [("A", "Editar")]) + ([("UD", "Rolar"), ("L1/R1", "Página")] if n["max"] else []) + [("B", "Fechar")]
+            g.text("Regular", 13, omni_i18n._("ui_note_empty_hint"), W / 2, 240, MUTED, "c")
+        hints = ([] if n.get("ro") else [("A", omni_i18n._("ui_hint_edit"))]) + ([("UD", omni_i18n._("ui_hint_scroll")), ("L1/R1", omni_i18n._("ui_hint_page"))] if n["max"] else []) + [("B", omni_i18n._("ui_hint_close"))]
         self.draw_footer_at(H - 29, hints, center=W / 2)
 
-    MUSIC_OPTIONS = (("Visualização", "wave-sine", "vis", list(VIS_NAMES), VIS_NAMES,
-                      "A animação que dança com a música. Tocando, Y troca."),
-                     ("Apagar a tela", "moon", "tela", list(BLANK_NAMES), BLANK_NAMES,
-                      "Com a música tocando e sem apertar nada, a tela apaga para poupar bateria. Qualquer botão acende."),
-                     ("Ler subpastas", "folder", "sub", [False, True], ONOFF,
-                      "Ligado: tocar uma pasta inclui as músicas das pastas de dentro, nível por nível."))
+    MUSIC_OPTIONS = ()
+
+    def music_options(self):
+        return ((omni_i18n._("ui_music_visualization"), "wave-sine", "vis", list(VIS_NAMES), VIS_NAMES,
+                 omni_i18n._("ui_music_visualization_tip")),
+                (omni_i18n._("ui_music_screen_timeout"), "moon", "tela", list(BLANK_NAMES), BLANK_NAMES,
+                 omni_i18n._("ui_music_screen_timeout_tip")),
+                (omni_i18n._("ui_music_read_subfolders"), "folder", "sub", [False, True], ONOFF,
+                 omni_i18n._("ui_music_read_subfolders_tip")))
 
     def music_options_input(self, cmd):
         """Opções do app Músicas (START): cima/baixo escolhe, esquerda/direita ou A muda, B volta."""
@@ -2960,8 +3019,8 @@ class App:
         cfg = music_cfg()
         g.rrect(22, 22, 40, 40, 12, a1, a2)
         g.icon("music", 30, 30, 24, ON_TEXT)
-        g.text("Bold", 22, "Opções", 74, 22, TEXT)
-        g.text("Regular", 12, "Músicas", 75, 49, MUTED)
+        g.text("Bold", 22, omni_i18n._("ui_music_options"), 74, 22, TEXT)
+        g.text("Regular", 12, omni_i18n._("ui_card_music_subtitle"), 75, 49, MUTED)
         for i, (label, icon, key, _, names, _) in enumerate(self.MUSIC_OPTIONS):
             y, on = 84 + i * 64, i == m["osel"]
             if on:
@@ -2977,7 +3036,7 @@ class App:
         tipt = self.MUSIC_OPTIONS[m["osel"]][5]
         for k, ln in enumerate(g.wrap("Regular", 13, tipt, W - 80)):
             g.text("Regular", 13, ln, 40, 290 + 20 * k, MUTED)
-        self.draw_footer_at(H - 29, [("LR", "Mudar"), ("B", "Voltar")], center=W / 2)
+        self.draw_footer_at(H - 29, [("LR", omni_i18n._("ui_hint_change")), ("B", omni_i18n._("ui_back"))], center=W / 2)
 
     def draw_music(self, dt):
         g, m = self.g, self.music
@@ -3005,16 +3064,16 @@ class App:
         g, m, pl = self.g, self.music, self.music["player"]
         g.rrect(22, 22, 40, 40, 12, a1, a2)
         g.icon("music", 30, 30, 24, ON_TEXT)
-        where = " / ".join(n for _, n in m["stack"]) or "Escolha o cartão"
-        g.text("Bold", 22, "Músicas", 74, 22, TEXT)
+        where = " / ".join(n for _, n in m["stack"]) or omni_i18n._("ui_folder_select")
+        g.text("Bold", 22, omni_i18n._("ui_card_music_subtitle"), 74, 22, TEXT)
         g.text("Regular", 12, where[-34:], 75, 49, MUTED)
         cur = pl.current()
         bot = 370 if cur else 426
         rows, rh, ly = m["rows"], 36, 80
         g.rrect(16, ly - 6, W - 32, bot - ly + 6, 18, alpha(GLASS, 14))
         if not rows:
-            msg = ("Nenhuma pasta de música. Crie a pasta musicas no cartão (ROMS ou ROMS2) e copie seus mp3."
-                   if not m["roots"] else "Esta pasta está vazia: copie mp3 para ela pelo PC ou pela rede.")
+            msg = (omni_i18n._("ui_no_music_folders")
+                   if not m["roots"] else omni_i18n._("ui_music_folder_empty"))
             for k, ln in enumerate(g.wrap("Regular", 13, msg, W - 120)):
                 g.text("Regular", 13, ln, W / 2, 200 + 20 * k, MUTED, "c")
         vis = int((bot - ly) // rh)
@@ -3048,14 +3107,14 @@ class App:
             if not (art and g.picture(art, 24, 386, 34, 34)):
                 g.icon("player-pause" if not pl.paused else "player-play", 30, 391, 22, TEXT)
             g.text("SemiBold", 13, cur[1][:48], 66, 392, TEXT)
-            g.text("Regular", 11, (cur[2] or "Tocando")[:48], 66, 409, MUTED)
+            g.text("Regular", 11, (cur[2] or omni_i18n._("ui_hint_now_playing"))[:48], 66, 409, MUTED)
             self.draw_spectrum_mini(W - 120, 388, 90, 30, a1)
-        hints = [("A", "Abrir" if rows and "dir" in rows[m["sel"]] else "Tocar"), ("B", "Voltar")]
+        hints = [("A", omni_i18n._("ui_hint_open") if rows and "dir" in rows[m["sel"]] else omni_i18n._("ui_hint_play")), ("B", omni_i18n._("ui_back"))]
         if m["stack"]:
-            hints.insert(1, ("Y", "Tocar tudo"))
+            hints.insert(1, ("Y", omni_i18n._("ui_hint_play_all")))
         if cur:
-            hints.insert(1, ("X", "Tocando"))
-        hints.insert(-1, ("START", "Opções"))
+            hints.insert(1, ("X", omni_i18n._("ui_hint_now_playing")))
+        hints.insert(-1, ("START", omni_i18n._("ui_hint_options")))
         self.draw_footer_at(H - 29, hints, center=W / 2)
 
     def music_spectrum(self):
@@ -3164,16 +3223,18 @@ class App:
         g.text("Medium", 11, tm(pos), bx - 8, by + 3, MUTED, "r", "m")
         g.text("Medium", 11, tm(dur) if dur > 0 else "--:--", bx + bw + 8, by + 3, MUTED, "l", "m")
         if pl.paused:
-            g.text("SemiBold", 12, "Pausado", W / 2, by + 22, a1, "c", "m")
-        self.draw_footer_at(H - 29, [("A", "Tocar" if pl.paused else "Pausar"), ("LR", "Música"),
-                                     ("L1", "−10 s"), ("R1", "+10 s"), ("Y", "Visual"), ("START", "Opções"), ("B", "Lista")], center=W / 2)
+            g.text("SemiBold", 12, omni_i18n._("ui_music_paused"), W / 2, by + 22, a1, "c", "m")
+        self.draw_footer_at(H - 29, [("A", omni_i18n._("ui_hint_play") if pl.paused else omni_i18n._("ui_hint_pause")),
+                                     ("LR", omni_i18n._("ui_hint_music")), ("L1", omni_i18n._("ui_hint_seek_minus_10")),
+                                     ("R1", omni_i18n._("ui_hint_seek_plus_10")), ("Y", omni_i18n._("ui_hint_visualizer")),
+                                     ("START", omni_i18n._("ui_hint_options")), ("B", omni_i18n._("ui_hint_playback_list"))], center=W / 2)
 
-    def _fs(self, fn, busy="Fazendo..."):
+    def _fs(self, fn, busy=omni_i18n._("ui_working")):
         here = self.files_at
         sel = self.picker["sel"] if self.picker else 0
 
         def done(res):
-            txt = f"Erro: {res}" if isinstance(res, Exception) else str(res)
+            txt = omni_i18n._("ui_error_prefix").format(error=res) if isinstance(res, Exception) else str(res)
             self.toast = (txt, "problema" if isinstance(res, Exception) else "ok", self.t + 3.5)
             self.open_files(here, sel)
         self.worker((lambda: "teste") if FAKE else fn, done, busy=busy)
@@ -3184,25 +3245,27 @@ class App:
         path, name = r["path"], os.path.basename(r["path"])
 
         def rename():
-            self.keyboard(f"Novo nome para {name}", lambda new: self._fs(lambda: omni_sistema.fs_rename(path, new)),
+            self.keyboard(f"{omni_i18n._('ui_file_rename_prompt')} {name}", lambda new: self._fs(lambda: omni_sistema.fs_rename(path, new)),
                           value=name)
 
         def delete():                     # confirma sem contagem; Cancelar vem escolhido
-            self.modal = {"title": f"Apagar {name}?", "icon": "trash", "sel": 1, "buttons": ["Apagar", "Cancelar"],
-                          "text": "A pasta e tudo dentro dela somem." if r.get("dir") else "O arquivo some de vez.",
-                          "fn": lambda: self._fs(lambda: omni_sistema.fs_delete(path), "Apagando..."),
+            self.modal = {"title": omni_i18n._("ui_delete_item_confirm").format(name=name), "icon": "trash", "sel": 1,
+                          "buttons": [omni_i18n._("ui_file_delete_label"), omni_i18n._("btn_cancel")],
+                          "text": omni_i18n._("ui_file_delete_folder_text" if r.get("dir") else "ui_file_delete_text"),
+                          "fn": lambda: self._fs(lambda: omni_sistema.fs_delete(path), omni_i18n._("ui_file_delete_busy")),
                           "on_back": back}
 
         def mark(move):
             self.clip = (path, move)
-            self.toast = (("Recortado: " if move else "Copiado: ") + name + ". Vá até a pasta e aperte START",
-                          "ok", self.t + 4)
+            key = "ui_file_move_toast" if move else "ui_file_copy_toast"
+            self.toast = (omni_i18n._(key).format(name=name), "ok", self.t + 4)
             self.open_files(self.files_at, self.picker["sel"] if self.picker else None)
         self.picker = None
         back = lambda: self.open_files(self.files_at)
         self.modal = {"title": name, "icon": "folder" if r.get("dir") else "file", "sel": 0,
-                      "buttons": ["Copiar", "Mover", "Renomear", "Apagar"],
-                      "text": ("Pasta" if r.get("dir") else f"Arquivo, {r['right'][0]}") + f"\n{path}",
+                      "buttons": [omni_i18n._("ui_file_copy_label"), omni_i18n._("ui_file_move_label"),
+                                  omni_i18n._("ui_file_rename_label"), omni_i18n._("ui_file_delete_label")],
+                      "text": (omni_i18n._("ui_file_folder_label") if r.get("dir") else f"{omni_i18n._('ui_file_file_label')}, {r['right'][0]}") + f"\n{path}",
                       "fns": [lambda: mark(False), lambda: mark(True), rename, delete], "on_back": back}
 
     def folder_menu(self, _r=None):
@@ -3216,18 +3279,20 @@ class App:
 
             def paste():
                 self.clip = None
-                self._fs(lambda: omni_sistema.fs_paste(src, here, move), "Movendo..." if move else "Copiando...")
-            btns.append("Colar aqui")
+                self._fs(lambda: omni_sistema.fs_paste(src, here, move),
+                         omni_i18n._("ui_file_paste_busy" if move else "ui_file_copy_busy"))
+            btns.append(omni_i18n._("ui_card_paste_here"))
             fns.append(paste)
-        btns.append("Nova pasta")
-        fns.append(lambda: self.keyboard("Nome da pasta nova", lambda n: self._fs(lambda: omni_sistema.fs_mkdir(here, n))))
-        btns.append("Voltar")
+        btns.append(omni_i18n._("ui_file_new_folder"))
+        fns.append(lambda: self.keyboard(omni_i18n._("ui_file_new_folder_prompt"), lambda n: self._fs(lambda: omni_sistema.fs_mkdir(here, n))))
+        btns.append(omni_i18n._("ui_back"))
         fns.append(lambda: self.open_files(here))
         self.picker = None
-        text = f"Pasta atual: {here}"
+        text = omni_i18n._("ui_file_current_folder").format(path=here)
         if clip:
-            text += f"\n{'Mover' if clip[1] else 'Copiar'}: {os.path.basename(clip[0])}"
-        self.modal = {"title": "Esta pasta", "icon": "folder-plus", "sel": 0, "buttons": btns, "fns": fns,
+            action = omni_i18n._("ui_file_move_action" if clip[1] else "ui_file_copy_action")
+            text += f"\n{action}: {os.path.basename(clip[0])}"
+        self.modal = {"title": omni_i18n._("ui_file_this_folder"), "icon": "folder-plus", "sel": 0, "buttons": btns, "fns": fns,
                       "text": text, "on_back": lambda: self.open_files(here)}
 
     # --- biblioteca (tela inicial) ---
@@ -3308,10 +3373,10 @@ class App:
         lists = self.lib_lists()
         a1, a2 = self.accent
         if not lists:
-            g.text("Bold", 20, "Nenhum port encontrado", W / 2, 200, TEXT, "c")
-            g.text("Regular", 13, "Instale ports pelo PortMaster (Ferramentas) ou copie para a pasta ports.",
+            g.text("Bold", 20, omni_i18n._("ui_library_no_ports"), W / 2, 200, TEXT, "c")
+            g.text("Regular", 13, omni_i18n._("ui_library_no_ports_tip"),
                    W / 2, 232, MUTED, "c")
-            self.draw_footer([("B", "Voltar", TEXT)])
+            self.draw_footer([("B", omni_i18n._("ui_hint_back"), TEXT)])
             return
         title, icon, games = lists[0]
         lb["sys"] = 0
@@ -3320,7 +3385,7 @@ class App:
         # jogos (esquerda)
         gx, gw = 16, 250
         g.text("Bold", 20, title, gx + 4, 58, TEXT)
-        g.text("Regular", 12, f"{len(games)} Jogos", gx + 6 + g.measure("Bold", 20, title)[0] + 10, 66, MUTED)
+        g.text("Regular", 12, omni_i18n._("ui_library_game_count").format(count=len(games)), gx + 6 + g.measure("Bold", 20, title)[0] + 10, 66, MUTED)
         ly, lh = 92, bot_y - 92
         g.rrect(gx, ly - 6, gw, lh + 6, 18, alpha(GLASS, 14 * fade))
         vis = int(lh // rh)
@@ -3362,7 +3427,7 @@ class App:
         if not (cover and g.picture(cover, px + 12, py + 12, cw_, ch_, 255 * fade)):
             g.icon("device-gamepad-2", px + 12 + cw_ / 2 - 24, py + 12 + ch_ / 2 - 30, 48, FAINT)
             if self.searching(game["name"]) and ((info or {}).get("descricao") or game.get("desc")):
-                g.text("Regular", 11, "Buscando imagem...", px + 12 + cw_ / 2, py + 12 + ch_ / 2 + 30, MUTED, "c")
+                g.text("Regular", 11, omni_i18n._("ui_card_search_image"), px + 12 + cw_ / 2, py + 12 + ch_ / 2 + 30, MUTED, "c")
         y = py + ch_ + 22
         name = (info or {}).get("nome") or game["name"]
         for ln in g.wrap("Bold", 17, name, pw - 28)[:2]:
@@ -3376,20 +3441,21 @@ class App:
             g.text("Regular", 11, info["generos"], px + 14, y + 2, MUTED)
             y += 18
         desc = (info or {}).get("descricao") or game.get("desc") or (
-            ("Buscando a descrição..." if cover else "Buscando imagem e descrição...")
+            (omni_i18n._("ui_searching_description") if cover else omni_i18n._("ui_searching_image_description"))
             if self.searching(game["name"]) else
-            "Descrição não encontrada." if self.meta_cache.get(game["name"], (None,))[0] is not None else
-            "Busca automática desligada (Ferramentas)." if not busca_on() else
-            "Sem descrição: ligue o Wi-Fi para buscar.")
-        local = [f"Cartão {card_of(game)}"]
+            omni_i18n._("ui_description_not_found") if self.meta_cache.get(game["name"], (None,))[0] is not None else
+            omni_i18n._("ui_auto_search_off") if not busca_on() else
+            omni_i18n._("ui_no_description_enable_wifi"))
+        local = [omni_i18n._("ui_card_sd_label").format(number=card_of(game))]
         if (info or {}).get("porter"):
             local.append("Port: " + info["porter"][:28])
         if info and "pronto" in info and not info["pronto"]:
-            local.append("Precisa dos arquivos do jogo")
+            local.append(omni_i18n._("ui_card_port_required_files"))
         if game.get("plays"):
-            local.append(f"Jogado {game['plays']} vez(es)")
+            local.append(omni_i18n._("ui_card_played_count").format(count=game['plays']))
         if game.get("time"):
-            local.append(f"{game['time'] // 3600}h{game['time'] % 3600 // 60:02d}")
+            local.append(omni_i18n._("ui_card_time_hours_minutes").format(hours=game['time'] // 3600,
+                                                                            minutes=game['time'] % 3600 // 60))
         room = int((py + ph - (30 if local else 12) - y - 4) // 17)
         lines = g.wrap("Regular", 12, desc, pw - 28)
         for k, ln in enumerate(lines[:max(0, room)]):
@@ -3402,24 +3468,25 @@ class App:
                 local.pop(1)                  # sem espaço: fica o cartão e o mais útil (o fim)
                 ln = " · ".join(local)
             g.text("Medium", 11, ln, px + 14, py + ph - 24, FAINT)
-        self.draw_footer([("A", "Jogar", TEXT), ("LR", "Página", MUTED), ("L1 / R1", "Letra", MUTED),
-                          ("B", "Voltar", MUTED)])
+        self.draw_footer([("A", omni_i18n._("ui_hint_play_game"), TEXT), ("LR", omni_i18n._("ui_hint_page"), MUTED),
+                          ("L1 / R1", omni_i18n._("ui_hint_letter_page"), MUTED),
+                          ("B", omni_i18n._("ui_back"), MUTED)])
 
     def power_menu(self, button=False):
         """Botão de power (Cancelar vem primeiro e apertar o power
         de novo desliga: o power_button.py vê o pedido em aberto)."""
-        rows = [{"name": "Suspender", "icon": "clock", "do": "suspend"},
-                {"name": "Reiniciar o console", "icon": "refresh", "do": "reboot"},
-                {"name": "Desligar o console", "icon": "power", "do": "poweroff"}]
+        rows = [{"name": omni_i18n._("ui_power_suspend"), "icon": "clock", "do": "suspend"},
+                {"name": omni_i18n._("ui_power_reboot"), "icon": "refresh", "do": "reboot"},
+                {"name": omni_i18n._("ui_power_poweroff"), "icon": "power", "do": "poweroff"}]
         if HUB == "jogo" or os.environ.get("OMNI_JOGO") == "1":   # aberto por cima de um jogo
             rows = [{"name": self.hud_label(), "icon": "gauge", "do": "hud", "lr": True},
                     {"name": self.cap_label(), "icon": "battery-2", "do": "cap", "lr": True},
                     {"name": self.mouse_label(), "icon": "device-gamepad-2", "do": "mouse", "lr": True},
-                    {"name": "Digitar texto", "icon": "keyboard", "do": "digitar"},
-                    {"name": "Captura de tela", "icon": "device-tv", "do": "shot"},
-                    {"name": "Fechar o jogo", "icon": "x", "do": "close"}] + rows
+                    {"name": omni_i18n._("ui_power_type_text"), "icon": "keyboard", "do": "digitar"},
+                    {"name": omni_i18n._("ui_power_screenshot"), "icon": "device-tv", "do": "shot"},
+                    {"name": omni_i18n._("ui_power_close_game"), "icon": "x", "do": "close"}] + rows
         if button:
-            rows = [{"name": "Cancelar", "icon": "x", "do": "cancel"}] + rows
+            rows = [{"name": omni_i18n._("ui_power_cancel"), "icon": "x", "do": "cancel"}] + rows
 
         def done():
             try:
@@ -3447,7 +3514,7 @@ class App:
                 self.g.present()
             if r["do"] != "cancel" and not FAKE:
                 omni.power({"what": r["do"]})
-        self.show_list("Energia", "power", rows, go, "Escolher")
+        self.show_list(omni_i18n._("ui_card_power_title"), "power", rows, go, omni_i18n._("ui_hint_choose"))
         if self.picker and rows[0 if not button else 1].get("lr"):
             def lr(r, d):
                 self.game_toggle(r["do"], d)
@@ -3468,11 +3535,11 @@ class App:
 
     def hud_label(self):
         cur = flag(HUD_FLAG) if not FAKE else getattr(self, "fake_hud", "0")
-        return "Contador: " + HUD_NAMES.get(cur, "escondido")
+        return omni_i18n._("ui_counter_label").format(value=HUD_NAMES.get(cur, omni_i18n._("ui_counter_hidden")))
 
     def mouse_label(self):
         on = omni_mouse.mode_on() if not FAKE else getattr(self, "fake_mouse", False)
-        return f"Modo mouse: {'ligado' if on else 'desligado'}"
+        return omni_i18n._("ui_power_mouse_mode").format(state=omni_i18n._("ui_power_on" if on else "ui_power_off"))
 
     def type_into_game(self):
         """Teclado do Omni36OS por cima do programa: o texto é digitado nele quando ele volta."""
@@ -3480,11 +3547,11 @@ class App:
             if text and not FAKE:
                 omni.save_file(omni_mouse.TYPE_FILE, text)
             self.quit()
-        self.keyboard("Digitar no programa", done, hint="O texto vai para o programa ao voltar", texto=True)
+        self.keyboard(omni_i18n._("tx_type_prog"), done, hint=omni_i18n._("tx_type_prog_hint"), texto=True)
 
     def cap_label(self):
         on = (flag(CAP_FLAG) not in ("", "0")) if not FAKE else getattr(self, "fake_cap", False)
-        return f"Limite de 30 FPS: {'ligado' if on else 'desligado'}"
+        return omni_i18n._("ui_power_fps_limit").format(state=omni_i18n._("ui_power_on" if on else "ui_power_off"))
 
     def game_toggle(self, what, d=1):
         """Esquerda/direita no menu de energia: muda o contador ou o limite sem voltar ao jogo."""
@@ -3527,8 +3594,9 @@ class App:
 
     def open_levels(self):
         """Painel por cima da página: esquerda/direita ajusta na hora, A confirma, B volta como estava."""
-        items = [Slider("Brilho", "sun", "brilho", lo=10), Slider("Contraste", "adjustments", "contraste"),
-                 Slider("Volume", "volume", "volume")]
+        items = [Slider(omni_i18n._("ui_level_brightness"), "sun", "brilho", lo=10),
+                 Slider(omni_i18n._("ui_level_contrast"), "adjustments", "contraste"),
+                 Slider(omni_i18n._("ui_level_volume"), "volume", "volume")]
         self.levels = {"items": items, "sel": 0, "orig": {it.key: it.value for it in items}}
 
     def levels_input(self, cmd):
@@ -3564,7 +3632,7 @@ class App:
         g.stroke(mx, my, mw, mh, 24, ink(25))
         g.rrect(mx + 24, my + 22, 38, 38, 12, self.accent[0], self.accent[1])
         g.icon("adjustments", mx + 32, my + 30, 22, ON_TEXT)
-        g.text("Bold", 18, "Brilho, contraste e volume", mx + 74, my + 28, TEXT)
+        g.text("Bold", 18, omni_i18n._("ui_build_display_levels"), mx + 74, my + 28, TEXT)
         c1 = self.accent[0]
         for k, it in enumerate(lv["items"]):
             on = k == lv["sel"]
@@ -3582,7 +3650,8 @@ class App:
             g.rrect(bx, by, bw, 6, 3, (255, 255, 255, 70) if on else ink(30))
             g.rrect(bx, by, max(6, bw * it.shown / 100), 6, 3, col if on else c1)
             g.circle(bx + bw * it.shown / 100, by + 3, 8 if on else 5, col)
-        self.draw_footer_at(my + mh - 33, [("UD", "Escolher"), ("LR", "Ajustar"), ("A", "Confirmar"), ("B", "Desfazer")],
+        self.draw_footer_at(my + mh - 33, [("UD", omni_i18n._("ui_hint_choose")), ("LR", omni_i18n._("ui_hint_adjust")),
+                                            ("A", omni_i18n._("ui_hint_confirm")), ("B", omni_i18n._("ui_hint_undo"))],
                             center=W / 2)
 
     def power_check(self):
@@ -3619,7 +3688,7 @@ class App:
             # aviso de bateria fraca na tela e o carregador entrou: o aviso some sozinho
             if self.modal and self.modal.get("bat") and charging_now():
                 self.modal = None
-                self.toast = ("Carregando", "ok", self.t + 2.5)
+                self.toast = (omni_i18n._("tx_loading"), "ok", self.t + 2.5)
                 if self.bat_return:
                     self.quit()
             try:
@@ -3636,7 +3705,7 @@ class App:
                 os.remove(BAT_MSG)
                 if title:
                     self.modal = {"title": title, "icon": "battery-2", "sel": 0, "buttons": ["OK"], "text": text,
-                                  "bat": title == "Bateria fraca"}
+                                  "bat": title in omni_i18n.TRANSLATIONS["tx_bat_low"].values()}
                     if self.bat_return:   # por cima de uma ferramenta: o OK devolve a tela para ela
                         self.modal.update(fns=[self.quit], on_back=self.quit)
             except OSError:
@@ -3664,14 +3733,14 @@ class App:
 
         def done(out):
             if isinstance(out, Exception):
-                self.toast = (f"Erro ao ler os jogos: {out}", "problema", self.t + 4)
+                self.toast = (omni_i18n._("ui_games_scan_error").format(error=out), "problema", self.t + 4)
                 return
             idx, ports = out
             self.set_result("testar", ports)
             self.lib = {"sys": 0, "game": 0, "top": 0.0, "stop": 0.0}
             n = sum(len(s["games"]) for s in idx)
-            self.toast = (f"Lista atualizada: {n} jogos, {self.port_count} ports", "ok", self.t + 4)
-        self.worker(scan, done, busy="Procurando jogos e ports...")
+            self.toast = (omni_i18n._("tx_list_updated").format(games=n, ports=self.port_count), "ok", self.t + 4)
+        self.worker(scan, done, busy=omni_i18n._("ui_games_scan_busy"))
 
     def open_sheet(self, s, g, back=None):
         self.picker = None
@@ -3740,12 +3809,12 @@ class App:
         y += 30
         facts = [f"{os.path.basename(game['path'])}" + (f" · {G.human_size(game['size'])}" if G else "")]
         if game.get("plays") or game.get("time"):
-            facts.append(f"Jogado {game.get('plays', 0)} vez(es)" +
+            facts.append(omni_i18n._("ui_card_game_played").format(count=game.get('plays', 0)) +
                          (f" · {G.human_time(game['time'])}" if G and game.get("time") else ""))
         if game.get("last") and G:
-            facts.append(f"Última vez: {G.human_date(game['last'])}")
+            facts.append(omni_i18n._("ui_card_game_last_played").format(date=G.human_date(game['last'])))
         if game.get("fav"):
-            facts.append("Favorito")
+            facts.append(omni_i18n._("ui_card_game_favorite"))
         for f in facts:
             for line in g.wrap("Regular", 12, f, tw)[:2]:
                 g.text("Regular", 12, line, tx, y, MUTED)
@@ -3759,7 +3828,7 @@ class App:
                 g.text("Regular", 12, line, tx, y, TEXT)
                 y += 18
         bw, by = (mw - 56) / 2, my + mh - 58
-        for k, label in enumerate(("Jogar", "Voltar")):
+        for k, label in enumerate((omni_i18n._("ui_card_sheet_play"), omni_i18n._("ui_card_sheet_back"))):
             if not sh["play"] and k == 0:
                 continue
             bx = mx + 22 + k * (bw + 12) if sh["play"] else mx + 22
@@ -3780,21 +3849,20 @@ class App:
         res = {} if FAKE else omni.port_results()
         rows = []
         for g in groups:
-            rows.append({"head": g["label"], "tag": "NA BIBLIOTECA", "tagc": LEVEL["ok"]})
+            rows.append({"head": g["label"], "tag": omni_i18n._("ui_card_test_library_tag"), "tagc": LEVEL["ok"]})
             for p in g["ports"]:
                 name = os.path.basename(p)[:-3]
                 r = res.get(name)
                 right = None
                 if r:
                     ok = r[0] == "ok"
-                    right = (("Passou " if ok else "Falhou ") + r[1].split(" ")[0], LEVEL["ok" if ok else "aviso"])
+                    right = (omni_i18n._("ui_card_test_passed_short" if ok else "ui_card_test_failed_short").format(result=r[1].split(" ")[0]), LEVEL["ok" if ok else "aviso"])
                 rows.append({"name": name, "path": p, "right": right})
 
         def pick(row):
-            self.ask(f"Testar {row['name']}?\nA Omni36OS fecha, o port abre por 15 segundos e fecha sozinho. "
-                     "Depois o Omni36OS volta com o resultado.", lambda: self.start_test(row["path"]))
-        if not self.show_list("Escolha o port", "player-play", rows, pick, "Testar"):
-            self.toast = ("Nenhum port instalado", "aviso", self.t + 3)
+            self.ask(omni_i18n._("tx_test_ask").format(name=row['name']), lambda: self.start_test(row["path"]))
+        if not self.show_list(omni_i18n._("ui_choose_port"), "player-play", rows, pick, omni_i18n._("ui_test_port")):
+            self.toast = (omni_i18n._("ui_no_ports_installed"), "aviso", self.t + 3)
 
     def start_test(self, path):
         if FAKE:
@@ -3814,8 +3882,7 @@ class App:
             r = {"nome": "TMNTShreddersRevenge", "resultado": kind, "segundos": "2",
                  "relatorio": "/roms/logs/teste de ports/teste_TMNTShreddersRevenge.txt"}
             found = [] if kind == "ok" else [
-                {"id": "permissao", "causa": "Um arquivo do port está sem permissão para rodar (comum depois de "
-                                             "copiar pelo PC).", "dica": "Dar permissão de execução aos arquivos do port.",
+                {"id": "permissao", "causa": omni_i18n._("tx_fix_perm_c"), "dica": omni_i18n._("tx_fix_perm_t"),
                  "fix": "chmod", "extra": ""}]
             settled = ""
         else:
@@ -3828,35 +3895,35 @@ class App:
                 omni_ports_fix.note(r["relatorio"], found)
         buttons, fns = ["OK"], [lambda: None]
         if r["resultado"] == "ok":
-            text = f"{r['nome']} abriu e ficou rodando 15 segundos. Funcionou!"
+            text = omni_i18n._("ui_port_test_description").format(name=r['nome'])
             icon = "check"
         else:
             rel = r["relatorio"].split("/omni36os/", 1)[-1] if r["relatorio"] else ""
-            text = f"{r['nome']} fechou sozinho após {r['segundos']} s."
+            text = omni_i18n._("ui_port_test_closed").format(name=r['nome'], seconds=r['segundos'])
             if found:
                 d = found[0]
-                text += f"\nCausa provável: {d['causa']}" + (f" ({d['extra']})" if d["extra"] else "")
-                text += f"\nO que fazer: {d['dica']}"
+                text += omni_i18n._("ui_port_test_likely_cause").format(cause=d['causa']) + (f" ({d['extra']})" if d["extra"] else "")
+                text += omni_i18n._("ui_port_test_what_to_do").format(tip=d['dica'])
                 if d["fix"] and not settled:      # uma tentativa por teste: depois de desfeita, não repete
-                    buttons, fns = ["Corrigir e testar de novo", "Agora não"], \
+                    buttons, fns = [omni_i18n._("ui_port_test_fix_button"), omni_i18n._("ui_not_now")], \
                         [lambda: self.fix_and_retest(r, d["fix"]), lambda: None]
             if rel:
-                text += f"\nRelatório: omni36os/{rel}"
+                text += omni_i18n._("ui_port_test_report_path").format(path=rel)
             icon = "alert-triangle"
         if settled:
             text = settled + "\n" + text
-        self.modal = {"title": "Teste de port", "text": text, "icon": icon, "buttons": buttons, "sel": 0, "fns": fns}
+        self.modal = {"title": omni_i18n._("ui_port_test_title"), "text": text, "icon": icon, "buttons": buttons, "sel": 0, "fns": fns}
 
     def fix_and_retest(self, r, fix):
         if FAKE:
-            self.toast = ("Correção aplicada (teste)", "ok", self.t + 3)
+            self.toast = (omni_i18n._("ui_test_fix_applied"), "ok", self.t + 3)
             return
         def done(script):
             if isinstance(script, Exception) or not script:
-                self.toast = ("Não consegui aplicar a correção", "problema", self.t + 3.5)
+                self.toast = (omni_i18n._("ui_test_fix_failed"), "problema", self.t + 3.5)
                 return
             self.start_test(script)
-        self.worker(lambda: omni_ports_fix.apply(r["relatorio"], fix), done, busy="Corrigindo...")
+        self.worker(lambda: omni_ports_fix.apply(r["relatorio"], fix), done, busy=omni_i18n._("ui_port_fixing"))
 
     def quit(self):
         self.running = False
@@ -3879,21 +3946,21 @@ class App:
                 return
             self.backup_export(module, row["dir"])
         start = next((i for i, r in enumerate(rows) if r["dir"] == last), None)
-        self.show_list("Onde salvar o backup?", "device-floppy", rows, go, "Salvar aqui", start)
+        self.show_list(omni_i18n._("ui_backup_save_location"), "device-floppy", rows, go, omni_i18n._("ui_backup_save_here"), start)
 
     def backup_export(self, module, dest=None):
         def done(res):
             if isinstance(res, Exception):
-                self.toast = (f"Erro: {res}", "problema", self.t + 4)
+                self.toast = (omni_i18n._("ui_error_prefix").format(error=res), "problema", self.t + 4)
                 return
             path, info = res
             if not path:
                 self.toast = (info, "aviso", self.t + 3.5)
                 return
-            self.modal = {"title": "Backup salvo", "icon": "check", "buttons": ["OK"], "sel": 0,
-                          "text": f"{info} salvos em:\n{path}"}
+            self.modal = {"title": omni_i18n._("ui_backup_saved_title"), "icon": "check", "buttons": ["OK"], "sel": 0,
+                          "text": omni_i18n._("tx_saved_in").format(info=info, path=path)}
             self.reload_findings()
-        self.worker(lambda: omni_backup.export(module, dest=dest), done, busy="Exportando...")
+        self.worker(lambda: omni_backup.export(module, dest=dest), done, busy=omni_i18n._("ui_backup_export_busy"))
 
     def backup_browse(self, module, path):
         if FAKE:                      # simulador: uma pasta de teste com um backup
@@ -3911,7 +3978,7 @@ class App:
                 mod = m.get("module")
                 ok = mod == module
                 right = (m.get("date", "").split(" ")[0] if ok else
-                         (omni_backup.MODULES.get(mod, ("não é backup do Omni36OS",))[0] if mod else "não é backup do Omni36OS"),
+                         (omni_backup.MODULES.get(mod, (omni_i18n._("ui_backup_unknown_type"),))[0] if mod else omni_i18n._("ui_backup_unknown_type")),
                          LEVEL["ok" if ok else "info"])
                 rows.append({"name": e["name"], "path": e["path"], "dir": False, "ok": ok,
                              "icon": "device-floppy", "right": right})
@@ -3920,37 +3987,36 @@ class App:
             if row["dir"]:
                 self.backup_browse(module, row["path"])
             elif not row["ok"]:
-                self.toast = (f"Este arquivo não é um backup de {omni_backup.MODULES[module][0]}", "aviso",
+                self.toast = (omni_i18n._("ui_backup_wrong_file").format(module=omni_backup.MODULES[module][0]), "aviso",
                               self.t + 3.5)
             else:
-                self.ask(f"Importar {row['name']}?\nO console volta ao ponto em que o backup foi feito "
-                         "(versão, configurações, Wi-Fi). O estado atual é salvo antes, como "
-                         "\"antes-de-importar\".",
+                self.ask(omni_i18n._("tx_import_ask").format(name=row['name']),
                          lambda: self.backup_import(module, row["path"]), danger=True)
         start = next((i for i, r in enumerate(rows) if r.get("ok")), None)   # o backup compatível
-        if not self.show_list(f"Importar · {path}", "folder", rows, pick, "Abrir / importar", start):
-            self.toast = ("Pasta vazia", "aviso", self.t + 3)
+        if not self.show_list(f"{omni_i18n._('ui_backup_import_title')} · {path}", "folder", rows, pick,
+                              omni_i18n._("ui_hint_open_import"), start):
+            self.toast = (omni_i18n._("ui_backup_folder_empty"), "aviso", self.t + 3)
 
     def backup_import(self, module, path):
         def done(res):
             self.picker = None
             if isinstance(res, Exception):
-                self.toast = (f"Erro: {res}", "problema", self.t + 4)
+                self.toast = (omni_i18n._("ui_error_prefix").format(error=res), "problema", self.t + 4)
                 return
             text = str(res)
-            self.modal = {"title": "Importação", "icon": "device-floppy", "buttons": ["OK"], "sel": 0,
+            self.modal = {"title": omni_i18n._("ui_backup_import_title"), "icon": "device-floppy", "buttons": ["OK"], "sel": 0,
                           "text": text}
-            if "Reinicie" in text:        # snapshot: a versão e os serviços só valem depois de reiniciar
+            if "Reinicie" in text or "Restart" in text:        # snapshot: a versão e os serviços só valem depois de reiniciar
                 def reboot():
                     self.goodbye = "reiniciando"
                     self.frame(0)
                     self.g.present()
                     if not FAKE:
                         omni.power({"what": "reboot"})
-                self.modal.update(buttons=["Reiniciar agora", "Depois"], fns=[reboot, lambda: None])
+                self.modal.update(buttons=[omni_i18n._("ui_reboot_now"), omni_i18n._("ui_later")], fns=[reboot, lambda: None])
             self.reload_findings()
         self.worker(lambda: "Teste: nada importado" if FAKE else omni_backup.import_(module, path), done,
-                    busy="Importando...")
+                    busy=omni_i18n._("ui_backup_import_busy"))
 
     # --- atalhos personalizados ---
 
@@ -3961,7 +4027,7 @@ class App:
         def go(r):
             self.picker = None
             self.start_capture(r["key"])
-        self.show_list("Personalizar um atalho", "keyboard", rows, go, "Gravar")
+        self.show_list(omni_i18n._("ui_card_custom_shortcut"), "keyboard", rows, go, omni_i18n._("ui_shortcut_record"))
 
     def start_capture(self, key):
         """Grava a tecla que vai com o FN: o jogador aperta uma tecla e o atalho vira FN + ela. No
@@ -3971,7 +4037,7 @@ class App:
             try:
                 fd = os.open(PAD_DEV, os.O_RDONLY | os.O_NONBLOCK)
             except OSError:
-                self.toast = ("Não consegui ler o controle", "problema", self.t + 4)
+                self.toast = (omni_i18n._("ui_controller_read_failed"), "problema", self.t + 4)
                 return
         self.capture = {"key": key, "fd": fd, "seen": set(), "down": set(), "t0": self.t, "last": self.t}
 
@@ -3997,7 +4063,7 @@ class App:
             self.finish_capture()
         elif not c["seen"] and self.t - c["t0"] > 8:
             self.end_capture()
-            self.toast = ("Nenhum botão: o atalho não mudou", "aviso", self.t + 3)
+            self.toast = (omni_i18n._("ui_shortcut_no_button"), "aviso", self.t + 3)
 
     def end_capture(self):
         c, self.capture = self.capture, None
@@ -4012,7 +4078,7 @@ class App:
         err = omni_combos.problem(key, codes, combos)
         name = omni_combos.ACTIONS[key][0]
         if err:
-            self.modal = {"title": "Atalho não gravado", "icon": "alert-triangle", "buttons": ["Tentar de novo", "Cancelar"],
+            self.modal = {"title": omni_i18n._("ui_shortcut_not_saved"), "icon": "alert-triangle", "buttons": [omni_i18n._("ui_retry"), omni_i18n._("ui_warning_cancel")],
                           "sel": 0, "text": err, "fns": [lambda: self.start_capture(key), lambda: None]}
             return
 
@@ -4020,11 +4086,11 @@ class App:
             combos[key] = codes
             D.set("at_combos", combos)
             self.refresh_atalhos(f"{name}: {omni_combos.text(codes)}")
-        self.ask(f"Usar {omni_combos.text(codes)} para {name}?", save)
+        self.ask(omni_i18n._("tx_use_combo").format(combo=omni_combos.text(codes), name=name), save)
 
     def reset_combos(self):
         D.set("at_combos", omni_combos.defaults()["combos"])
-        self.refresh_atalhos("Botões padrão de volta")
+        self.refresh_atalhos(omni_i18n._("tx_default_btn"))
 
     def refresh_atalhos(self, msg):
         keep = self.item_sel
@@ -4041,12 +4107,12 @@ class App:
         g.rrect(mx, my, mw, mh, 22, MODAL_A, MODAL_B)
         g.stroke(mx, my, mw, mh, 22, ink(25))
         g.icon("keyboard", mx + 24, my + 22, 24, alpha(self.accent[0], 255))
-        g.text("Bold", 17, f"Novo atalho: {omni_combos.ACTIONS[c['key']][0]}", mx + 58, my + 22, TEXT)
-        g.text("Medium", 13, "Aperte a tecla que vai junto com o FN.", mx + 24, my + 62, MUTED)
+        g.text("Bold", 17, omni_i18n._("tx_new_hotkey").format(name=omni_combos.ACTIONS[c['key']][0]), mx + 58, my + 22, TEXT)
+        g.text("Medium", 13, omni_i18n._("ui_card_shortcut_capture_prompt"), mx + 24, my + 62, MUTED)
         now = "FN + " + (omni_combos.text(c["seen"]) if c["seen"] else "...")
         g.text("Bold", 26, now, W / 2, my + 118, TEXT, "c", "m")
         left = max(0, 8 - (self.t - c["t0"])) if not c["seen"] else None
-        g.text("Medium", 12, f"Sem tecla em {left:.0f} s, cancela." if left is not None else "",
+        g.text("Medium", 12, omni_i18n._("tx_no_key").format(s=left) if left is not None else "",
                W / 2, my + mh - 30, FAINT, "c")
 
     def read(self, title, icon, text, links=(), on_close=None):
@@ -4056,7 +4122,7 @@ class App:
                        "on_close": on_close}
 
     def open_credits(self):
-        self.read("Créditos", "users", omni_help.CREDITOS,
+        self.read(omni_i18n._("ui_credits_title"), "users", omni_help.creditos_text(),
                   links=[("mpjsilva", self.qr_mpjsilva), ("h1ghland3r", self.qr_h1ghland3r)])
 
     def qr(self, title, text, image, url):
@@ -4065,18 +4131,18 @@ class App:
                       "image": image, "url": url, "fns": [self.open_credits], "on_back": self.open_credits}
 
     def qr_mpjsilva(self):
-        self.qr("mpjsilva no GitHub", "Aponte a câmera do celular para abrir o GitHub do mpjsilva.",
+        self.qr(omni_i18n._("tx_qr1_t"), omni_i18n._("tx_qr1"),
                 "qr-mpjsilva", "github.com/mpjsilva")
 
     def qr_h1ghland3r(self):
-        self.qr("h1ghland3r", "Aponte a câmera do celular para abrir os links do h1ghland3r.",
+        self.qr("h1ghland3r", omni_i18n._("tx_qr2"),
                 "qr-h1ghland3r", "beacons.ai/h1ghland3r")
 
     def ask(self, text, fn, danger=False, cancel=False):
         if danger:
-            return self.warn("Atenção", text, fn, secs=5)
-        self.modal = {"title": "Confirmar", "text": text, "icon": "alert-triangle" if danger else "info-circle",
-                      "buttons": ["Sim, fazer", "Cancelar"], "sel": 1 if danger or cancel else 0, "fn": fn}
+            return self.warn(omni_i18n._("tx_attention"), text, fn, secs=5)
+        self.modal = {"title": omni_i18n._("ui_hint_confirm"), "text": text, "icon": "alert-triangle" if danger else "info-circle",
+                      "buttons": [omni_i18n._("tx_yes_do"), omni_i18n._("ui_hint_cancel")], "sel": 1 if danger or cancel else 0, "fn": fn}
 
     # --- aviso com contagem (estilo "opções perigosas" da Xiaomi) ---
 
@@ -4086,12 +4152,12 @@ class App:
         acrescenta (o resto vale depois de reiniciar)."""
         def unlock():
             res = omni_sistema.dtb_overclock()
-            if res.startswith(("Não", "Erro")):
+            if omni_i18n.is_failure(res):
                 return res
             omni.unlock_oc()
-            return ("Overclock desbloqueado: escolha os limites acima." if res.startswith("O overclock já")
-                    else res + " Reinicie para as frequências novas aparecerem.")
-        run = ((lambda: self.worker(unlock, self._sys_done, busy="Desbloqueando...")) if not FAKE else
+            return (omni_i18n._("tx_oc_unlocked") if res.startswith(("O overclock já", "Overclock is already"))
+                    else res + " " + omni_i18n._("tx_oc_restart"))
+        run = ((lambda: self.worker(unlock, self._sys_done, busy=omni_i18n._("ui_unlock_overclock_busy"))) if not FAKE else
                (lambda: setattr(self, "toast", ("Teste: passou", "ok", self.t + 3))))
 
         def go():                     # console com trava por senha: a senha libera o overclock
@@ -4103,13 +4169,11 @@ class App:
                 if ok:
                     run()
                 else:
-                    self.toast = ("Senha errada: o overclock continua bloqueado", "problema", self.t + 3.5)
-            self.keyboard("Senha para desbloquear o overclock", check, secret=True)
-        self.warn("Desbloquear overclock", "Libera de 1368 a 1512 MHz no processador e 600 MHz na GPU, com a "
-                  "tensão certa para cada frequência. Depois, escolha os limites em Desempenho.", go, 10, True,
-                  key="Desbloquear overclock", risk="Esquenta mais e pode travar. Se o DTB precisar de ajuste, um "
-                  "DTB errado deixa a tela preta ou o console sem ligar.",
-                  undo=BOOT_UNDO + " Antes de mudar, o Omni36OS guarda uma cópia do DTB.")
+                    self.toast = (omni_i18n._("tx_oc_wrong"), "problema", self.t + 3.5)
+            self.keyboard(omni_i18n._("tx_oc_pw"), check, secret=True)
+        self.warn(omni_i18n._("ui_card_option_unlock_oc"), omni_i18n._("tx_oc_text"), go, 10, True,
+                  key=omni_i18n._("ui_card_option_unlock_oc"), risk=omni_i18n._("tx_oc_risk"),
+                  undo=BOOT_UNDO + " " + omni_i18n._("ui_danger_dtb_backup_undo"))
 
     def lock_oc(self):
         self._sys_done("Teste: bloqueado" if FAKE else omni.lock_oc())
@@ -4167,10 +4231,10 @@ class App:
         g.circle(mx + 52, my + 52, 26, alpha(red, 60))
         g.icon("alert-triangle", mx + 38, my + 38, 28, red)
         g.text("Bold", 20, d["title"], mx + 92, my + 30, TEXT)
-        g.text("SemiBold", 11, "LEIA ANTES DE CONTINUAR", mx + 92, my + 58, red)
+        g.text("SemiBold", 11, omni_i18n._("ui_warning_read_before_continue"), mx + 92, my + 58, red)
         y = my + 96
-        for label, body, col in (("", d["text"], TEXT), ("O que pode dar errado", d["risk"], TEXT),
-                                 ("Como desfazer", d["undo"], TEXT)):
+        for label, body, col in (("", d["text"], TEXT), (omni_i18n._("ui_warning_risk_label"), d["risk"], TEXT),
+                                 (omni_i18n._("ui_warning_undo_label"), d["undo"], TEXT)):
             if not body:
                 continue
             if label:
@@ -4197,7 +4261,7 @@ class App:
             if on:
                 g.stroke(bx, by, bw, 42, 15, ink(60), 1.5)
         if not ready:
-            label = f"Continuar ({int(left) + 1})"
+            label = omni_i18n._("ui_warning_continue_count").format(count=int(left) + 1)
             # arco que fecha junto com a contagem
             cx_, cy_ = bx + 26, by + 21
             g.arc(cx_, cy_, 11, 3, -90, -90 + 360 * (1 - left / max(1, d["secs"])), alpha(red, 230))
@@ -4206,16 +4270,16 @@ class App:
             k = d["taps"] / 5
             if k:
                 g.rrect(bx, by, bw * k, 42, 15, (255, 255, 255, 60))
-            g.text("SemiBold", 14, "Aperte A 5 vezes" if not k else f"Mais {5 - d['taps']} vez(es)",
+            g.text("SemiBold", 14, omni_i18n._("ui_warning_press_a_five") if not k else omni_i18n._("ui_warning_press_a_more").format(count=5 - d['taps']),
                    bx + bw / 2, by + 21.5, ON_TEXT, "c", "m")
         else:
-            g.text("SemiBold", 14, "Continuar", bx + bw / 2, by + 21.5, ON_TEXT, "c", "m")
+            g.text("SemiBold", 14, omni_i18n._("ui_warning_continue"), bx + bw / 2, by + 21.5, ON_TEXT, "c", "m")
         cb = mx + 40 + bw
         if d["sel"] == 1:
             g.rrect(cb, by, bw, 42, 15, self.accent[0], self.accent[1])
         else:
             g.rrect(cb, by, bw, 42, 15, ink(22))
-        g.text("SemiBold", 14, "Cancelar", cb + bw / 2, by + 21.5, ON_TEXT if d["sel"] == 1 else TEXT, "c", "m")
+        g.text("SemiBold", 14, omni_i18n._("ui_warning_cancel"), cb + bw / 2, by + 21.5, ON_TEXT if d["sel"] == 1 else TEXT, "c", "m")
 
     # --- entrada ---
 
@@ -4356,12 +4420,12 @@ class App:
         elif isinstance(it, Choice) and cmd in ("left", "right", "vleft", "vright", "ok"):
             it.index = (it.index + (-1 if cmd in ("left", "vleft") else 1)) % len(it.options)
             res = D.set(it.key, it.options[it.index])
-            if isinstance(res, str) and res.startswith(("Está quente", "Frequência", "Este sistema", "Ligue a rede")):
+            if isinstance(res, str) and res.startswith(("Está quente", "Frequência", "Este sistema", "Ligue a rede", "It is hot", "Frequency", "This system", "Enable USB")):
                 cur = D.get(it.key)     # recusado: volta ao valor que está valendo
                 it.index = it.options.index(cur) if cur in it.options else 0
                 self.toast = (res, "aviso", self.t + 4)
             elif it.key in ("cpu_max", "gpu_max") and "overclock" in str(res):
-                self.toast = (str(res) + ": fique de olho na temperatura", "aviso", self.t + 3.5)
+                self.toast = (str(res) + omni_i18n._("tx_watch_temp"), "aviso", self.t + 3.5)
             if it.key == "gov":
                 self.status = D.status()
             if it.key == "tema":
@@ -4556,6 +4620,7 @@ class App:
         g.text("Bold", 11, letter, x + 10, y + 10.5, BG_TOP, "c", "m")
 
     def draw_footer(self, hints):
+        hints = self.localize_hints(hints)
         g = self.g
         x = 22
         for letter, label, c in hints:
@@ -4577,25 +4642,25 @@ class App:
     def card_subtitle(self, cid):
         return {
             "checkup": self._home_summary(),
-            "rede": "Wi-Fi, cabo USB e acesso remoto",
-            "controles": "Teste, botões e atalhos",
-            "geral": "Nome, backup e atualização",
-            "sobre": "Manual, cuidados e créditos",
-            "tela": "Brilho, som e bateria",
-            "desempenho": "Processador, GPU e memória",
-            "cartoes": "Pendrive, espaço e reparo",
-            "ferramentas": "Arquivos, testes e PortMaster",
-            "ports": "Jogos, capas e descrições",
-            "apps": "Músicas, vídeos e notas",
-            "testar": f"{self.port_count} Ports instalados" if getattr(self, "port_count", 0) else "Abre e fecha em 15 s",
+            "rede": omni_i18n._("home_network_subtitle"),
+            "controles": omni_i18n._("home_controls_subtitle"),
+            "geral": omni_i18n._("home_general_subtitle"),
+            "sobre": omni_i18n._("home_about_subtitle"),
+            "tela": omni_i18n._("home_display_subtitle"),
+            "desempenho": omni_i18n._("home_performance_subtitle"),
+            "cartoes": omni_i18n._("home_storage_subtitle"),
+            "ferramentas": omni_i18n._("home_tools_subtitle"),
+            "ports": omni_i18n._("home_ports_subtitle"),
+            "apps": omni_i18n._("home_apps_subtitle"),
+            "testar": omni_i18n._("home_ports_installed").format(count=self.port_count) if getattr(self, "port_count", 0) else omni_i18n._("home_test_duration"),
         }[cid]
 
     def _home_summary(self):
         hc = self.home_check
         if not hc:
-            return "Analisando..."
+            return omni_i18n._("home_analyzing")
         n = sum(1 for l, _ in hc["achados"] if l in ("aviso", "problema"))
-        return "Tudo certo" if n == 0 else f"{n} Ponto{'s' if n > 1 else ''} de atenção"
+        return omni_i18n._("home_all_good") if n == 0 else omni_i18n._("home_attention_count").format(count=n)
 
     def mouse_pick(self, mx, my):
         """Simulador: clique num cartão/item que não está em foco só o seleciona."""
@@ -4621,7 +4686,7 @@ class App:
             return self.draw_library(dt, fade)
         g = self.g
         hour = time.localtime().tm_hour
-        hello = "Bom dia" if 5 <= hour < 12 else "Boa tarde" if 12 <= hour < 18 else "Boa noite"
+        hello = omni_i18n._("greeting_morning") if 5 <= hour < 12 else omni_i18n._("greeting_afternoon") if 12 <= hour < 18 else omni_i18n._("greeting_evening")
         hello += f", {self.player}!" if self.player else "!"
         g.text("Bold", 26, hello, 22, 66, alpha(TEXT, 255 * fade))
         hc = self.home_check
@@ -4629,16 +4694,16 @@ class App:
             lvl = hc["nivel"]
             n = len(self.alerts)
             if n == 0:
-                lvl, msg = "ok", "Seu R36S está em ótima forma."
+                lvl, msg = "ok", omni_i18n._("ui_hud_good_health")
             else:
                 lvl = "problema" if any(l == "problema" for l, _ in self.alerts.values()) else "aviso"
                 total = sum(k for _, k in self.alerts.values())   # a soma dos pontos dos cards
-                msg = f"{total} Alerta" + ("s" if total != 1 else "")
+                msg = omni_i18n._("home_alert_count").format(count=total)
             g.circle(29, 115, 5, alpha(LEVEL[lvl], 255 * fade))
             g.text("Regular", 13, msg, 42, 105, alpha(MUTED, 255 * fade))
         else:
             g.arc(29, 115, 6, 2.5, self.t * 360, self.t * 360 + 270, alpha(MUTED, 255 * fade))
-            g.text("Regular", 13, "Dando uma olhada no aparelho...", 42, 105, alpha(MUTED, 255 * fade))
+            g.text("Regular", 13, omni_i18n._("home_analyzing_device"), 42, 105, alpha(MUTED, 255 * fade))
 
         rows = (len(CARDS) + COLS - 1) // COLS
         cw, x0, y0 = 192, 22, 136
@@ -4702,7 +4767,7 @@ class App:
             for k, ln in enumerate(sub):
                 g.text("Regular", 11, ln, x + 72, ty + size + 6 + 15 * k,
                        alpha(ON_TEXT if on else MUTED, (230 if on else 255) * fade))
-        self.draw_footer([("A", "Abrir", TEXT), ("POWER", "Energia", MUTED)])
+        self.draw_footer([("A", omni_i18n._("ui_hint_open"), TEXT), ("POWER", omni_i18n._("ui_hint_power"), MUTED)])
 
     def page_alerts(self, cid):
         """[(nível, texto)] dos avisos e problemas da página e das subpáginas dela (com o nome da
@@ -4726,7 +4791,8 @@ class App:
         f = self.findings
         if f:
             lvl = f["nivel"]
-            msg = {"ok": "Tudo certo por aqui", "aviso": "Alguns avisos", "problema": "Precisa de atenção"}[lvl]
+            msg = {"ok": omni_i18n._("ui_hud_all_good"), "aviso": omni_i18n._("ui_hud_warnings"),
+                   "problema": omni_i18n._("ui_hud_needs_attention")}[lvl]
             if cid in ("geral", "sobre"):
                 lvl, msg = "info", f"Omni36OS {omni_version()}"
             alerts = self.page_alerts(cid) if cid in TWO_COLS else []
@@ -4739,7 +4805,7 @@ class App:
             g.circle(83 + off, 102, 4, alpha(LEVEL[lvl], a))
             g.text("Medium", 12, msg, 92 + off, 93, alpha(LEVEL[lvl] if alerts else MUTED, a))
         else:
-            g.text("Medium", 12, "Verificando...", 78 + off, 93, alpha(MUTED, a))
+            g.text("Medium", 12, omni_i18n._("ui_usbnet_compat_busy"), 78 + off, 93, alpha(MUTED, a))
 
         two = cid in TWO_COLS
         # diagnóstico (esquerda); Sistema não tem: as ações ocupam as duas colunas
@@ -4772,7 +4838,7 @@ class App:
                 offs.append(offs[-1] + bh + 8)
             room = bottom - top
             if offs[-1] - 8 > room:
-                bottom -= 18                          # espaço para "R1: mais N"
+                bottom -= 18                          # espaço para o indicador de itens abaixo
                 room = bottom - top
             # o último início que ainda mostra o fim da lista
             self.find_max = next((k for k in range(len(blocks)) if offs[-1] - 8 - offs[k] <= room),
@@ -4799,9 +4865,11 @@ class App:
                     g.text("Regular", 13, line, px + 52, yy + 8 + 19 * n, alpha(TEXT, a))
             g.clip(px, py, pw, ph)
             if self.find_top > 0:
-                g.text("Medium", 11, f"L1: {self.find_top} acima", px + pw - 18, py + ph - 24, alpha(FAINT, a), "r")
+                label = omni_i18n._("ui_card_find_above").format(count=self.find_top)
+                g.text("Medium", 11, label, px + pw - 18, py + ph - 24, alpha(FAINT, a), "r")
             if below:
-                g.text("Medium", 12, f"R1: mais {below} item(ns)", px + 18, py + ph - 24, alpha(FAINT, a))
+                label = omni_i18n._("ui_card_find_below").format(count=below)
+                g.text("Medium", 12, label, px + 18, py + ph - 24, alpha(FAINT, a))
         g.clip()
 
         # controles (direita)
@@ -4812,7 +4880,7 @@ class App:
         xs = [cx if k < half else cx + cw + 16 for k in range(len(self.items))]
         # Altura de cada item: ações com nome longo quebram em linhas (ao lado
         # da etiqueta SUGERIDO, se houver) e o botão cresce para caber tudo.
-        gap, tag = 10, "SUGERIDO"
+        gap, tag = 10, omni_i18n._("ui_card_suggested_tag")
         tw = g.measure("Bold", 9, tag)[0] + 14
         # o primeiro botão começa na mesma altura da borda do painel da esquerda (py)
         layout, y = [], cy
@@ -4881,13 +4949,13 @@ class App:
                     g.text("SemiBold", 14, ln, cx + 46, ty + 19 * n + 9.5, alpha(ON_TEXT if on else TEXT, a), "l", "m")
         g.clip()
         it = self.items[self.item_sel] if self.items else None
-        hints = [("A", "Confirmar", TEXT), ("B", "Voltar", MUTED)]
+        hints = [("A", omni_i18n._("ui_hint_confirm"), TEXT), ("B", omni_i18n._("ui_back"), MUTED)]
         if isinstance(it, Slider) or (isinstance(it, Choice) and self.page in TWO_COLS):
-            hints.insert(1, ("Analógico", "Ajustar", MUTED))   # o direcional fica para navegar
+            hints.insert(1, (omni_i18n._("ui_hint_analog"), omni_i18n._("ui_hint_adjust"), MUTED))   # o direcional fica para navegar
         elif isinstance(it, Choice):
-            hints.insert(1, ("LR", "Ajustar", MUTED))
+            hints.insert(1, ("LR", omni_i18n._("ui_hint_adjust"), MUTED))
         if f and self.find_max > 0:
-            hints.append(("L1 / R1", "Rolar", MUTED))
+            hints.append(("L1 / R1", omni_i18n._("ui_hint_scroll"), MUTED))
         self.draw_footer(hints)
 
     def draw_overlays(self, dt):
@@ -5047,9 +5115,9 @@ class App:
             by = ty + (th - bh) * (r["scroll"] / max(1, sum(heights[:r["max"]])))
             g.rrect(mx + mw - 14, ty, 4, th, 2, ink(18))
             g.rrect(mx + mw - 14, by, 4, bh, 2, alpha(a1, 220))
-        self.draw_footer_at(my + mh - 30, ([("UD", "Rolar"), ("LR", "Pular")] if r["max"] else []) +   # texto curto: nada a rolar
-                            ([("A", "Abrir")] if r.get("focus") in (r.get("vis") or ()) else []), mx + 24)
-        self.draw_footer_at(my + mh - 30, [("B", "Voltar")], mx + mw - 110)
+        self.draw_footer_at(my + mh - 30, ([("UD", omni_i18n._("ui_hint_scroll")), ("LR", omni_i18n._("ui_hint_jump"))] if r["max"] else []) +   # texto curto: nada a rolar
+                            ([("A", omni_i18n._("ui_hint_open"))] if r.get("focus") in (r.get("vis") or ()) else []), mx + 24)
+        self.draw_footer_at(my + mh - 30, [("B", omni_i18n._("ui_back"))], mx + mw - 110)
 
     def frame(self, dt):
         self.t += dt
@@ -5139,13 +5207,13 @@ class App:
         g.blob(610, 490, 260, (*BOOT_ROXO[:3], 40))
         g.glow(W / 2 - 75, 95, 150, 150, 30, alpha(BOOT_CIANO, 70), 40)
         g.image("logo-boas-vindas", W / 2 - 75, 95, 150, smooth=True)
-        g.text("Medium", 20, "Bem-vindo de volta", W / 2, 262, hexc("b8bedb"), "c")
+        g.text("Medium", 20, omni_i18n._("ui_welcome_back"), W / 2, 262, hexc("b8bedb"), "c")
         parts = [("Omni", hexc("f4f6ff")), ("36", BOOT_CIANO), ("OS", BOOT_ROXO)]
         x = W / 2 - sum(g.measure("ExtraBold", 48, t)[0] for t, _ in parts) / 2
         for t, c in parts:
             g.text("ExtraBold", 48, t, x, 290, c)
             x += g.measure("ExtraBold", 48, t)[0]
-        nome = self.player or "Jogador"
+        nome = self.player or omni_i18n._("ui_welcome_player")
         w = 56 + g.measure("SemiBold", 16, nome)[0] + 22          # pílula do tamanho do nome
         x0, y0 = round((W - w) / 2), 370
         g.rrect(x0, y0, w, 50, 25, hexc("1b1f42"))
@@ -5157,7 +5225,7 @@ class App:
     def draw_loading(self, dt):
         g = self.g
         if self.results and self.warm:
-            self.load_label = "Montando o menu..."
+            self.load_label = omni_i18n._("ui_loading_menu")
             self.load_done = self.load_total - len(self.warm)
         elif self.results or self.fast:
             self.load_done = self.load_total
@@ -5182,11 +5250,11 @@ class App:
                     self.worker(omni_sistema.usbnet_pending,
                                 lambda res: res and not isinstance(res, Exception) and setattr(
                                     self, "toast", (str(res), "aviso" if str(res).startswith("Erro") else "ok", self.t + 5)),
-                                busy="Ligando a rede USB...")
+                                busy=omni_i18n._("ui_usbnet_universal_busy"))
                 back = omni_update.rolled_back_message()
                 if back:
-                    self.modal = {"title": "Atualização desfeita", "icon": "alert-triangle", "sel": 0,
-                                  "buttons": ["OK"], "text": back + "\nO erro ficou em logs/sistema/falhas.log (Notas > Logs)."}
+                    self.modal = {"title": omni_i18n._("ui_system_update_rolled_back_title"), "icon": "alert-triangle", "sel": 0,
+                                  "buttons": ["OK"], "text": back + "\n" + omni_i18n._("ui_system_update_rolled_back_text")}
             self.first_screens()
             if RESUME == "testar":
                 self.sel = next(i for i, c in enumerate(CARDS) if c[0] == "ferramentas")
@@ -5320,7 +5388,7 @@ class App:
                 self.picker = self.modal = self.kbd = None
                 self.sheet = None
                 self.danger = self.busy = None
-                self.toast = ("Algo deu errado, mas o Omni36OS continuou", "aviso", self.t + 4)
+                self.toast = (omni_i18n._("tx_oops"), "aviso", self.t + 4)
                 last = time.monotonic()
         self.save_state()
         gfx.SDL_Quit()

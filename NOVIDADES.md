@@ -2,6 +2,10 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.15.28 (04/11/2026)
+
+- Internacionalização: opção de trocar o idioma entre Português (Brasil) e Inglês no menu Geral. Toda a interface se adapta ao idioma escolhido.
+
 ## 1.15.27 (02/11/2026)
 
 - Wi-Fi: o adaptador não é mais desligado depois de 10 min sem rede (o monitor de Wi-Fi da base desligava o rádio e tirava o driver, e o Wi-Fi não voltava sozinho).

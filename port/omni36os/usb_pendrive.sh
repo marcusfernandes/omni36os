@@ -48,7 +48,10 @@ log() {
   fi
   echo "$(/bin/date '+%F %T') $*" >> "$f"
 }
+OMNI_LANG=$(cat /home/ark/.config/omni36os/idioma 2>/dev/null)
 say() { printf '\033[H\033[2J\n\n  %b\n' "$*" > $TTY 2>/dev/null; }
+# say2 "pt" "en": a tela segue o idioma do Omni36OS
+say2() { if [ "$OMNI_LANG" = en ]; then say "$2"; else say "$1"; fi; }
 mode() { tr -d '\0' < /proc/device-tree/usb@ff300000/dr_mode; }
 dtb_mode() { fdtget -t s $DTB /usb@ff300000 dr_mode; }
 dev() { findmnt -rno SOURCE /$PART 2>/dev/null || awk -v m=/$PART '$2==m{print $1}' /etc/fstab; }
@@ -112,7 +115,7 @@ gadget_up() {
 give() {
   local d; d=$(dev); [ -b "$d" ] || { log "partição /$PART não encontrada"; return 1; }
   log "PC conectado: entregando $d (/$PART)"
-  say "Conectado ao PC.\n\n  Preparando /$PART..."
+  say2 "Conectado ao PC.\n\n  Preparando /$PART..." "Connected to the PC.\n\n  Preparing /$PART..."
   systemctl stop omni36os-launcher omni36os-atalho
   sync
   [ $PART = roms2 ] && umount /opt/system/Tools 2>/dev/null
@@ -122,13 +125,13 @@ give() {
   fi
   echo "$d" > $LUN/file
   GIVEN=$d                         # o /roms2 não está no fstab: a volta monta pelo aparelho
-  say "MODO PENDRIVE\n\n  /$PART está aberta no computador.\n\n  Ejete no PC e desconecte o cabo,\n  ou aperte B, para voltar aos jogos."
+  say2 "MODO PENDRIVE\n\n  /$PART está aberta no computador.\n\n  Ejete no PC e desconecte o cabo,\n  ou aperte B, para voltar aos jogos." "USB DRIVE MODE\n\n  /$PART is open on the computer.\n\n  Eject on the PC and unplug the cable,\n  or press B, to return to the games."
 }
 
 # Tira a partição do PC, monta de novo e abre o Omni36OS.
 take_back() {
   log "devolvendo /$PART ao R36S"
-  say "Desconectado.\n\n  Montando /$PART e voltando ao Omni36OS..."
+  say2 "Desconectado.\n\n  Montando /$PART e voltando ao Omni36OS..." "Disconnected.\n\n  Mounting /$PART and returning to Omni36OS..."
   # sem forced_eject no 4.4: desligar o UDC libera a trava do PC
   echo "" > $G/UDC 2>/dev/null
   sync
@@ -216,9 +219,9 @@ daemon() {
       if [ "$now" != "$shown" ]; then
         shown=$now
         case $now in
-          grava) say "COPIANDO PARA O CONSOLE...\n\n  O PC está gravando em /$PART.\n\n  Espere terminar e ejete no PC antes de tirar o cabo.";;
-          le)    say "COPIANDO PARA O PC...\n\n  O PC está lendo /$PART.\n\n  Espere terminar e ejete no PC antes de tirar o cabo.";;
-          *)     say "MODO PENDRIVE\n\n  /$PART está aberta no computador.\n\n  Ejete no PC e desconecte o cabo,\n  ou aperte B, para voltar aos jogos.";;
+          grava) say2 "COPIANDO PARA O CONSOLE...\n\n  O PC está gravando em /$PART.\n\n  Espere terminar e ejete no PC antes de tirar o cabo." "COPYING TO THE CONSOLE...\n\n  The PC is writing to /$PART.\n\n  Wait until it ends and eject on the PC before unplugging.";;
+          le)    say2 "COPIANDO PARA O PC...\n\n  O PC está lendo /$PART.\n\n  Espere terminar e ejete no PC antes de tirar o cabo." "COPYING TO THE PC...\n\n  The PC is reading /$PART.\n\n  Wait until it ends and eject on the PC before unplugging.";;
+          *)     say2 "MODO PENDRIVE\n\n  /$PART está aberta no computador.\n\n  Ejete no PC e desconecte o cabo,\n  ou aperte B, para voltar aos jogos." "USB DRIVE MODE\n\n  /$PART is open on the computer.\n\n  Eject on the PC and unplug the cable,\n  or press B, to return to the games.";;
         esac
       fi
     fi
@@ -226,13 +229,13 @@ daemon() {
     if [ -f /run/usb-disco.back ] && [ $wquiet -lt 5 ]; then
       rm -f /run/usb-disco.back
       log "botão no controle com cópia em andamento: ignorado"
-      say "COPIANDO...\n\n  O PC ainda está gravando em /$PART.\n\n  Espere a cópia terminar e ejete no PC.\n  Depois aperte B de novo."
+      say2 "COPIANDO...\n\n  O PC ainda está gravando em /$PART.\n\n  Espere a cópia terminar e ejete no PC.\n  Depois aperte B de novo." "COPYING...\n\n  The PC is still writing to /$PART.\n\n  Wait for the copy to end and eject on the PC.\n  Then press B again."
       busy_msg=1; [ -n "$PAD" ] && kill $PAD 2>/dev/null; watch_pad
       continue
     fi
     if [ $busy_msg = 1 ] && [ $wquiet -ge 5 ]; then     # a cópia terminou: volta a tela normal
       busy_msg=0; shown=normal
-      say "MODO PENDRIVE\n\n  /$PART está aberta no computador.\n\n  Ejete no PC e desconecte o cabo,\n  ou aperte B, para voltar aos jogos."
+      say2 "MODO PENDRIVE\n\n  /$PART está aberta no computador.\n\n  Ejete no PC e desconecte o cabo,\n  ou aperte B, para voltar aos jogos." "USB DRIVE MODE\n\n  /$PART is open on the computer.\n\n  Eject on the PC and unplug the cable,\n  or press B, to return to the games."
     fi
     why=""
     [ -z "$(cat $LUN/file)" ] && why="ejetado no PC"
@@ -244,7 +247,7 @@ daemon() {
     take_back; given=0
     # fim da sessão: volta ao modo normal (o DTB já está como antes) e o Wi-Fi sobe sozinho
     log "sessão encerrada: reiniciando no modo normal"
-    say "Pronto.\n\n  Voltando ao modo normal (com Wi-Fi)..."
+    say2 "Pronto.\n\n  Voltando ao modo normal (com Wi-Fi)..." "Done.\n\n  Returning to normal mode (with Wi-Fi)..."
     systemctl stop omni36os-launcher 2>/dev/null
     sync; sleep 2; reboot
     exit 0

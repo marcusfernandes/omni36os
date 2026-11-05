@@ -7,6 +7,7 @@ a própria pasta (os originais apontam para /roms/ports/<pasta>).
   python3 omni_apps.py --dest <pasta> [id...]   (imagem: instala todos ou os escolhidos)
 """
 import json
+import omni_i18n
 import os
 import re
 import shutil
@@ -64,7 +65,7 @@ def _open(url, timeout):
         except urllib.error.URLError as e:
             if n == 3:
                 if isinstance(getattr(e, "reason", None), socket.gaierror):
-                    raise RuntimeError("Não foi possível achar o servidor (DNS). Confira o Wi-Fi e tente de novo.")
+                    raise RuntimeError(omni_i18n._("apps_dns_error"))
                 raise
             time.sleep(3)
 
@@ -78,7 +79,7 @@ def latest(app):
                 for z in rel.get("assets", []):
                     if z["name"].endswith(".zip"):
                         return rel["tag_name"], z["browser_download_url"]
-        raise RuntimeError("nenhuma release com zip")
+        raise RuntimeError(omni_i18n._("apps_no_release"))
     with _open(PM_INDEX, 30) as r:
         p = json.load(r)["ports"][a["portmaster"]]
     return p["source"].get("date_updated") or p["source"]["url"].split("/")[-2], p["source"]["url"]
@@ -96,8 +97,8 @@ def install(app, log=lambda m: None, base=DIR):
     sh, game = sh_path(app, base), os.path.join(base, a["dir"])
     tag, url = latest(app)
     if base == DIR and tag == version(app) and installed(app):
-        return f"{a['name']} já está na versão mais nova."
-    log(f"Baixando {a['name']} {tag}...")
+        return omni_i18n._("apps_already_latest").format(name=a["name"])
+    log(omni_i18n._("apps_downloading").format(name=a["name"], version=tag))
     os.makedirs(base, exist_ok=True)
     tmp = tempfile.mkdtemp(dir=base, prefix=".app-")
     try:
@@ -109,7 +110,7 @@ def install(app, log=lambda m: None, base=DIR):
             zf.extractall(x)
         src_sh = os.path.join(x, a.get("zip_sh", a["sh"]))
         if not os.path.isfile(src_sh) or not os.path.isdir(os.path.join(x, a["dir"])):
-            raise RuntimeError("zip diferente do esperado")
+            raise RuntimeError(omni_i18n._("apps_unexpected_archive"))
         for k in a["keep"]:            # login, pareamento e ajustes continuam
             old = os.path.join(game, k)
             if os.path.exists(old):
@@ -128,7 +129,7 @@ def install(app, log=lambda m: None, base=DIR):
             f.write(tag)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
-    return f"{a['name']} instalado."
+    return omni_i18n._("apps_installed").format(name=a["name"])
 
 
 if __name__ == "__main__":

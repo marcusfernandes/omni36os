@@ -18,6 +18,7 @@ Repositório público: https://github.com/mpjsilva/omni36os (GPL-3.0). Autor dos
 | `~/Apps/Omni36OS/omni36os` | **O repositório.** Launcher, gerador da imagem, testes, docs |
 | `~/Apps/Omni36OS/cartao/{BOOT,ROOTFS,EASYROMS}` | Cópia do cartão do console. Arquivos de sistema (fora do launcher) são editados **aqui** (ROOTFS é do root: `SUDO_ASKPASS=/usr/bin/ksshaskpass sudo -A`) |
 | `~/Apps/Omni36OS/scripts/cartao.sh` | `cartao.sh launcher` copia o launcher do repositório para a cópia do cartão; `cartao.sh enviar` grava a diferença no SD (só quando pedido) |
+| Servidor macaco | Projeto centralizado em `/srv/IA/jamerson/apps/Omni/Omni36OS`. A cópia do cartão ali não tem dono root nem setuid: `cartao.sh launcher` funciona, `conferir/enviar/puxar` recusam |
 | `~/Apps/Omni36OS/dArkOSen_R36_10312026.img` | Imagem original do dArkOSen 10312026: base da imagem do Omni36OS (nunca é alterada). A 10152026 fica até a primeira imagem nova ser validada |
 | `~/Apps/Omni36OS/runtimes` | Runtimes do PortMaster que entram na imagem (~1,3 GB). Lista em `port/omni36os/runtimes.txt`; o `gerar-imagem.sh` põe a pasta em dia |
 | `~/Apps/Omni36OS/telas` | Gerador das telas de boot/boas-vindas/desligar (`telas/out` entra na imagem) |
@@ -127,6 +128,7 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
 - HUD (FPS/captura/limite) tem duas versões, as duas no LD_PRELOAD: `hud/omni_hud.so` (aarch64) e `hud/omni_hud32.so`
   (armhf: Asphalt e outros jogos 32 bits). armhf: `podman run --rm -v "$PWD":/w:Z debian:trixie` + `gcc-arm-linux-gnueabihf`,
   `arm-linux-gnueabihf-gcc -O2 -fPIC -shared -nostdlib -o omni_hud32.so omni_hud.c` (sem esse gcc: no próprio console, `clang-19 --target=arm-linux-gnueabihf -march=armv7-a -mfloat-abi=hard -O2 -fPIC -shared -nostdlib -fno-builtin -fuse-ld=lld`). "CAPTURA SALVA" aparece embaixo, no centro.
+- `hud/omni_scaler.c` é atualmente somente hook EGL de validação/passthrough, não um scaler de resolução nem geração de frames. A biblioteca só entra nos ports se `OMNI_SCALING=1` e `OMNI_SCALING_MODE=validate`; o teste local é `hud/run-scaler-local.sh`. Não habilitar em imagem de produção até haver integração FBO no renderer e testes de pixels/estado GL. lsfg-vk serviu apenas como referência arquitetural; não incorporar seu código (licença CC BY-NC-ND).
 - "Limite do processador" em Automático (`/etc/omni36os/cpu_auto`, valor 0 no seletor): `omni_cpuauto.py` roda no
   laço do `omni_atalho.py` e mexe no `scaling_max_freq` (no jogo o governador é performance). Alvo = limite de FPS (FN + B)
   ou 60; FPS lido de `/dev/shm/omni36os-fps`, que o HUD reescreve a cada 0,5 s (arquivo parado = sem jogo → teto).

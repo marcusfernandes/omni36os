@@ -13,10 +13,11 @@ import hashlib
 import json
 import math
 import os
+import omni_i18n
 import struct
 import threading
 
-ROOTS = [("/roms/musicas", "Cartão 1"), ("/roms2/musicas", "Cartão 2")]
+ROOTS = [("/roms/musicas", "tx_card1"), ("/roms2/musicas", "tx_card2")]
 INDEX = os.environ.get("OMNI_MUSICA_INDEX") or "/home/ark/.config/omni36os/musicas.json"
 EXT = (".mp3", ".ogg", ".flac", ".wav")
 COVERS = os.path.join(os.path.dirname(INDEX), "capas")     # capas tiradas das tags (uma por imagem)
@@ -31,7 +32,8 @@ def roots():
     """[(pasta, nome)] das pastas de música que existem agora. A do cartão 1 é criada se faltar,
     para o jogador saber onde pôr as músicas."""
     out = []
-    for path, name in ROOTS:
+    for path, key in ROOTS:
+        name = omni_i18n._(key)
         base = os.path.dirname(path)
         if not os.path.isdir(path) and path.startswith("/roms/") and os.path.isdir(base):
             try:
@@ -293,12 +295,12 @@ class Player:
             self.m = _lib()
             self.sdl.SDL_InitSubSystem(INIT_AUDIO)
             if self.m.Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 2048) != 0:
-                self.error = "Não consegui abrir a saída de som."
+                self.error = omni_i18n._("music_audio_output_error")
                 return False
             self.m.Mix_SetPostMix(self._hook, None)
             self.ok = True
         except OSError:
-            self.error = "Falta a biblioteca de som (SDL2_mixer)."
+            self.error = omni_i18n._("music_library_missing")
         return self.ok
 
     def close(self):
@@ -327,7 +329,7 @@ class Player:
                 self.m.Mix_FreeMusic(self.mus)
                 self.mus = None
             self.i = (self.i + 1) % len(self.list)
-        self.error = "Nenhuma música desta lista abriu."
+        self.error = omni_i18n._("music_all_tracks_failed")
         return False
 
     def stop(self):

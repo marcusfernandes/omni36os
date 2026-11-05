@@ -14,6 +14,8 @@ import subprocess
 import sys
 import time
 
+import omni_i18n
+
 DT = "/proc/device-tree"
 DSI = "dsi@ff450000"
 CATALOG = "/boot/dtb"
@@ -223,18 +225,19 @@ def catalog_panels():
 
 
 def detect_hardware_and_screen(_args=None):
+    tr = omni_i18n._
     live = live_panel()
     if not live:
-        return f"Aparelho: {read_text(DT + '/model')}\nPainel: nó não encontrado no device tree."
+        return f"{tr('ui_hardware_device')}: {read_text(DT + '/model')}\n{tr('ui_hardware_panel')}: {tr('ui_hardware_node_missing')}"
 
     lines = [
-        f"Aparelho: {live['model']}",
-        f"Controlador: {live['compatible']}",
-        f"Assinatura da tela: {live['hash'][:16]}",
+        f"{tr('ui_hardware_device')}: {live['model']}",
+        f"{tr('ui_hardware_controller')}: {live['compatible']}",
+        f"{tr('ui_hardware_screen_signature')}: {live['hash'][:16]}",
         "",
     ]
     if not os.path.isdir(CATALOG):
-        lines.append("Catálogo de DTBs não encontrado (/boot/dtb).")
+        lines.append(tr('ui_hardware_catalog_missing'))
         return "\n".join(lines)
 
     entries = list(catalog_panels())
@@ -245,21 +248,21 @@ def detect_hardware_and_screen(_args=None):
     same = [e for e in same_screen if e not in exact and e not in prefix]
 
     if exact:
-        lines.append("No SELECT MODEL, use uma destas pastas:")
+        lines.append(tr("ui_hardware_select_model_exact"))
         lines += [f"  {e['folder']}" for e in exact]
     elif prefix:
-        lines.append("No SELECT MODEL, qualquer uma destas pastas serve")
-        lines.append("(mesmo modelo e mesma tela):")
+        lines.append(tr("ui_hardware_select_model_prefix"))
+        lines.append(tr("ui_hardware_same_model_screen"))
         lines += [f"  {e['folder']}" for e in prefix]
     elif same:
-        lines.append("Modelo não listado, mas a tela é igual à de:")
+        lines.append(tr("ui_hardware_model_unlisted"))
         lines += [f"  {e['folder']}" for e in same]
     else:
-        lines.append("DTB personalizado: faça backup de /boot antes de atualizar.")
+        lines.append(tr("ui_hardware_custom_dtb"))
 
     if is_clone(live.get("model", ""), exact or prefix or same):
-        lines += ["", "Atenção: clones/soysauce são marcados como NÃO SUPORTADOS pelo Omni36OS."]
-    lines += ["", "Antes de trocar o DTB, copie a partição BOOT inteira para o PC."]
+        lines += ["", tr("ui_hardware_clone_warning")]
+    lines += ["", tr("ui_hardware_backup_boot")]
     return "\n".join(lines)
 
 
@@ -288,19 +291,19 @@ def check_microsd_info(_args=None):
         sectors = int(read_text(f"/sys/block/{blk}/size", "0"))
         lines += [
             f"{blk}:",
-            f"  Fabricante: {SD_VENDORS.get(manfid, f'não identificado (0x{manfid:02x})')}",
-            f"  Nome: {read_text(dev + '/name')}  Fabricado: {read_text(dev + '/date')}",
-            f"  Tamanho: {sectors * 512 / 1e9:.1f} GB",
-            f"  Montado em: {', '.join(mounts.get(blk, ['-']))}",
+            omni_i18n._("tx_sd_maker").format(maker=SD_VENDORS.get(manfid, omni_i18n._("tx_sd_unknown").format(id=manfid))),
+            omni_i18n._("tx_sd_name").format(name=read_text(dev + '/name'), date=read_text(dev + '/date')),
+            omni_i18n._("tx_sd_size").format(size=sectors * 512 / 1e9),
+            omni_i18n._("tx_sd_mounted").format(where=', '.join(mounts.get(blk, ['-']))),
         ]
-    return "\n".join(lines) or "Nenhum cartão encontrado."
+    return "\n".join(lines) or omni_i18n._("tx_no_card")
 
 
 def test_microsd_speed(args):
     """Grava e lê 64 MB no ponto de montagem informado (nunca em /tmp, que é RAM)."""
     target = args.get("path", "/roms")
     if not any(target in m for m in mmc_mounts().values()):
-        return f"{target} não é uma partição de cartão SD."
+        return omni_i18n._("tx_not_sd").format(target=target)
     test_file = os.path.join(target, ".omni_speedtest.bin")
     size_mb = 64
     block = os.urandom(1024 * 1024)
@@ -320,19 +323,15 @@ def test_microsd_speed(args):
                 pass
         read_s = time.monotonic() - start
     except OSError as e:
-        return f"Falha no teste: {e}"
+        return omni_i18n._("tx_test_fail").format(error=e)
     finally:
         if os.path.exists(test_file):
             os.remove(test_file)
 
     write_mbs, read_mbs = size_mb / write_s, size_mb / read_s
-    verdict = "OK" if write_mbs >= 10 else "lento: jogos podem travar ao carregar"
-    return (
-        f"Cartão em {target} ({size_mb} MB):\n"
-        f"  Escrita: {write_mbs:.1f} MB/s\n"
-        f"  Leitura: {read_mbs:.1f} MB/s\n"
-        f"  Avaliação: {verdict}"
-    )
+    verdict = "OK" if write_mbs >= 10 else omni_i18n._("tx_slow_card")
+    return omni_i18n._("tx_speed_report").format(
+        target=target, size=size_mb, w=write_mbs, r=read_mbs, verdict=verdict)
 
 
 # --- Sistema ---
@@ -343,14 +342,10 @@ def get_system_status(_args=None):
     bright = int(read_text(f"{BACKLIGHT}/brightness", "0"))
     maxb = int(read_text(f"{BACKLIGHT}/max_brightness", "1")) or 1
     freq = read_text(f"{CPUFREQ}/scaling_cur_freq", "0")
-    return (
-        f"Bateria: {read_text('/sys/class/power_supply/battery/capacity')}% "
-        f"({read_text('/sys/class/power_supply/battery/status')})\n"
-        f"Temperatura CPU: {temp_c}\n"
-        f"CPU: {int(freq) // 1000} MHz, governador {read_text(CPUFREQ + '/scaling_governor')}\n"
-        f"Brilho: {round(bright * 100 / maxb)}%\n"
-        f"Volume: {get_volume()}%"
-    )
+    return omni_i18n._("tx_status").format(
+        pct=read_text('/sys/class/power_supply/battery/capacity'), state=read_text('/sys/class/power_supply/battery/status'),
+        temp=temp_c, mhz=int(freq) // 1000, gov=read_text(CPUFREQ + '/scaling_governor'),
+        bright=round(bright * 100 / maxb), vol=get_volume())
 
 
 def get_brightness(_args=None):
@@ -362,7 +357,7 @@ def set_screen_brightness(args):
     pct = clamp_pct(args["value"])
     maxb = int(read_text(f"{BACKLIGHT}/max_brightness", "160"))
     write_text(f"{BACKLIGHT}/brightness", max(1, round(pct / 100 * maxb)))
-    return f"Brilho: {pct}%"
+    return omni_i18n._("tx_brightness").format(pct=pct)
 
 
 def amixer(*args):
@@ -472,11 +467,11 @@ def migrate_cpu_settings():
 def set_preferred_governor(args):
     name = args["governor"]
     if name not in get_cpu_governors():
-        return f"Governador indisponível. Opções: {', '.join(get_cpu_governors())}"
+        return omni_i18n._("tx_gov_unavailable").format(options=', '.join(get_cpu_governors()))
     write_conf(CPU_CONF, GOV=name)
     if not patch_perfnorm():
-        return f"Modo {name} salvo para o boot, mas o perfnorm deste sistema é diferente."
-    return f"Processador: {name} ao voltar para o menu"
+        return omni_i18n._("tx_mode_saved").format(name=name)
+    return omni_i18n._("tx_cpu_on_return").format(name=name)
 
 
 def relax_clocks(_args=None):
@@ -530,7 +525,7 @@ def lock_oc(_args=None):
         set_cpu_max({"mhz": CPU_SAFE_MHZ})
     if not gpu_auto():
         set_gpu_max({"mhz": GPU_SAFE_MHZ})
-    return "Overclock bloqueado: processador até 1296 MHz e GPU até 520 MHz."
+    return omni_i18n._("tx_oc_locked_limits")
 
 
 def apply_limits(_args=None):
@@ -588,20 +583,20 @@ def set_cpu_max(args):
         os.makedirs(os.path.dirname(CPU_AUTO_FLAG), exist_ok=True)
         write_text(CPU_AUTO_FLAG, "1\n")
         write_text(f"{CPUFREQ}/scaling_max_freq", auto_ceiling() * 1000)
-        return "Processador automático: sobe só o necessário para o jogo chegar no FPS"
+        return omni_i18n._("tx_cpu_auto")
     if mhz > CPU_SAFE_MHZ and not oc_unlocked():
-        return "Overclock bloqueado: desbloqueie em Desempenho."
+        return omni_i18n._("tx_oc_locked")
     if mhz not in cpu_freqs():
-        return f"Frequência indisponível: {mhz} MHz."
+        return omni_i18n._("tx_freq_unavailable").format(mhz=mhz)
     if mhz > CPU_SAFE_MHZ and temp_c() >= OC_MAX_TEMP:
-        return f"Está quente ({temp_c()} °C): o overclock só é liberado abaixo de {OC_MAX_TEMP} °C."
+        return omni_i18n._("tx_too_hot").format(temp=temp_c(), limit=OC_MAX_TEMP)
     try:
         os.remove(CPU_AUTO_FLAG)
     except FileNotFoundError:
         pass
     write_conf(CPU_CONF, FREQ=mhz * 1000)
     write_text(f"{CPUFREQ}/scaling_max_freq", mhz * 1000)
-    return f"Processador até {mhz} MHz" + (" (overclock)" if mhz > CPU_SAFE_MHZ else "")
+    return omni_i18n._("tx_cpu_upto").format(mhz=mhz) + (" (overclock)" if mhz > CPU_SAFE_MHZ else "")
 
 
 def gpu_freqs(_args=None):
@@ -650,20 +645,20 @@ def set_gpu_max(args):
         os.makedirs(os.path.dirname(GPU_AUTO_FLAG), exist_ok=True)
         write_text(GPU_AUTO_FLAG, "1\n")
         write_text(f"{GPU_DEV}/max_freq", gpu_auto_ceiling() * 1000000)
-        return "GPU automática: sobe só o necessário para o jogo chegar no FPS"
+        return omni_i18n._("tx_gpu_auto")
     if mhz > GPU_SAFE_MHZ and not oc_unlocked():
-        return "Overclock bloqueado: desbloqueie em Desempenho."
+        return omni_i18n._("tx_oc_locked")
     if mhz not in gpu_freqs():
-        return f"Frequência indisponível: {mhz} MHz."
+        return omni_i18n._("tx_freq_unavailable").format(mhz=mhz)
     if mhz > GPU_SAFE_MHZ and temp_c() >= OC_MAX_TEMP:
-        return f"Está quente ({temp_c()} °C): o overclock só é liberado abaixo de {OC_MAX_TEMP} °C."
+        return omni_i18n._("tx_too_hot").format(temp=temp_c(), limit=OC_MAX_TEMP)
     try:
         os.remove(GPU_AUTO_FLAG)
     except FileNotFoundError:
         pass
     write_conf(GPU_CONF, FREQ=mhz * 1000000)
     write_text(f"{GPU_DEV}/max_freq", mhz * 1000000)
-    return f"GPU até {mhz} MHz" + (" (overclock)" if mhz > GPU_SAFE_MHZ else "")
+    return omni_i18n._("tx_gpu_upto").format(mhz=mhz) + (" (overclock)" if mhz > GPU_SAFE_MHZ else "")
 
 
 def zram_facts(_args=None):
@@ -677,9 +672,8 @@ def zram_facts(_args=None):
 
 # Falhas conhecidas: o que significam e se o Omni36OS sabe consertar.
 KNOWN_FAILS = {
-    "dmc-governor.service": ("O ajuste de frequência da RAM falha no boot (configuração vazia).", "fix_dmc"),
-    "systemd-remount-fs.service": ("Falha conhecida e inofensiva do Omni36OS: o sistema já monta o "
-                                   "cartão certo no boot.", None),
+    "dmc-governor.service": ("tx_fail_dmc", "fix_dmc"),
+    "systemd-remount-fs.service": ("tx_fail_remount", None),
 }
 
 
@@ -691,13 +685,13 @@ def failed_services(_args=None):
 def fix_dmc(_args=None):
     freqs = sorted(int(f) for f in read_text("/sys/class/devfreq/dmc/available_frequencies", "").split())
     if not freqs:
-        return "Este aparelho não expõe a frequência da RAM."
+        return omni_i18n._("tx_no_ram_freq")
     write_conf(DMC_CONF, FREQ=freqs[-1])
     subprocess.run(["systemctl", "reset-failed", "dmc-governor.service"], capture_output=True)
     r = subprocess.run(["systemctl", "restart", "dmc-governor.service"], capture_output=True, text=True)
     if r.returncode:
-        return "Não consegui consertar: " + (r.stderr.strip() or "o serviço falhou de novo.")
-    return f"RAM: frequência máxima {freqs[-1] // 1000000} MHz, serviço consertado"
+        return omni_i18n._("tx_fix_failed").format(error=r.stderr.strip() or omni_i18n._("tx_service_failed_again"))
+    return omni_i18n._("tx_ram_fixed").format(mhz=freqs[-1] // 1000000)
 
 
 # --- Espaço e limpeza ---
@@ -741,7 +735,7 @@ def clean_mac_junk(_args=None):
             except OSError:
                 pass
     os.sync()
-    return f"{len(junk)} arquivo(s) do Mac removido(s)" if junk else "Nenhum lixo do Mac encontrado"
+    return omni_i18n._("tx_mac_removed").format(count=len(junk)) if junk else omni_i18n._("tx_mac_none")
 
 
 # --- Verificação de cartão (roda no boot, com o cartão desmontado) ---
@@ -756,7 +750,7 @@ def schedule_scan(args):
     # sem segundo cartão, os jogos ficam na partição /roms do cartão do sistema
     src, _log, _ = SCANS[args.get("part") or ("roms2" if os.path.ismount("/roms2") else "roms")]
     if not os.path.exists(src):
-        return "Este sistema não tem o verificador de cartão do Omni36OS."
+        return omni_i18n._("tx_no_checker")
     # Sem o "umount -l" do original: desmontar "preguiçoso" deixa a partição em uso, e o fsck -y
     # numa partição em uso pode estragar o cartão. Se não desmontar, o script não repara (só registra).
     with open(src) as f:
@@ -765,7 +759,7 @@ def schedule_scan(args):
     os.chmod("/boot/recovery.sh", 0o755)
     os.sync()
     subprocess.Popen(["sh", "-c", "sleep 2; reboot"])
-    return "Reiniciando para verificar o cartão..."
+    return omni_i18n._("tx_rebooting_check")
 
 
 def last_scan(_args=None):
@@ -815,7 +809,7 @@ def set_led(args):
     color = args["color"]
     suf = {"vermelho": "red", "verde": "green"}[color]
     if not os.path.exists(f"{LED_FIX}.{suf}"):
-        return "Este sistema não tem a troca de cor do LED."
+        return omni_i18n._("tx_no_led")
     if not os.path.exists("/sys/class/gpio/gpio77"):
         write_text("/sys/class/gpio/export", "77")
         write_text("/sys/class/gpio/gpio77/direction", "out")
@@ -905,7 +899,7 @@ def card2_state():
 def card2_eject(_args=None):
     """Cartões > Ejetar cartão 2: grava o que falta e desmonta, para tirar sem desligar."""
     if not os.path.ismount("/roms2"):
-        return "O cartão 2 já está desmontado."
+        return omni_i18n._("tx_card2_unmounted")
     os.sync()
     # só o que vem do cartão 2: o /opt/system/Tools (PortMaster) é bind de /roms/tools, do cartão 1, e fica
     with open("/proc/mounts") as f:
@@ -923,25 +917,25 @@ def card2_eject(_args=None):
     if r.returncode:
         busy = subprocess.run(["fuser", "-m", "/roms2"], capture_output=True, text=True).stdout.split()
         names = sorted({os.path.basename(cmdline_of(p)) for p in busy if cmdline_of(p)})[:3]
-        return "Erro: o cartão 2 está em uso" + (f" ({', '.join(names)})" if names else "") + ". Feche e tente de novo."
+        return omni_i18n._("tx_card2_busy").format(names=f" ({', '.join(names)})" if names else "")
     tools_back()
     os.sync()
     try:
         write_text(CARD2_MARK, "ejetado")
     except OSError:
         pass
-    return "Cartão 2 ejetado. Pode tirar."
+    return omni_i18n._("tx_card2_ejected")
 
 
 def card2_mount(_args=None):
     """Cartões > Montar cartão 2: monta em /roms2 (mesmas opções do launch-direct.sh)."""
     if os.path.ismount("/roms2"):
-        return "O cartão 2 já está montado."
+        return omni_i18n._("tx_card2_mounted_already")
     if not os.path.exists(CARD2):
-        return "Erro: nenhum cartão 2 no console."
+        return omni_i18n._("tx_card2_none")
     fs = subprocess.run(["lsblk", "-no", "FSTYPE", CARD2], capture_output=True, text=True).stdout.strip()
     if not fs:
-        return "Erro: o cartão 2 não tem uma partição que o sistema reconheça."
+        return omni_i18n._("tx_card2_nopart")
     os.makedirs("/roms2", exist_ok=True)
     if fs == "ext4":
         cmd = ["mount", "-t", "ext4", "-o", "noatime", CARD2, "/roms2"]
@@ -950,9 +944,9 @@ def card2_mount(_args=None):
                "umask=0000,iocharset=utf8,uid=1000,gid=1000,noatime", CARD2, "/roms2"]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode:
-        return f"Erro ao montar: {(r.stderr or '').strip()[:80]}"
+        return omni_i18n._("tx_mount_error").format(error=(r.stderr or '').strip()[:80])
     tools_back()
-    return "Cartão 2 montado."
+    return omni_i18n._("tx_card2_mounted")
 
 
 def tools_back():
@@ -980,14 +974,14 @@ def game_roots():
 def set_game_source(args):
     v = args.get("source")
     if v not in GAME_SOURCES:
-        return "Opção inválida."
+        return omni_i18n._("tx_bad_option")
     write_text(GAME_SOURCE, v + "\n")
     try:
         os.chown(GAME_SOURCE, 1000, 1000)
     except OSError:
         pass
     if v != "roms" and not os.path.ismount("/roms2"):
-        return "Salvo, mas o segundo cartão (ROMS2) não está montado: por enquanto só /roms."
+        return omni_i18n._("tx_saved_no_roms2")
     return "ok"
 
 
@@ -1000,7 +994,7 @@ def port_groups(_args=None):
             continue
         ports = sorted((p for p in glob.glob(f"{d}/*.sh") + glob.glob(f"{d}/*.SH")
                         if os.path.basename(p) != "Omni36OS.sh"), key=lambda p: os.path.basename(p).lower())
-        card = "cartão de jogos" if root == "/roms2" else "cartão do sistema"
+        card = omni_i18n._("tx_games_card") if root == "/roms2" else omni_i18n._("tx_system_card_l")
         if ports:
             out.append({"dir": d, "label": f"{d} ({card})", "es": True, "ports": ports})
     return out
@@ -1032,10 +1026,10 @@ def port_acks(_args=None):
 def clear_port_alerts(_args=None):
     fails = [f"{n}|{r[1]}" for n, r in port_results().items() if r[0] == "falhou"]
     if not fails:
-        return "Nenhum aviso de falha para limpar"
+        return omni_i18n._("tx_no_fail_notice")
     os.makedirs(os.path.dirname(PORT_ACKS), exist_ok=True)
     write_text(PORT_ACKS, "\n".join(sorted(set(fails))) + "\n")
-    return f"{len(fails)} aviso(s) limpo(s); os resultados continuam na lista"
+    return omni_i18n._("tx_notices_cleared").format(count=len(fails))
 
 
 def last_test(_args=None):
@@ -1051,7 +1045,7 @@ def last_test(_args=None):
 def test_port(args):
     path = args["path"]
     if path not in list_ports():
-        return "Port não encontrado."
+        return omni_i18n._("tx_port_not_found")
     write_text(HANDOFF, "test:" + path)
     return "ok"
 
@@ -1087,7 +1081,7 @@ def set_atalho(args):
     """Guarda uma escolha de Sistema > Atalhos e avisa o serviço (ele relê na hora)."""
     c = get_atalhos()
     if args["key"] not in c:
-        return "Atalho inválido."
+        return omni_i18n._("tx_bad_hotkey")
     c[args["key"]] = args["value"]
     save_file(ATALHOS_CONF, json.dumps(c))
     if read_text(HOTKEY_UNIT, "") != HOTKEY_UNIT_TEXT:      # unidade antiga (do tempo do ES) ou faltando
@@ -1097,7 +1091,7 @@ def set_atalho(args):
         _systemctl("restart", "omni36os-atalho.service")
     else:
         _systemctl("kill", "-s", "HUP", "omni36os-atalho.service")
-    return "Atalhos atualizados"
+    return omni_i18n._("tx_hotkeys_updated")
 
 
 def power(args):
@@ -1106,7 +1100,7 @@ def power(args):
     systemd, porque parar o ES (o hub) fecha o Omni36OS junto."""
     what = args["what"]
     if what not in ("reboot", "poweroff", "suspend"):
-        return "Opção inválida."
+        return omni_i18n._("tx_bad_option")
     os.sync()
     if what == "suspend":
         subprocess.Popen(["systemctl", "suspend"])
@@ -1155,21 +1149,21 @@ def get_power_button(_args=None):
 def set_power_button(args):
     mode = args["mode"]
     if mode not in POWER_NAMES:
-        return "Modo inválido."
+        return omni_i18n._("tx_bad_mode")
     _unwrap(FINISH, FINISH_ORIG)
     cur = read_text(PAUSE, "")
     if mode == "menu":
         if POWER_MARK not in cur:
             if not cur.startswith("#!"):
-                return "Não achei o pause.sh do Omni36OS: o botão de power fica como está."
+                return omni_i18n._("tx_no_pause")
             shutil.copy2(PAUSE, PAUSE_ORIG)
         if cur != POWER_WRAP:                # também quando o Omni36OS muda de pasta
             write_text(PAUSE + ".tmp", POWER_WRAP)
             os.chmod(PAUSE + ".tmp", 0o755)
             os.replace(PAUSE + ".tmp", PAUSE)
-        return "Power: menu de energia. FN + power: pânico"
+        return omni_i18n._("tx_power_menu")
     _unwrap(PAUSE, PAUSE_ORIG)
-    return "Power: como no Omni36OS"
+    return omni_i18n._("tx_power_omni")
 
 
 # --- Troca de botões (Controles) ---
@@ -1193,9 +1187,9 @@ def set_swap_ab(args):
     on = bool(args["on"])
     if on != get_swap_ab():
         if not os.path.exists(B_SWAP):
-            return "Este sistema não tem a troca de A e B."
+            return omni_i18n._("tx_no_ab")
         subprocess.run(["bash", B_SWAP], capture_output=True, timeout=30)
-    return "A e B trocados" if get_swap_ab() else "A e B no padrão"
+    return omni_i18n._("tx_ab_swapped") if get_swap_ab() else omni_i18n._("tx_ab_default")
 
 
 def get_swap_xy(_args=None):
@@ -1231,7 +1225,7 @@ def set_swap_xy(args):
         write_text(XY_FLAG, "1\n")
     elif os.path.exists(XY_FLAG):
         os.remove(XY_FLAG)
-    return "X e Y trocados" if on else "X e Y no padrão"
+    return omni_i18n._("tx_xy_swapped") if on else omni_i18n._("tx_xy_default")
 
 
 def ensure_swap_xy(_args=None):
@@ -1252,7 +1246,7 @@ def ensure_default_buttons(_args=None):
     if get_swap_xy():
         out.append(set_swap_xy({"on": False}))
     os.remove(BUTTONS_FIRST_FLAG)
-    return "; ".join(out) or "já no padrão"
+    return "; ".join(out) or omni_i18n._("tx_already_default")
 
 
 # --- Conflitos com outros scripts ---
@@ -1271,9 +1265,9 @@ HANDOFF = "/tmp/omni36os-next"
 def set_cpu_governor(args):
     name = args["governor"]
     if name not in get_cpu_governors():
-        return f"Governador indisponível. Opções: {', '.join(get_cpu_governors())}"
+        return omni_i18n._("tx_gov_unavailable").format(options=', '.join(get_cpu_governors()))
     write_text(f"{CPUFREQ}/scaling_governor", name)
-    return f"Governador: {name}"
+    return omni_i18n._("tx_governor").format(name=name)
 
 
 # --- Restaurações ---
@@ -1295,12 +1289,12 @@ def restore_audio(_args=None):
     if os.path.exists(backup):
         shutil.copy(backup, f"{HOME}/.asoundrc")
         os.chown(f"{HOME}/.asoundrc", 1000, 1000)
-        lines.append(".asoundrc restaurado do backup do sistema")
+        lines.append(omni_i18n._("tx_asound_restored"))
     import omni_audio
     route = omni_audio.expected_path() or device_alsa_path()   # automático: fone ou alto-falante
     amixer("-q", "cset", "name=Playback Path", route)
     amixer("-q", "sset", "Playback", "40%")
-    lines += [f"Saída de áudio: {route}", "Volume: 40%"]
+    lines += [omni_i18n._("tx_audio_out").format(route=route), "Volume: 40%"]
     return "\n".join(lines)
 
 
@@ -1379,7 +1373,7 @@ def dtb_retest(_args=None):
     (o omni36os-painel.service roda o teste no boot seguinte) e reinicia."""
     if not os.path.exists("/etc/systemd/system/omni36os-painel.service") and \
             not os.path.exists("/lib/systemd/system/omni36os-painel.service"):
-        return "Erro: o teste de tela não está instalado nesta imagem. Use L1 + R1 ao ligar."
+        return omni_i18n._("tx_no_screen_test")
     d = "/boot/omni36os-tela"
     os.makedirs(d, exist_ok=True)
     busca_screen(d)
@@ -1393,7 +1387,7 @@ def dtb_retest(_args=None):
                       "sh", "-c", f"sleep 1; systemctl stop omni36os-launcher; "
                                   f"dd if={d}/busca.raw of=/dev/fb0 bs=2560 conv=notrunc 2>/dev/null; "
                                   "sleep 2; systemctl reboot"])
-    return "Reiniciando no modo de busca de DTB..."
+    return omni_i18n._("tx_rebooting_dtb")
 
 
 def busca_screen(d):
@@ -1444,7 +1438,7 @@ def launch_port_direct(args):
     ports = {p["path"]: p for p in mod.find_ports()}
     port_path = args.get("path", "")
     if port_path not in ports:
-        return False, f"Port não encontrado: {port_path}"
+        return False, omni_i18n._("tx_port_not_found_path").format(path=port_path)
     return mod.launch_port(ports[port_path])
 
 
@@ -1493,11 +1487,11 @@ TOOLS = {
 def run_tool(call):
     tool = TOOLS.get(call.get("tool"))
     if not tool:
-        return "Comando não reconhecido."
+        return omni_i18n._("tx_bad_command")
     try:
         result = tool(call.get("args", {}))
     except (KeyError, ValueError, OSError) as e:
-        return f"Erro: {e}"
+        return omni_i18n._("ui_error_prefix").format(error=e)
     return " ".join(result) if isinstance(result, list) else str(result)
 
 

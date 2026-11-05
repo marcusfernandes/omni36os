@@ -20,6 +20,7 @@ import subprocess
 import time
 
 import omni
+import omni_i18n
 
 
 def sh(*cmd, timeout=30, inp=None):
@@ -52,7 +53,7 @@ def ensure_alias():
     rc, out = sh("useradd", "-o", "-u", "1000", "-g", "1000", "-M", "-d", "/home/ark", "-s", "/bin/bash",
                  "-c", "Omni36OS (apelido do ark)", ALIAS)
     if rc:
-        return f"Erro: {out or 'useradd falhou'}"
+        return omni_i18n._("ui_error_prefix").format(error=out or "useradd failed")
     sh("chpasswd", inp=f"{ALIAS}:{ALIAS}\n")
     if has("smbpasswd"):
         sh("smbpasswd", "-s", "-a", ALIAS, inp=f"{ALIAS}\n{ALIAS}\n")
@@ -62,30 +63,30 @@ def ensure_alias():
 def change_password(new):
     """Troca a senha do usuário (omni e ark: SSH, console) e a do Samba, se existir."""
     if len(new) < 3:
-        return "A senha precisa de pelo menos 3 letras."
+        return omni_i18n._("msg_password_short")
     rc, out = sh("chpasswd", inp=f"ark:{new}\n")
     if rc:
-        return f"Erro: {out or 'chpasswd falhou'}"
+        return omni_i18n._("msg_password_error").format(error=out or "chpasswd failed")
     if sh("id", "-u", ALIAS)[0] == 0:
         sh("chpasswd", inp=f"{ALIAS}:{new}\n")
     if has("smbpasswd"):
         for u in ("ark", ALIAS):
             sh("smbpasswd", "-s", "-a", u, inp=f"{new}\n{new}\n")
-    return "Senha trocada. Vale para SSH, Samba e SFTP."
+    return omni_i18n._("msg_password_changed")
 
 
 def samba_password(new):
     """Só a senha do Samba (compartilhamento de pastas); a do SSH não muda."""
     if not has("smbpasswd"):
-        return "O Samba não está instalado neste sistema."
+        return omni_i18n._("msg_samba_not_installed")
     if len(new) < 3:
-        return "A senha precisa de pelo menos 3 letras."
+        return omni_i18n._("msg_password_short")
     rc, out = sh("smbpasswd", "-s", "-a", "ark", inp=f"{new}\n{new}\n")
     if rc:
-        return f"Erro: {out or 'smbpasswd falhou'}"
+        return omni_i18n._("msg_password_error").format(error=out or "smbpasswd failed")
     sh("smbpasswd", "-e", "ark")
     sh("smbpasswd", "-s", "-a", ALIAS, inp=f"{new}\n{new}\n")
-    return f"Senha do Samba redefinida (usuário {ALIAS})."
+    return omni_i18n._("msg_samba_password_changed").format(alias=ALIAS)
 
 
 # --- Wi-Fi (Rede) ---
@@ -124,14 +125,14 @@ def wifi_set(on):
     if not on:
         sh("nmcli", "radio", "wifi", "off")
         sh("rfkill", "block", "wifi")
-        return "Wi-Fi desligado."
+        return omni_i18n._("msg_wifi_off")
     sh("rfkill", "unblock", "wifi")
     if not wifi_iface() and os.path.exists(WIFI_ON):
         sh(WIFI_ON, timeout=60)
     sh("nmcli", "radio", "wifi", "on")
     if not wifi_iface():
-        return "Não achei o adaptador de Wi-Fi. Confira se ele está no USB."
-    return "Wi-Fi ligado."
+        return omni_i18n._("msg_wifi_adapter_not_found")
+    return omni_i18n._("msg_wifi_on")
 
 
 def wifi_current():
@@ -190,42 +191,41 @@ def wifi_connect(rede, senha=None):
         code, txt = sh(*cmd, timeout=45)
     if code == 0:
         ip = wifi_ip()
-        return f"Conectado a {rede}." + (f" IP: {ip}" if ip else "")
+        return omni_i18n._("msg_wifi_connected").format(rede=rede) + (f" IP: {ip}" if ip else "")
     if "Secrets were required" in txt or "802-1X" in txt or "password" in txt.lower():
         sh("nmcli", "connection", "delete", "id", rede)
-        return f"Não conectou a {rede}: senha errada."
-    return f"Não conectou a {rede}. Chegue mais perto do roteador e tente de novo."
+        return omni_i18n._("msg_wifi_wrong_password").format(rede=rede)
+    return omni_i18n._("msg_wifi_connection_failed").format(rede=rede)
 
 
 def wifi_disconnect():
     dev = wifi_iface()
-    return "Desconectado." if dev and sh("nmcli", "device", "disconnect", dev)[0] == 0 else "Não estava conectado."
+    return omni_i18n._("msg_wifi_disconnected") if dev and sh("nmcli", "device", "disconnect", dev)[0] == 0 else omni_i18n._("msg_wifi_was_not_connected")
 
 
 def wifi_forget(rede):
-    return f"{rede} esquecida." if sh("nmcli", "connection", "delete", "id", rede)[0] == 0 else \
-        f"Não achei {rede} nas redes salvas."
+    return omni_i18n._("msg_wifi_forgotten").format(rede=rede) if sh("nmcli", "connection", "delete", "id", rede)[0] == 0 else \
+        omni_i18n._("msg_wifi_not_found_saved").format(rede=rede)
 
 
 def wifi_status():
     """Achados para o painel da página Wi-Fi (atualiza sozinho)."""
     if not wifi_iface():
-        return [("info", "Nenhum adaptador de Wi-Fi encontrado. O R36S usa um adaptador USB na porta OTG; "
-                         "o modo pendrive e a rede USB usam a mesma porta.")]
+        return [("info", omni_i18n._("msg_wifi_no_adapter"))]
     if not wifi_on():
-        return [("info", "Wi-Fi desligado.")]
+        return [("info", omni_i18n._("msg_wifi_off_status"))]
     rede, sinal = wifi_current()
     if not rede:
         n = len(wifi_saved())
-        return [("info", "Wi-Fi ligado, sem conexão."),
-                ("info", f"{n} rede(s) salva(s)." if n else "Nenhuma rede salva: escolha uma em Procurar redes.")]
+        return [("info", omni_i18n._("msg_wifi_on_no_connection")),
+                ("info", omni_i18n._("msg_wifi_saved_networks").format(n=n) if n else omni_i18n._("msg_wifi_no_saved_networks"))]
     ip = wifi_ip()
-    out = [("ok", f"Conectado a {rede}, sinal {sinal}%."),
-           ("ok" if ip else "aviso", f"IP do console: {ip}" if ip else "Ainda sem IP.")]
+    out = [("ok", omni_i18n._("msg_wifi_connected_with_ip").format(rede=rede, sinal=sinal)),
+           ("ok" if ip else "aviso", omni_i18n._("msg_wifi_ip").format(ip=ip) if ip else omni_i18n._("msg_wifi_still_no_ip"))]
     if ip:
-        out.append(("info", f"No PC: ssh omni@{ip}  ·  sftp://omni@{ip}"))
+        out.append(("info", omni_i18n._("msg_wifi_pc_commands").format(ip=ip)))
     if sinal < 35:
-        out.append(("aviso", "Sinal fraco: downloads podem falhar."))
+        out.append(("aviso", omni_i18n._("msg_wifi_weak_signal")))
     return out
 
 
@@ -279,12 +279,10 @@ def lock_on():
 def lock_set(pw):
     pw = pw.strip()
     if len(pw) < 3:
-        return "A senha precisa de pelo menos 3 letras."
-    omni.save_file(LOCK_FILE, "Senha da trava do Omni36OS (pedida ao ligar o console).\n"
-                              "Para tirar a trava pelo PC, apague este arquivo.\n\n"
-                              f"senha: {pw}\n")
+        return omni_i18n._("msg_lock_short")
+    omni.save_file(LOCK_FILE, omni_i18n._("tx_lock_file").format(pw=pw))
     sh("sync")
-    return "Trava ligada. A senha também está em EASYROMS/senha/senha.txt."
+    return omni_i18n._("msg_lock_password_set")
 
 
 def lock_check(pw):
@@ -297,7 +295,7 @@ def lock_clear():
     except OSError:
         pass
     sh("sync")
-    return "Trava desligada."
+    return omni_i18n._("msg_lock_cleared")
 
 
 # --- zerar a personalização ---
@@ -322,7 +320,7 @@ def reset_custom():
         except Exception:     # um ajuste que falhe não impede o resto
             pass
     sh("sync")
-    return "Sistema zerado."
+    return omni_i18n._("msg_reset_done")
 
 
 # --- adaptador de Wi-Fi Realtek: às vezes fica preso no modo "disco" ---
@@ -353,8 +351,8 @@ def wifi_dongle_fix():
     for _ in range(20):
         time.sleep(0.5)
         if not wifi_dongle_stuck():
-            return "O adaptador de Wi-Fi demorou a acordar e foi religado."
-    return "Erro: o adaptador de Wi-Fi ficou no modo disco. Tire e ponha de novo na porta USB."
+            return omni_i18n._("tx_wifi_woke")
+    return omni_i18n._("msg_wifi_dongle_error")
 
 
 def reset_usb_controller():
@@ -436,26 +434,26 @@ def usbnet_status():
     mode, ip = usbnet_mode(), usb_ip()
     out = []
     if mode == "desligada":
-        out.append(("info", "Rede USB desligada: a porta OTG está no modo normal."))
+        out.append(("info", omni_i18n._("msg_usbnet_off")))
     else:
-        nome = {"universal": "universal (o console dá o IP ao PC)",
-                "internet": "internet pelo PC (o PC compartilha a conexão)"}[mode]
-        out.append(("ok", f"Rede USB ligada, modo {nome}."))
-        out.append(("ok" if ip else "aviso", f"IP do console: {ip}" if ip else "Ainda sem IP."))
+        nome = {"universal": omni_i18n._("msg_usbnet_on_universal"),
+                "internet": omni_i18n._("msg_usbnet_on_internet")}[mode]
+        out.append(("ok", omni_i18n._("tx_usbnet_on").format(mode=nome)))
+        out.append(("ok" if ip else "aviso", omni_i18n._("msg_wifi_ip").format(ip=ip) if ip else omni_i18n._("msg_wifi_still_no_ip")))
         if mode == "universal":
             if not _dhcp_alive():
-                out.append(("problema", "O servidor DHCP parou: o PC não vai receber IP. Ligue o modo de novo."))
+                out.append(("problema", omni_i18n._("msg_usbnet_dhcp_stopped")))
             else:
                 leases = [ln.split() for ln in omni.read_text(USBNET_LEASES, "").splitlines() if ln.strip()]
-                out.append(("ok" if leases else "info", "IP entregue ao PC: " + ", ".join(l[2] for l in leases if len(l) > 2)
-                            if leases else "Servidor DHCP ativo, esperando o PC pedir IP."))
+                out.append(("ok" if leases else "info", omni_i18n._("msg_usbnet_ip_delivered").format(ips=", ".join(l[2] for l in leases if len(l) > 2))
+                            if leases else omni_i18n._("msg_usbnet_dhcp_active")))
         if ip:
-            out.append(("info", f"No PC: ssh omni@{ip}  ·  sftp://omni@{ip}"))
+            out.append(("info", omni_i18n._("msg_wifi_pc_commands").format(ip=ip)))
             if remote_on():
-                out.append(("info", f"Web: http://{ip}  ·  Samba: smb://{ip}  (\\\\{ip} no Windows)"))
-    out.append(("info", "Serviços remotos (web e Samba): " + ("ligados." if remote_on() else "desligados.")))
+                out.append(("info", omni_i18n._("msg_usbnet_web_samba").format(ip=ip)))
+    out.append(("info", omni_i18n._("msg_usbnet_services_on") if remote_on() else omni_i18n._("msg_usbnet_services_off")))
     if pendrive_on():
-        out.append(("info", "O modo pendrive está ligado. Ligar a rede USB sai dele sozinho (o console reinicia uma vez)."))
+        out.append(("info", omni_i18n._("msg_usbnet_pendrive_warning")))
     return out
 
 
@@ -480,12 +478,12 @@ def _load_gadget():
     if os.path.exists("/sys/class/net/usb0"):
         return None
     if not glob.glob("/sys/class/udc/*"):
-        return "A porta não funciona como dispositivo USB (sem controlador UDC: o DTB a deixou só como host)."
+        return omni_i18n._("msg_usbnet_udc_missing")
     if sh("modinfo", "g_ether")[0]:
-        return "O kernel deste sistema não tem o módulo g_ether."
+        return omni_i18n._("msg_usbnet_kernel_missing")
     if _lsmod("g_ether"):
-        return "O g_ether carregou, mas o usb0 não apareceu: outro modo (pendrive?) está usando a porta."
-    return f"O modprobe falhou: {err[:160]}" if err else "Motivo desconhecido."
+        return omni_i18n._("msg_usbnet_gadget_loaded_no_usb0")
+    return omni_i18n._("msg_usbnet_modprobe_failed").format(error=err[:160]) if err else omni_i18n._("msg_usbnet_unknown_error")
 
 
 def _unmanage():
@@ -511,7 +509,7 @@ def _leave_pendrive(mode):
         f.write(mode + "\n")
     os.sync()
     omni.usb_off()
-    return "Saindo do modo pendrive: o console reinicia e liga a rede USB sozinho."
+    return omni_i18n._("msg_usbnet_leaving_pendrive")
 
 
 def usbnet_pending():
@@ -532,11 +530,11 @@ def usbnet_universal():
     if pendrive_on():
         return _leave_pendrive("universal")
     if not has("dnsmasq"):
-        return "Falta o dnsmasq no sistema: o modo universal não funciona."
+        return omni_i18n._("msg_usbnet_missing_dnsmasq")
     _kill_dhcp()
     err = _load_gadget()
     if err:
-        return "Erro: " + err
+        return omni_i18n._("msg_usbnet_gadget_error").format(error=err)
     _unmanage()
     sh("ip", "addr", "flush", "dev", "usb0")
     sh("ip", "addr", "add", f"{UNIVERSAL_IP}/24", "dev", "usb0")
@@ -555,10 +553,10 @@ def usbnet_universal():
                  f"--dhcp-leasefile={USBNET_LEASES}", "--conf-file=/dev/null")
     time.sleep(1)
     if rc or not _dhcp_alive():
-        return "Erro: o servidor DHCP não subiu. " + (err or omni.read_text(USBNET_LOG, "")[-160:]).strip()
+        return omni_i18n._("msg_usbnet_dhcp_failed").format(error=(err or omni.read_text(USBNET_LOG, "")[-160:]).strip())
     if usb_ip() != UNIVERSAL_IP:
-        return "Erro: o IP do console sumiu da usb0 (outro programa mexeu nela)."
-    return f"Modo universal ligado. Ligue o cabo no PC e use: ssh omni@{UNIVERSAL_IP}"
+        return omni_i18n._("msg_usbnet_ip_lost")
+    return omni_i18n._("msg_usbnet_universal_on").format(UNIVERSAL_IP=UNIVERSAL_IP)
 
 
 def _ask_ip():
@@ -579,7 +577,7 @@ def _ask_ip():
             if "nameserver" not in omni.read_text("/etc/resolv.conf", ""):
                 with open("/etc/resolv.conf", "a") as f:
                     f.write("nameserver 1.1.1.1\n")
-            return " (endereço fixo)"
+            return " " + omni_i18n._("msg_fixed_address")
     sh("ip", "addr", "flush", "dev", "usb0")
     return None
 
@@ -590,25 +588,25 @@ def usbnet_internet():
     _kill_dhcp()
     err = _load_gadget()
     if err:
-        return "Erro: " + err
+        return omni_i18n._("msg_usbnet_gadget_error").format(error=err)
     _unmanage()
     sh("ip", "addr", "flush", "dev", "usb0")
     sh("ip", "link", "set", "usb0", "up")
     via = _ask_ip()
     if via is None:
-        return "O PC não deu IP. Ligue o compartilhamento de internet no PC e tente de novo."
+        return omni_i18n._("msg_usbnet_no_ip_from_pc")
     sh("systemctl", "start", "ssh")
     net = sh("ping", "-c", "2", "-W", "3", "8.8.8.8", timeout=10)[0] == 0
     if net:
         sh("timedatectl", "set-ntp", "1")
-    return (f"Modo internet ligado. IP {usb_ip()}{via}. "
-            + ("Internet funcionando." if net else "Sem rota para a internet: confira o PC."))
+    return (omni_i18n._("msg_usbnet_internet_on").format(ip=usb_ip(), via=via)
+            if net else omni_i18n._("msg_usbnet_internet_on_no_net").format(ip=usb_ip(), via=via))
 
 
 def usbnet_services(on):
     if on:
         if usbnet_mode() == "desligada":
-            return "Ligue a rede USB primeiro."
+            return omni_i18n._("msg_usbnet_enable_first")
         sh("systemctl", "start", "ssh")
         sh("systemctl", "start", "smbd")
         sh("systemctl", "start", "nmbd")
@@ -617,46 +615,46 @@ def usbnet_services(on):
             subprocess.Popen(["filebrowser", "-a", "0.0.0.0", "-p", "80", "-d",
                               "/home/ark/.config/filebrowser.db", "-r", "/"],
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
-        return "Serviços remotos ligados (usuário e senha: omni)."
+        return omni_i18n._("msg_usbnet_remote_on")
     for u in ("smbd", "nmbd"):
         sh("systemctl", "stop", u)
     sh("pkill", "-x", "filebrowser")
-    return "Serviços remotos desligados (o SSH continua)."
+    return omni_i18n._("msg_usbnet_remote_off")
 
 
 def usbnet_stop():
     if usbnet_mode() == "desligada":
-        return "A rede USB já está desligada."
+        return omni_i18n._("msg_usbnet_already_off")
     usbnet_services(False)
     _kill_dhcp()
     sh("ip", "addr", "flush", "dev", "usb0")
     sh("ip", "link", "set", "usb0", "down")
     sh("rmmod", "g_ether")
-    return "Rede USB desligada: a porta OTG voltou ao normal."
+    return omni_i18n._("msg_usbnet_stopped")
 
 
 def usbnet_compat():
     """Relatório de compatibilidade (texto para o leitor)."""
-    out = ["# Módulos do kernel"]
+    out = [omni_i18n._("tx_d_mod")]
     for m in ("g_ether", "libcomposite", "usb_f_rndis", "usb_f_ecm"):
-        st = "carregado" if _lsmod(m) else ("disponível" if sh("modinfo", m)[0] == 0 else "não existe")
+        st = omni_i18n._("tx_d_loaded") if _lsmod(m) else (omni_i18n._("tx_d_avail") if sh("modinfo", m)[0] == 0 else omni_i18n._("tx_d_none"))
         out.append(f"{m}: {st}")
-    out.append("# Controlador USB (UDC)")
+    out.append(omni_i18n._("tx_d_udc"))
     udcs = glob.glob("/sys/class/udc/*")
     out += [f"{os.path.basename(u)}: {omni.read_text(u + '/state', '?').strip()}" for u in udcs] or \
-           ["Nenhum: a porta só funciona como host (precisa de outro DTB)."]
-    out.append("# dr_mode no DTB")
+           [omni_i18n._("tx_d_host")]
+    out.append(omni_i18n._("tx_d_dr"))
     seen = set()
     for f in glob.glob("/proc/device-tree/*usb*/dr_mode"):
         node = os.path.basename(os.path.dirname(f))
         if node not in seen:
             seen.add(node)
             out.append(f"{node}: {omni.read_text(f, '').strip(chr(0))}")
-    out.append("# Programas")
+    out.append(omni_i18n._("tx_d_prog"))
     for c in ("ip", "dnsmasq", "filebrowser", "smbd"):
         out.append(f"{c}: {'ok' if has(c) else 'falta'}")
     tem = [c for c in DHCP_CLIENTS if has(c)]          # o modo internet usa o primeiro que existir; basta um
-    out.append("Cliente DHCP: " + (", ".join(tem) if tem else "nenhum (o modo internet usa um endereço fixo)"))
+    out.append(omni_i18n._("tx_d_dhcp").format(list=", ".join(tem) if tem else omni_i18n._("tx_d_dhcp_none")))
     return "\n".join(out)
 
 
@@ -700,26 +698,25 @@ def cal_service_on():
 def cal_status():
     s = cal_samples()
     mv, st = bat_mv(), bat_state()
-    out = [("info", f"Bateria agora: {mv} mV, {omni.read_text(PS + '/capacity', '?').strip()}%"
-                    f" ({ {'Charging': 'carregando', 'Full': 'cheia', 'Discharging': 'descarregando'}.get(st, st.lower())})")]
+    status_map = {'Charging': omni_i18n._("msg_battery_charging"), 'Full': omni_i18n._("msg_battery_full"), 'Discharging': omni_i18n._("msg_battery_discharging")}
+    out = [("info", omni_i18n._("msg_battery_now").format(mv=mv, pct=omni.read_text(PS + '/capacity', '?').strip(), status=status_map.get(st, st.lower())))]
     if cal_running():
-        out.append(("ok", f"Calibração em andamento: {len(s)} amostras (uma por minuto). "
-                          "Jogue normalmente até o console desligar sozinho."))
+        out.append(("ok", omni_i18n._("msg_calibration_in_progress").format(samples=len(s))))
     elif s:
         mins = (int(s[-1]["timestamp"]) - int(s[0]["timestamp"])) // 60 if len(s) > 1 else 0
         lvl = "ok" if len(s) >= MIN_SAMPLES else "aviso"
-        out.append((lvl, f"Última sessão: {len(s)} amostras em {mins} min, de {s[0]['voltage_mv']} a "
-                         f"{s[-1]['voltage_mv']} mV." + ("" if lvl == "ok" else " Poucas para aplicar.")))
+        msg = omni_i18n._("msg_last_session").format(samples=len(s), mins=mins, start=s[0]['voltage_mv'], end=s[-1]['voltage_mv'])
+        if lvl != "ok":
+            msg += " " + omni_i18n._("msg_few_samples")
+        out.append((lvl, msg))
     else:
-        out.append(("info", "Nenhuma sessão gravada ainda."))
+        out.append(("info", omni_i18n._("msg_no_sessions")))
     if os.path.exists(CURVE):
         out.append(("ok" if cal_service_on() else "aviso",
-                    "Curva calibrada " + ("ATIVA: a % da bateria já usa a sua curva." if cal_service_on()
-                                          else "gravada, mas o serviço está desligado.")))
+                    omni_i18n._("msg_calibrated_curve_active") if cal_service_on() else omni_i18n._("msg_calibrated_curve_saved")))
     else:
-        out.append(("info", "Usando a curva de fábrica (a % pode pular no fim da carga)."))
-    out.append(("info", "Como calibrar: carregue até 100%, tire o cabo, toque em Iniciar e use o console até ele "
-                        "desligar. Depois carregue e toque em Aplicar."))
+        out.append(("info", omni_i18n._("msg_factory_curve")))
+    out.append(("info", omni_i18n._("msg_how_to_calibrate")))
     return out
 
 
@@ -758,11 +755,11 @@ while rd("status") != "Charging":
 
 def cal_start():
     if cal_running():
-        return "A calibração já está rodando."
+        return omni_i18n._("msg_calibration_already_running")
     if bat_state() == "Charging":
-        return "Tire o carregador antes de começar."
+        return omni_i18n._("msg_unplug_charger_first")
     if bat_mv() < CHARGE_MIN_MV:
-        return f"Carregue até o fim antes (agora {bat_mv()} mV; precisa de {CHARGE_MIN_MV} mV ou mais)."
+        return omni_i18n._("msg_charge_full_first").format(mv=bat_mv(), min_mv=CHARGE_MIN_MV)
     if cal_service_on():                       # a curva antiga não pode mexer nas leituras
         sh("systemctl", "disable", "--now", CAL_UNIT)
     os.makedirs(CAL_DIR, exist_ok=True)
@@ -775,14 +772,14 @@ def cal_start():
             pass
     # unidade transitória do systemd: continua com o launcher fechado e durante os jogos
     rc, out = sh("systemd-run", f"--unit={SAMPLER_UNIT}", "--collect", "python3", "-c", SAMPLER)
-    return "Calibração iniciada. Use o console até ele desligar sozinho." if rc == 0 else f"Erro: {out}"
+    return omni_i18n._("msg_calibration_started") if rc == 0 else omni_i18n._("msg_error_format").format(error=out)
 
 
 def cal_stop():
     if not cal_running():
-        return "Nenhuma calibração rodando."
+        return omni_i18n._("msg_no_calibration_running")
     sh("systemctl", "stop", SAMPLER_UNIT)
-    return f"Calibração parada com {len(cal_samples())} amostras."
+    return omni_i18n._("msg_calibration_stopped").format(samples=len(cal_samples()))
 
 
 def _fit(rows):
@@ -846,10 +843,10 @@ WantedBy=multi-user.target
 
 def cal_apply():
     if cal_running():
-        return "Pare a calibração antes de aplicar (ou espere o console desligar)."
+        return omni_i18n._("msg_stop_calibration_first")
     s = cal_samples()
     if len(s) < MIN_SAMPLES:
-        return f"Poucas amostras ({len(s)}): faça uma calibração completa antes."
+        return omni_i18n._("msg_few_samples_apply").format(samples=len(s))
     curve = _fit(s)
     omni.save_file(CURVE, "".join(f"{mv}:{p}\n" for mv, p in curve))
     omni.save_file(f"{CAL_DIR}/curve.source", "session.csv\n")
@@ -860,7 +857,7 @@ def cal_apply():
     sh("systemctl", "enable", "--now", CAL_UNIT)
     pts = {p: mv for mv, p in curve}
     resumo = "  ".join(f"{p}%={pts[p]}mV" for p in (100, 50, 20, 5) if p in pts)
-    return ("Curva aplicada. " + resumo) if cal_service_on() else "Curva gravada, mas o serviço não subiu."
+    return (omni_i18n._("msg_curve_applied") + " " + resumo) if cal_service_on() else omni_i18n._("msg_curve_saved_service_down")
 
 
 def cal_restore():
@@ -871,7 +868,7 @@ def cal_restore():
         except OSError:
             pass
     sh("systemctl", "daemon-reload")
-    return "Curva de fábrica de volta."
+    return omni_i18n._("msg_factory_curve_restored")
 
 
 # --- DTB: overclock e bateria (mesmo patch do dArkOSen_dtb_patcher_v1.2) ---
@@ -896,23 +893,23 @@ def _dts(path=None):
 
 def dtb_status():
     if not has("dtc"):
-        return [("problema", "Falta o dtc (device-tree-compiler) no sistema.")]
+        return [("problema", omni_i18n._("msg_dtb_missing_dtc"))]
     if not os.path.exists(DTB):
-        return [("aviso", f"{DTB} não existe nesta placa (DTB de outro modelo).")]
+        return [("aviso", omni_i18n._("msg_dtb_not_exists").format(dtb=DTB))]
     d = _dts()
     if d is None:
-        return [("problema", "Não foi possível ler o DTB.")]
+        return [("problema", omni_i18n._("msg_dtb_cannot_read"))]
     oc = all(f"opp-{f}000000" in d for f in OC_FREQS)
     gpu = "opp-600000000" in d
     m = re.search(r"design_capacity = <(0x[0-9a-f]+|\d+)>", d)
     cap = int(m.group(1), 0) if m else None
-    out = [("ok" if oc else "info", "Overclock do processador até 1512 MHz: " + ("liberado." if oc else "não aplicado.")),
-           ("ok" if gpu else "info", "GPU até 600 MHz: " + ("liberada." if gpu else "não aplicada.")),
-           ("ok" if cap == 3140 else "info", f"Bateria no DTB: {cap or '?'} mAh"
-            + (" (tabela corrigida)." if cap == 3140 else " (tabela de fábrica)."))]
+    out = [("ok" if oc else "info", omni_i18n._("msg_dtb_cpu_overclock") + (" " + omni_i18n._("msg_dtb_enabled") if oc else " " + omni_i18n._("msg_dtb_not_applied"))),
+           ("ok" if gpu else "info", omni_i18n._("msg_dtb_gpu_600") + (" " + omni_i18n._("msg_dtb_enabled_fem") if gpu else " " + omni_i18n._("msg_dtb_not_applied_fem"))),
+           ("ok" if cap == 3140 else "info", omni_i18n._("msg_dtb_battery_mah").format(cap=cap or '?')
+            + (" " + omni_i18n._("msg_dtb_table_corrected") if cap == 3140 else " " + omni_i18n._("msg_dtb_factory_table")))]
     baks = sorted(glob.glob(DTB + ".*.omni36os.bak"))
-    out.append(("info", f"Cópia de segurança: {os.path.basename(baks[-1])}" if baks else "Sem cópia de segurança ainda."))
-    out.append(("info", "Os limites de frequência ficam em Desempenho. A mudança vale depois de reiniciar."))
+    out.append(("info", omni_i18n._("msg_dtb_backup_file").format(backup=os.path.basename(baks[-1])) if baks else omni_i18n._("msg_dtb_no_backup")))
+    out.append(("info", omni_i18n._("msg_dtb_restart_required")))
     return out
 
 
@@ -924,7 +921,7 @@ def _compile(dts, target):
             os.remove(tmp)
         except OSError:
             pass
-        return f"Erro ao compilar (nada foi mudado): {out[:200]}"
+        return omni_i18n._("msg_dtb_compile_error").format(error=out[:200])
     os.replace(tmp, target)
     sh("sync")
     return None
@@ -939,9 +936,9 @@ def _backup():
 def dtb_overclock():
     d = _dts()
     if d is None:
-        return "Não foi possível ler o DTB."
+        return omni_i18n._("msg_dtb_cannot_read")
     if all(f"opp-{f}000000" in d for f in OC_FREQS) and "opp-600000000" in d:
-        return "O overclock já está aplicado."
+        return omni_i18n._("msg_dtb_overclock_already_applied")
     lines, out, i = d.split("\n"), [], 0
     patched = False
     while i < len(lines):
@@ -971,7 +968,7 @@ def dtb_overclock():
                 patched = True
         i += 1
     if not patched:
-        return "Não achei a tabela de frequências esperada neste DTB: nada foi mudado."
+        return omni_i18n._("msg_dtb_freq_table_not_found")
     d = "\n".join(out)
     # tensão máxima do processador e do regulador acompanham as frequências novas
     d = re.sub(r"(cpu0-opp-table \{.*?rockchip,max-volt = <)0x[0-9a-f]+(>)", r"\g<1>0x155cc0\2", d, count=1, flags=re.S)
@@ -979,32 +976,32 @@ def dtb_overclock():
     d = re.sub(r"(button-adc-deadzone = <)[^>]+(>)", rf"\g<1>{NEW_DZ}\2", d)
     bak = _backup()
     err = _compile(d, DTB)
-    return err or f"Overclock liberado. Reinicie para valer. Cópia: {os.path.basename(bak)}"
+    return err or omni_i18n._("msg_dtb_overclock_applied").format(backup=os.path.basename(bak))
 
 
 def dtb_battery():
     d = _dts()
     if d is None:
-        return "Não foi possível ler o DTB."
+        return omni_i18n._("msg_dtb_cannot_read")
     if 'compatible = "rk817,battery"' not in d:
-        return "Este DTB não tem o nó de bateria rk817: nada foi mudado."
+        return omni_i18n._("msg_dtb_no_rk817_node")
     if re.search(r"design_capacity = <(0xc44|3140)>", d):
-        return "A tabela da bateria já está corrigida."
+        return omni_i18n._("msg_dtb_battery_table_corrected")
     for k, v in BAT.items():
         d = re.sub(rf"(\b{k}\s*=\s*)<[^>]*>", rf"\g<1><{v}>", d)
     bak = _backup()
     err = _compile(d, DTB)
-    return err or f"Tabela da bateria corrigida. Reinicie para valer. Cópia: {os.path.basename(bak)}"
+    return err or omni_i18n._("msg_dtb_battery_table_applied").format(backup=os.path.basename(bak))
 
 
 def dtb_restore():
     baks = sorted(glob.glob(DTB + ".*.omni36os.bak"))
     if not baks:
-        return "Não há cópia de segurança para voltar."
+        return omni_i18n._("msg_dtb_no_backup_to_restore")
     shutil.copy2(baks[-1], DTB)
     os.remove(baks[-1])
     sh("sync")
-    return f"DTB de antes voltou ({os.path.basename(baks[-1])}). Reinicie para valer."
+    return omni_i18n._("msg_dtb_restored").format(backup=os.path.basename(baks[-1]))
 
 
 # --- zram (swap comprimido na RAM) ---
@@ -1044,8 +1041,8 @@ def zram_set(mb):
         sh("systemctl", "disable", "zram_autostart.service")
     got = zram_get()
     if mb and got == 0:
-        return "Não foi possível ligar o zram"
-    return f"Memória extra (zram) de {got} MB ligada" if got else "Memória extra (zram) desligada"
+        return omni_i18n._("msg_zram_failed")
+    return omni_i18n._("msg_zram_on").format(mb=got) if got else omni_i18n._("msg_zram_off")
 
 
 # --- arquivos ---
@@ -1084,17 +1081,17 @@ def fs_delete(path):
     else:
         os.remove(path)
     sh("sync")
-    return f"Apagado: {os.path.basename(path)}"
+    return omni_i18n._("msg_file_deleted").format(name=os.path.basename(path))
 
 
 def fs_paste(src, dest_dir, move):
     dst = os.path.join(dest_dir, os.path.basename(src))
     if os.path.abspath(dst) == os.path.abspath(src):
-        return "A origem e o destino são o mesmo lugar."
+        return omni_i18n._("msg_same_source_dest")
     if os.path.exists(dst):
-        return f"Já existe {os.path.basename(dst)} aqui."
+        return omni_i18n._("msg_file_already_exists").format(name=os.path.basename(dst))
     if (dest_dir + "/").startswith(src.rstrip("/") + "/"):
-        return "Não dá para colocar uma pasta dentro dela mesma."
+        return omni_i18n._("msg_cannot_move_into_self")
     if move:
         shutil.move(src, dst)
     elif os.path.isdir(src):
@@ -1102,23 +1099,23 @@ def fs_paste(src, dest_dir, move):
     else:
         shutil.copy2(src, dst)
     sh("sync")
-    return ("Movido: " if move else "Copiado: ") + os.path.basename(src)
+    return (omni_i18n._("msg_moved") if move else omni_i18n._("msg_copied")) + ": " + os.path.basename(src)
 
 
 def fs_rename(path, new):
     new = new.strip().replace("/", "_")
     if not new:
-        return "Nome vazio."
+        return omni_i18n._("msg_empty_name")
     dst = os.path.join(os.path.dirname(path), new)
     if os.path.exists(dst):
-        return f"Já existe {new} aqui."
+        return omni_i18n._("msg_file_already_exists").format(name=new)
     os.rename(path, dst)
-    return f"Renomeado para {new}"
+    return omni_i18n._("msg_renamed_to").format(name=new)
 
 
 def fs_mkdir(path, name):
     name = name.strip().replace("/", "_")
     if not name:
-        return "Nome vazio."
+        return omni_i18n._("msg_empty_name")
     os.makedirs(os.path.join(path, name), exist_ok=False)
-    return f"Pasta criada: {name}"
+    return omni_i18n._("msg_folder_created").format(name=name)

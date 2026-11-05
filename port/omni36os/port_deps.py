@@ -18,6 +18,7 @@ import os
 import re
 import subprocess
 import sys
+import omni_i18n
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -82,7 +83,7 @@ class Gauge:
 
 
 def message(text):
-    subprocess.run([sys.executable, "-B", os.path.join(HERE, "omni_dialog.py"), "--title", "Dependências",
+    subprocess.run([sys.executable, "-B", os.path.join(HERE, "omni_dialog.py"), "--title", omni_i18n._("deps_title"),
                     "--msgbox", text, "0", "0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
@@ -97,10 +98,10 @@ def download(info, dest, label, gauge):
             fo.write(data)
             md5.update(data)
             done += len(data)
-            gauge.set(done * 100 // total, f"Baixando {label}\n{done >> 20} de {total >> 20} MB")
+            gauge.set(done * 100 // total, omni_i18n._("deps_downloading").format(label=label, done=done >> 20, total=total >> 20))
     if info.get("md5") and md5.hexdigest() != info["md5"]:
         os.remove(tmp)
-        raise ValueError("arquivo baixado veio corrompido")
+        raise ValueError(omni_i18n._("deps_corrupt_download"))
     os.replace(tmp, dest)
 
 
@@ -110,7 +111,7 @@ def main(script):
     if not missing:
         return 0
     os.makedirs(LIBS, exist_ok=True)
-    gauge = Gauge("Dependências do port")
+    gauge = Gauge(omni_i18n._("deps_port_title"))
     falhas = []
     for n in missing:
         dest = os.path.join(LIBS, n)
@@ -120,7 +121,7 @@ def main(script):
             if info:
                 download(info, dest, label, gauge)
             else:
-                raise LookupError("não existe para este aparelho")
+                raise LookupError(omni_i18n._("deps_missing_device_runtime"))
         except Exception as e:                       # o port abre mesmo assim; o aviso diz o que faltou
             try:
                 os.remove(dest + ".part")
@@ -129,9 +130,7 @@ def main(script):
             falhas.append(f"{label}: {e}")
     gauge.close()
     if falhas:
-        message("Não foi possível baixar:\n" + "\n".join(falhas) +
-                "\n\nConecte o Wi-Fi e abra o jogo de novo, ou copie o arquivo pelo PC para "
-                "tools/PortMaster/libs no cartão do sistema.")
+        message(omni_i18n._("deps_download_failed").format(failures="\n".join(falhas)))
         return 1
     return 0
 

@@ -14,6 +14,7 @@ import fnmatch
 import glob
 import io
 import os
+import omni_i18n
 import tarfile
 import time
 
@@ -39,7 +40,7 @@ MANIFEST = "omni36os-backup.txt"
 
 
 # Onde um backup pode ser salvo: o jogador escolhe ao exportar. /roms2 e o pendrive só valem montados.
-PLACES = (("/roms", "Cartão do sistema"), ("/roms2", "Cartão de jogos"), ("/mnt/usbdrive", "Pendrive"))
+PLACES = (("/roms", "tx_system_card"), ("/roms2", "tx_games_card_t"), ("/mnt/usbdrive", "tx_pendrive"))
 LAST_DIR = f"{HOME}/.config/omni36os/backup_onde"
 
 
@@ -49,7 +50,7 @@ def places():
     for root, name in PLACES:
         if root == "/roms" and os.path.isdir(root) or os.path.ismount(root):
             st = os.statvfs(root)
-            out.append((name, f"{root}/backup/omni36os", round(st.f_bavail * st.f_frsize / 1e9, 1)))
+            out.append((omni_i18n._(name), f"{root}/backup/omni36os", round(st.f_bavail * st.f_frsize / 1e9, 1)))
     return out
 
 
@@ -98,7 +99,7 @@ def allowed(module, member):
 def export(module, tag="", dest=None):
     files = _files(module)
     if not files:
-        return None, f"Nada para exportar em {MODULES[module][0]}."
+        return None, omni_i18n._("backup_nothing_to_export").format(module=MODULES[module][0])
     if dest:                                   # escolha do jogador: vira o padrão das próximas vezes
         omni.write_text(LAST_DIR, dest)
     dest = dest or backup_dir()
@@ -115,7 +116,7 @@ def export(module, tag="", dest=None):
         for f in files:
             tar.add(f, arcname=f.lstrip("/"), recursive=False)
     os.sync()
-    return path, f"{len(files)} arquivo(s)"
+    return path, omni_i18n._("backup_export_count").format(count=len(files))
 
 
 def read_version():
@@ -135,10 +136,10 @@ def manifest(path):
 def import_(module, path):
     m = manifest(path)
     if not m:
-        return "Este arquivo não é um backup do Omni36OS."
+        return omni_i18n._("backup_invalid")
     if m.get("module") != module:
-        other = MODULES.get(m.get("module"), ("outro módulo",))[0]
-        return f"Este backup é de {other}, não de {MODULES[module][0]}."
+        other = MODULES.get(m.get("module"), (omni_i18n._("tx_other_module"),))[0]
+        return omni_i18n._("backup_module_mismatch").format(other=other, module=MODULES[module][0])
     # cópia do que está valendo agora, para poder voltar
     export(module, "-antes-de-importar")
     n = 0
@@ -158,9 +159,9 @@ def import_(module, path):
             n += mem.isfile()
     os.sync()
     if m.get("snapshot") == "1":
-        return (f"Console de volta a {m.get('date', '?')} (Omni36OS {m.get('sab', '?').strip()}): "
-                f"{n} arquivo(s). Reinicie para tudo valer.")
-    return f"{n} arquivo(s) restaurado(s) de {os.path.basename(path)}"
+        return omni_i18n._("backup_restored_snapshot").format(date=m.get('date', '?'),
+            version=m.get('sab', '?').strip(), count=n)
+    return omni_i18n._("backup_restored_files").format(count=n, filename=os.path.basename(path))
 
 
 def last_backups():

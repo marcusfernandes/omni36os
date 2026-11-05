@@ -41,8 +41,23 @@ fi
 # Antes de um port: libera memória e CPU para ele. Depois: devolve tudo como estava.
 # Serviços remotos só param se ninguém estiver conectado (SSH/Samba/filebrowser).
 PORT_STOPPED=""
+PERF_PROFILE_ACTIVE=""
+restore_performance_on_exit() {
+    if [ -n "$PERF_PROFILE_ACTIVE" ]; then
+        sudo python3 -B "$OMNI_DIR/omni_performance.py" end >> "$LOG_PORTS/performance.log" 2>&1 || true
+        PERF_PROFILE_ACTIVE=""
+    fi
+    rm -f /dev/shm/omni36os-scaler-mode /dev/shm/omni36os-scaler-sharpness /dev/shm/omni36os-scaler-pacing /dev/shm/omni36os-scaler-target-fps /dev/shm/omni36os-scaler.log 2>/dev/null || true
+}
+trap restore_performance_on_exit EXIT
 port_begin() {
+    local target="${1:-port}"
     PORT_STOPPED=""
+    PERF_PROFILE_ACTIVE=1
+    if ! sudo python3 -B "$OMNI_DIR/omni_performance.py" begin "$target" >> "$LOG_PORTS/performance.log" 2>&1; then
+        sudo python3 -B "$OMNI_DIR/omni_performance.py" end >> "$LOG_PORTS/performance.log" 2>&1 || true
+        PERF_PROFILE_ACTIVE=""
+    fi
     # fn-menu-watcher só serve ao RetroArch; es-status-daemon só ao ES
     for s in fn-menu-watcher es-status-daemon; do
         systemctl is-active -q "$s" && sudo systemctl stop "$s" && PORT_STOPPED="$PORT_STOPPED $s"
@@ -53,13 +68,9 @@ port_begin() {
         done
         pgrep -x filebrowser >/dev/null && sudo pkill -x filebrowser && PORT_STOPPED="$PORT_STOPPED filebrowser"
     fi
-    # CPU, GPU e memória no máximo do DTB (o perfmax do port faz o mesmo; aqui vale
-    # também para port que não chama perfmax). O launcher relaxa de novo ao reabrir.
-    for g in /sys/devices/system/cpu/cpufreq/policy0/scaling_governor \
-             /sys/devices/platform/ff400000.gpu/devfreq/ff400000.gpu/governor \
-             /sys/devices/platform/dmc/devfreq/dmc/governor; do
-        echo performance | sudo tee "$g" >/dev/null 2>&1
-    done
+    # O perfil é temporário e guarda o estado original para restauração.
+    # DRAM continua em performance durante o port, como antes.
+    echo performance | sudo tee /sys/devices/platform/dmc/devfreq/dmc/governor >/dev/null 2>&1
     # cache limpo e memória compactada: o port ganha blocos grandes livres
     sync
     echo 3 | sudo tee /proc/sys/vm/drop_caches >/dev/null
@@ -68,6 +79,11 @@ port_begin() {
     sudo ionice -c 2 -n 0 -p $$ 2>/dev/null
 }
 port_end() {
+    if [ -n "$PERF_PROFILE_ACTIVE" ]; then
+        sudo python3 -B "$OMNI_DIR/omni_performance.py" end >> "$LOG_PORTS/performance.log" 2>&1 || true
+        PERF_PROFILE_ACTIVE=""
+    fi
+    rm -f /dev/shm/omni36os-scaler-mode /dev/shm/omni36os-scaler-sharpness /dev/shm/omni36os-scaler-pacing /dev/shm/omni36os-scaler-target-fps /dev/shm/omni36os-scaler.log 2>/dev/null || true
     sudo ionice -c 2 -n 4 -p $$ 2>/dev/null
     for s in $PORT_STOPPED; do
         if [ "$s" = filebrowser ]; then
@@ -86,19 +102,61 @@ port_end() {
 # ld.so ignora a outra ("wrong ELF class", só um aviso no log).
 hud_preload() {
     local lib="$OMNI_DIR/hud/omni_hud.so"
-    [ -f "$lib" ] || return
-    [ -f "$OMNI_DIR/hud/omni_hud32.so" ] && lib="$lib:$OMNI_DIR/hud/omni_hud32.so"
-    python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import omni; c = omni.get_atalhos()
-sys.exit(0 if c["fps"] or c["captura"] or c["limite"] or omni.cpu_auto() or omni.gpu_auto() else 1)' "$OMNI_DIR" 2>/dev/null || return
+    [ -f "$lib" ] || lib=""
+    [ -f "$OMNI_DIR/hud/omni_hud32.so" ] && [ -n "$lib" ] && lib="$lib:$OMNI_DIR/hud/omni_hud32.so"
+    if [ -n "$lib" ]; then
+        python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import omni; c = omni.get_atalhos()
+sys.exit(0 if c["fps"] or c["captura"] or c["limite"] or omni.cpu_auto() or omni.gpu_auto() else 1)' "$OMNI_DIR" 2>/dev/null || lib=""
+    fi
+    local scaler_active=0
+    if [ "${OMNI_SCALING:-0}" = 1 ] || [ "${OMNI_SCALING:-}" = true ]; then
+        case "${OMNI_SCALING_MODE:-validate}" in
+            validate|cas|sharp|pacing) scaler_active=1 ;;
+        esac
+    elif [ -f /dev/shm/omni36os-scaler-mode ]; then
+        scaler_active=1
+    fi
+    if [ "$scaler_active" = 1 ] && [ -f "$OMNI_DIR/hud/omni_scaler.so" ]; then
+        lib="$OMNI_DIR/hud/omni_scaler.so${lib:+:$lib}"
+    fi
+    [ -n "$lib" ] || return
     echo "$lib${LD_PRELOAD:+:$LD_PRELOAD}"
 }
 
+# Validação do hook de apresentação EGL, desativada por padrão. Só deve ser
+# habilitada em ports de teste e nunca implica escala ou geração de frames.
 # Pasta do jogo (a mesma que o card Ports usa para a ficha): a captura de tela (FN + Y)
 # vai para <pasta do jogo>/imagens, em qualquer cartão.
 game_dir() {
     python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import omni_meta, os
 p = sys.argv[2]
 print(omni_meta.port_dir(p) or (p if os.path.isdir(p) else os.path.dirname(p)))' "$OMNI_DIR" "$1" 2>/dev/null
+}
+
+# Lê variáveis OMNI_* do cfg do port (ex.: nfsu2.cfg) e as exporta para o
+# ambiente, para que o hud_preload()/omni_scaler veja OMNI_SCALING e
+# OMNI_SCALING_MODE antes de iniciar o jogo. Sem isso, as export no cfg só
+# valeriam dentro do próprio script do port, depois do hook já ter sido
+# decidido. Afeta apenas o port em questão e é revertido automaticamente ao
+# sair (variáveis de ambiente não persistem entre lançamentos).
+load_port_env() {
+    local port_path="$1" cfg f
+    [ -d "$port_path" ] || return 0
+    for cfg in "$port_path"/*.cfg; do
+        [ -f "$cfg" ] || continue
+        while IFS= read -r f || [ -n "$f" ]; do
+            case "$f" in
+                \#*|"") continue ;;
+            esac
+            case "$f" in
+                export\ OMNI_*|OMNI_*=*)
+                    # Remove o prefixo "export " se houver
+                    f="${f#export }"
+                    eval "$f" 2>/dev/null || true
+                    ;;
+            esac
+        done < "$cfg"
+    done
 }
 
 # Logs em /roms/logs/<função>/ (cartão 1, para ler pelo PC ou pelo Notas); sem o /roms, no /tmp.
@@ -260,7 +318,7 @@ while true; do
         # Card "Testar ports": o port tem a tela e o launcher volta com o resultado
         test:/roms/ports/*.sh|test:/roms2/ports/*.sh)
             port_deps "${next#test:}"
-            port_begin
+            port_begin "${next#test:}"
             ports_card2_begin "${next#test:}"
             bash "$OMNI_DIR/port_test.sh" "${next#test:}"
             kill_gptokeyb
@@ -275,9 +333,13 @@ while true; do
             if [ -n "$cmd" ] && [ -e "$rom" ]; then
                 port_deps "$rom"
                 sudo chmod 666 /dev/tty1
-                port_begin
                 ports_card2_begin "$rom"
-                OMNI_GAME_DIR="$(game_dir "$rom")" LD_PRELOAD="$(hud_preload)" bash -c "$cmd" > "$LOG_PORTS/jogo.log" 2>&1
+                load_port_env "$rom"
+                # Liberar a tela KMSDRM do omni_ui.py antes de iniciar o jogo
+                sudo pkill -f "omni_ui.py" 2>/dev/null || true
+                sleep 0.3
+                OMNI_GAME_DIR="$(game_dir "$rom")" OMNI_PORT_HANDOFF=1 \
+                    LD_PRELOAD="$(hud_preload)" bash -c "$cmd" > "$LOG_PORTS/jogo.log" 2>&1
                 kill_gptokeyb             # port que caiu antes do pm_finish deixa o gptokeyb rodando
                 ports_card2_end
                 port_end
@@ -333,8 +395,12 @@ ports.record_port_played(sys.argv[2])' "$OMNI_DIR" "$port_path" 2>/dev/null || t
                     fi
 
                     # Rodar o port (bloqueante)
-                    port_begin
-                    export LD_PRELOAD="$(hud_preload)" OMNI_GAME_DIR="$port_path"
+                    port_begin "$port_path"
+                    load_port_env "$port_path"
+                    # Liberar a tela KMSDRM do omni_ui.py antes de iniciar o jogo
+                    sudo pkill -f "omni_ui.py" 2>/dev/null || true
+                    sleep 0.3
+                    export LD_PRELOAD="$(hud_preload)" OMNI_GAME_DIR="$port_path" OMNI_PORT_HANDOFF=1
                     if [ -n "$ESUDO" ]; then
                         $ESUDO "./$exec_file" > "$LOG_PORTS/port.log" 2>&1
                     else

@@ -84,30 +84,38 @@ if [ "$STATUS" = "falhou" ]; then
   sudo mkdir -p "$DIR" && sudo chown ark:ark "$(dirname "$DIR")" "$DIR" 2>/dev/null
   REPORT="$DIR/teste_$SAFE.txt"          # um por port: o teste novo substitui o anterior
   {
-    echo "RELATÓRIO DE TESTE DE PORT (Omni36OS)"
+    if [ "$(cat /home/ark/.config/omni36os/idioma 2>/dev/null)" = en ]; then
+      L_TITLE="PORT TEST REPORT (Omni36OS)"; L_START="Started:    "; L_CLOSED="Closed after:"; L_WAIT="the test waits"
+      L_CODE="Exit code:"; L_INC="Incomplete copy"; L_RT="Missing runtime:"; L_OUT="Port output (stdout/stderr, last 200 lines)"
+    else
+      L_TITLE="RELATÓRIO DE TESTE DE PORT (Omni36OS)"; L_START="Início:     "; L_CLOSED="Fechou após:"; L_WAIT="o teste espera"
+      L_CODE="Código de saída:"; L_INC="Cópia incompleta"; L_RT="Runtime faltando:"; L_OUT="Saída do port (stdout/stderr, últimas 200 linhas)"
+    fi
+    export L_RT
+    echo "$L_TITLE"
     echo "================================"
     echo "Port:        $NAME"
     echo "Script:      $PORT"
-    echo "Início:      $STAMP_START"
-    echo "Fechou após: ${ELAPSED}s (o teste espera ${TEMPO}s)"
-    echo "Código de saída: $CODE"
+    echo "$L_START $STAMP_START"
+    echo "$L_CLOSED ${ELAPSED}s ($L_WAIT ${TEMPO}s)"
+    echo "$L_CODE $CODE"
     echo
     # cópia que parou no meio (PC desconectado antes de terminar de gravar): arquivos com 0 bytes
-    [ -s "$PORT" ] || echo "Cópia incompleta: o script $(basename "$PORT") está vazio (0 bytes)."
+    [ -s "$PORT" ] || echo "$L_INC: $(basename "$PORT") (0 bytes)."
     GD=$(python3 -B -c 'import sys; sys.path.insert(0, sys.argv[1]); import omni_meta; print(omni_meta.port_dir(sys.argv[2]) or "")' "$OMNI_DIR" "$PORT" 2>/dev/null)
     # runtime do PortMaster pedido pelo port (port.json ou o script) e que não está em libs/
     python3 -B -c 'import sys; sys.path.insert(0, sys.argv[1]); import omni_runtimes as r
-for n in r.missing(sys.argv[2], sys.argv[3] or None): print("Runtime faltando:", n)' "$OMNI_DIR" "$PORT" "$GD" 2>/dev/null
+for n in r.missing(sys.argv[2], sys.argv[3] or None): print(__import__("os").environ["L_RT"], n)' "$OMNI_DIR" "$PORT" "$GD" 2>/dev/null
     if [ -n "$GD" ] && [ -d "$GD" ]; then
       TOT=$(find "$GD" -type f 2>/dev/null | wc -l)
       VAZ=$(find "$GD" -type f -size 0 ! -name '*.log' ! -name '.*' 2>/dev/null | wc -l)
       if [ "$TOT" -gt 0 ] && [ $((VAZ * 100 / TOT)) -ge 20 ]; then
-        echo "Cópia incompleta: $VAZ de $TOT arquivos vazios (0 bytes) em $GD."
+        echo "$L_INC: $VAZ / $TOT (0 bytes), $GD."
         find "$GD" -type f -size 0 ! -name '*.log' ! -name '.*' 2>/dev/null | head -n 10 | sed 's/^/  /'
       fi
     fi
     echo
-    echo "--- Saída do port (stdout/stderr, últimas 200 linhas) ---"
+    echo "--- $L_OUT ---"
     tail -n 200 "$OUT"
     echo
     echo "--- Logs na pasta do port (modificados no teste) ---"

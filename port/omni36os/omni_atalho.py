@@ -14,6 +14,7 @@ omni_combos.py; o jogador liga, desliga e troca os botões em Controles > Atalho
 O contador, a captura e o limite são desenhados pelo hud/omni_hud.so, carregado nos
 ports com LD_PRELOAD pelo launch-direct.sh; aqui só mudam os arquivos em /dev/shm.
 """
+import omni_i18n
 import fcntl
 import json
 import os
@@ -258,8 +259,7 @@ def tap(key):
         return
     if key in ("fps", "captura", "limite") and not hud_loaded(game_pids()):
         # port que barra o HUD (tira o LD_PRELOAD, usa runtime próprio, como o Cuphead): avisa por cima do jogo
-        show_notice("Atalho indisponível", "Este port não aceita o contador de FPS, o limite nem a captura "
-                    "do Omni36OS. Os atalhos de fechar e pausar continuam valendo. Este aviso só aparece uma vez por partida.")
+        show_notice(tr("tx_hotkey_off_title"), tr("tx_hotkey_off"))
         return
     if key == "fps":
         # ciclo: desligado -> FPS -> FPS + frequência do processador e da GPU -> desligado
@@ -287,6 +287,12 @@ def hud_loaded(pids):
 
 
 NOTICED = ()
+
+
+def tr(key):
+    """Este serviço fica aberto: relê o idioma, que pode ter mudado no menu."""
+    omni_i18n.CURRENT_LANG = None
+    return omni_i18n._(key)
 
 
 def show_notice(title, msg):
@@ -395,17 +401,16 @@ class BatteryGuard:
         self.low = self.low + 1 if critical else 0
         if self.low >= 2:
             print(f"bateria crítica ({pct}%, {mv} mV): desligando", file=sys.stderr, flush=True)
-            notify("Desligando", "A bateria está muito fraca. Salvando tudo e desligando com segurança.")
+            notify(tr("tx_bat_off_title"), tr("tx_bat_off"))
             time.sleep(3)
             safe_poweroff()
             self.low = -999                  # uma vez só
         elif pct <= BAT_CLOSE and "fechar" not in self.warned:
             self.warned |= {"fechar", "aviso"}
-            notify("Bateria fraca", f"Restam {pct}%. Salve seu progresso quando puder. Em {BAT_OFF}%, o "
-                   "console salva tudo e desliga com segurança.")
+            notify(tr("tx_bat_low"), tr("tx_bat_close").format(pct=pct, off=BAT_OFF))
         elif pct <= BAT_WARN and "aviso" not in self.warned:
             self.warned.add("aviso")
-            notify("Bateria fraca", f"Restam {pct}%. Conecte o carregador quando puder.")
+            notify(tr("tx_bat_low"), tr("tx_bat_warn").format(pct=pct))
 
 
 def safe_call(fn, key):

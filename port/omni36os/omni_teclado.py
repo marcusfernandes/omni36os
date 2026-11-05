@@ -10,12 +10,15 @@ Senhas não ganham maiúscula automática.
 A fileira de números fica sempre no topo; o desenho fica com quem usa (omni_ui e omni_dialog).
 """
 import time
+import omni_i18n
 
 LETTERS = ["1234567890", "qwertyuiop", "asdfghjkl-", "zxcvbnm_.@"]
 SYMBOLS = ["1234567890", "!?@#$%&*()", "+-=/\\:;'\"_", ",.<>[]{}~|"]
 BOTTOM = ["shift", "espaço", "apagar", "OK"]
 BOTTOM_TEXT = ["shift", "espaço", "Enter", "apagar", "OK"]    # texto de várias linhas (bloco de notas)
 WEIGHT = {"shift": 1, "espaço": 3, "Enter": 1.5, "apagar": 1, "OK": 2}
+LABELS = {"shift": "keyboard_shift", "espaço": "keyboard_space", "Enter": "keyboard_enter",
+          "apagar": "keyboard_delete", "OK": "keyboard_ok"}
 DOUBLE = 0.45                    # segundos entre dois toques na tecla de maiúsculas para travar
 
 
@@ -61,7 +64,7 @@ class Teclado:
         return {"off": "abc", "once": "Abc", "lock": "ABC"}[self.shift]
 
     def label(self, key):
-        return self.shift_label() if key == "shift" else key
+        return self.shift_label() if key == "shift" else omni_i18n._(LABELS[key]) if key in LABELS else key
 
     # --- teclas ---
 

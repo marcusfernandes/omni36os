@@ -4,29 +4,31 @@ Fonte única para o serviço (omni_atalho.py), o Omni36OS (omni_ui.py), o omni.p
 Os botões são códigos evdev do controle do R36S (rk3326-r36s-linux.dtb).
 """
 
+import omni_i18n
+
 FN, SELECT, START = 708, 704, 705
 BUTTONS = {708: "FN", 704: "SELECT", 705: "START", 310: "L1", 311: "R1", 312: "L2", 313: "R2", 706: "L3",
-           707: "R3", 305: "A", 304: "B", 307: "X", 308: "Y", 544: "Cima", 545: "Baixo", 546: "Esquerda",
-           547: "Direita", 115: "Vol+", 114: "Vol-"}
+           707: "R3", 305: "A", 304: "B", 307: "X", 308: "Y", 544: "tx_up", 545: "tx_down", 546: "tx_left",
+           547: "tx_right", 115: "Vol+", 114: "Vol-"}
 ORDER = list(BUTTONS)            # ordem em que os nomes aparecem: FN primeiro, direcional por último
 
 # chave: (nome, ícone, tipo, botões padrão, ligado por padrão). "toque" age quando a combinação
 # fecha; "segurar" pede a combinação parada por 1 s. Personalizar troca só a tecla que vai com o
 # FN; o de sair do jogo (FIXED) é sempre SELECT + START.
 ACTIONS = {
-    "fps": ("Contador de FPS", "gauge", "toque", [FN, 307], True),
-    "limite": ("Limite de 30 FPS", "battery-2", "toque", [FN, 304], True),
-    "captura": ("Captura de tela", "device-tv", "toque", [FN, 308], True),
-    "fechar": ("Fechar o jogo", "x", "segurar", [SELECT, START], True),
+    "fps": (omni_i18n._("combo_action_fps"), "gauge", "toque", [FN, 307], True),
+    "limite": (omni_i18n._("combo_action_limit"), "battery-2", "toque", [FN, 304], True),
+    "captura": (omni_i18n._("combo_action_capture"), "device-tv", "toque", [FN, 308], True),
+    "fechar": (omni_i18n._("combo_action_close"), "x", "segurar", [SELECT, START], True),
 }
 CAP_FPS = 30
 FIXED = {"fechar"}
 
 # o que o ogage (serviço do dArkOSen) já faz com o FN: um atalho novo não pode usar
-SYSTEM = [({FN, 544}, "brilho"), ({FN, 545}, "brilho"), ({FN, 546}, "gamma"), ({FN, 547}, "gamma"),
-          ({FN, 115}, "brilho"), ({FN, 114}, "brilho"), ({FN, 310}, "ajuste do sistema"), ({FN, 311}, "ajuste do sistema"),
-          ({FN, 305}, "ajuste do sistema"), ({FN, 706}, "ajuste do sistema"), ({FN, 707}, "ajuste do sistema"),
-          ({SELECT, FN}, "a bateria falada")]
+SYSTEM = [({FN, 544}, "tx_owner_bright"), ({FN, 545}, "tx_owner_bright"), ({FN, 546}, "tx_owner_gamma"), ({FN, 547}, "tx_owner_gamma"),
+          ({FN, 115}, "tx_owner_bright"), ({FN, 114}, "tx_owner_bright"), ({FN, 310}, "tx_owner_system"), ({FN, 311}, "tx_owner_system"),
+          ({FN, 305}, "tx_owner_system"), ({FN, 706}, "tx_owner_system"), ({FN, 707}, "tx_owner_system"),
+          ({SELECT, FN}, "tx_owner_battery")]
 
 
 def defaults():
@@ -52,37 +54,30 @@ def normalize(c):
 
 def text(codes):
     """[708, 307] -> "FN + X"."""
-    return " + ".join(BUTTONS[b] for b in sorted(set(codes), key=ORDER.index))
+    return " + ".join(omni_i18n._(BUTTONS[b]) for b in sorted(set(codes), key=ORDER.index))
 
 
 def problem(key, codes, combos):
+    tr = omni_i18n._
     """Por que essa combinação não serve (ou None)."""
     s = set(codes)
     if key in FIXED:
-        return "Este atalho é fixo."
+        return tr("combo_fixed")
     if len(s) < 2:
-        return "Escolha uma tecla para ir junto com o FN."
+        return omni_i18n._("tx_pick_key")
     if 116 in s:
-        return "O power não entra em atalhos."
+        return tr("combo_power")
     if s == {SELECT, START} or s == {FN, SELECT, START}:
-        return "SELECT + START é o atalho fixo de fechar o jogo."
+        return tr("combo_exit_fixed")
     for cb, what in SYSTEM:
         if s == cb:
-            return f"{text(cb)} já é do sistema ({what})."
+            return tr("combo_system").format(combo=text(cb), owner=tr(what))
     for k, cb in combos.items():
         if k != key and set(cb) == s:
-            return f"{text(cb)} já é o atalho de {ACTIONS[k][0]}."
+            return tr("combo_duplicate").format(combo=text(cb), action=ACTIONS[k][0])
     return None
 
 
 def tip(key, combos):
     t = text(combos[key])
-    return {
-        "fps": f"{t} mostra, no jogo, uma pílula com quadros por segundo, temperatura e bateria. De novo, "
-               "aparece também a frequência do processador e da GPU (MHz); de novo, esconde. As cores avisam: "
-               "FPS baixo, console quente, bateria no fim.",
-        "limite": f"{t} trava o jogo em {CAP_FPS} FPS e solta de novo. Em jogo leve economiza bateria e esquenta "
-                  "menos. Um traço roxo no contador mostra que está ligado.",
-        "captura": f"{t} salva a tela do jogo (sem o contador) na pasta imagens dentro da pasta do jogo.",
-        "fechar": f"Segure {t} por 1 s: o jogo fecha e o Omni36OS volta. Para port travado ou sem opção de sair.",
-    }[key]
+    return omni_i18n._("combo_tip_" + key).format(combo=t, fps=CAP_FPS)

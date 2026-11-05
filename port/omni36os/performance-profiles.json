@@ -1,0 +1,47 @@
+{
+  "default": "native",
+  "profiles": {
+    "balanced": {
+      "cpu_governor": "performance",
+      "cpu_max_mhz": 1296,
+      "gpu_governor": "performance",
+      "gpu_max_mhz": 520
+    },
+    "native": {
+      "cpu_governor": "performance",
+      "cpu_max_mhz": 1296,
+      "gpu_governor": "performance",
+      "gpu_max_mhz": 520
+    },
+    "low_gpu": {
+      "cpu_governor": "performance",
+      "cpu_max_mhz": 1296,
+      "gpu_governor": "performance",
+      "gpu_max_mhz": 400
+    },
+    "sharp_cas": {
+      "cpu_governor": "performance",
+      "cpu_max_mhz": 1296,
+      "gpu_governor": "performance",
+      "gpu_max_mhz": 520,
+      "scaling": {
+        "enabled": true,
+        "mode": "cas",
+        "sharpness": 0.6,
+        "pacing": true
+      }
+    },
+    "smooth_pacing": {
+      "cpu_governor": "performance",
+      "cpu_max_mhz": 1296,
+      "gpu_governor": "performance",
+      "gpu_max_mhz": 520,
+      "scaling": {
+        "enabled": true,
+        "mode": "pacing",
+        "target_fps": 60
+      }
+    }
+  },
+  "ports": {}
+}

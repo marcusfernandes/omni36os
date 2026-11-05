@@ -17,7 +17,8 @@ if [ -f "$S/pending" ]; then
         sudo mv "$D" "$D.quebrada-$(date +%s)"
         sudo mv "$P" "$D"
         sudo rm -f "$S/pending" "$S/tries"
-        echo "A versão $new não abriu e o Omni36OS voltou para a $old." | sudo tee "$S/rolled-back" >/dev/null
+        if [ "$(cat /home/ark/.config/omni36os/idioma 2>/dev/null)" = en ]; then MSG="Version $new did not open and Omni36OS went back to $old."; else MSG="A versão $new não abriu e o Omni36OS voltou para a $old."; fi
+        echo "$MSG" | sudo tee "$S/rolled-back" >/dev/null
         sync
         sudo systemctl restart omni36os-atalho &
     fi
