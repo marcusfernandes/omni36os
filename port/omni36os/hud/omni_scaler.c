@@ -251,14 +251,21 @@ static const char *fs_sharp_src =
     "    gl_FragColor = texture2D(uTex, uv);\n"
     "}\n";
 
+/* dlsym da própria libc, nunca o de outro preload (o omni_hud.so também intercepta):
+ * passar por ele faz os dois hooks guardarem um ao outro como "real" e girar para sempre. */
 static void *rdlsym(void *h, const char *name)
 {
     if (!real_dlsym) {
-        static const char *versions[] = {"GLIBC_2.34", "GLIBC_2.17", "GLIBC_2.4", "GLIBC_2.2.5", 0};
-        for (int i = 0; versions[i] && !real_dlsym; ++i)
-            real_dlsym = (dlsym_fn)dlvsym(RTLD_NEXT, "dlsym", versions[i]);
+        static const char *libs[] = {"libc.so.6", "libdl.so.2", 0};
+        static const char *vers[] = {"GLIBC_2.34", "GLIBC_2.17", "GLIBC_2.4", "GLIBC_2.2.5", 0};
+        for (int l = 0; libs[l] && !real_dlsym; l++) {
+            void *lib = dlopen(libs[l], RTLD_LAZY);
+            for (int i = 0; lib && vers[i] && !real_dlsym; i++)
+                real_dlsym = (dlsym_fn)dlvsym(lib, "dlsym", vers[i]);
+        }
+        if (!real_dlsym) return 0;
     }
-    return real_dlsym ? real_dlsym(h, name) : 0;
+    return real_dlsym(h, name);
 }
 
 static void *egl_symbol(const char *name)
@@ -742,11 +749,9 @@ unsigned eglSwapBuffers(void *display, void *surface)
 
 void *eglGetProcAddress(const char *name)
 {
-    if (!real_gpa) real_gpa = (gpa_fn)rdlsym(RTLD_NEXT, "eglGetProcAddress");
-    if (name && !strcmp(name, "eglSwapBuffers")) {
-        if (real_gpa && !real_swap) real_swap = (swap_fn)real_gpa(name);
-        return (void *)eglSwapBuffers;
-    }
+    /* Sempre o do libEGL. O eglSwapBuffers real sai do RTLD_NEXT, para o HUD seguir na cadeia. */
+    if (!real_gpa) real_gpa = (gpa_fn)egl_symbol("eglGetProcAddress");
+    if (name && !strcmp(name, "eglSwapBuffers")) return (void *)eglSwapBuffers;
     return real_gpa ? real_gpa(name) : 0;
 }
 
@@ -754,13 +759,7 @@ void *dlsym(void *handle, const char *name)
 {
     void *symbol = rdlsym(handle, name);
     if (!symbol || !name) return symbol;
-    if (!strcmp(name, "eglSwapBuffers")) {
-        if (!real_swap) real_swap = (swap_fn)symbol;
-        return (void *)eglSwapBuffers;
-    }
-    if (!strcmp(name, "eglGetProcAddress")) {
-        if (!real_gpa) real_gpa = (gpa_fn)symbol;
-        return (void *)eglGetProcAddress;
-    }
+    if (!strcmp(name, "eglSwapBuffers")) return (void *)eglSwapBuffers;
+    if (!strcmp(name, "eglGetProcAddress")) return (void *)eglGetProcAddress;
     return symbol;
 }
