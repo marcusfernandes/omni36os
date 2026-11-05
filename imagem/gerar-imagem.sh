@@ -105,6 +105,11 @@ SIS=(etc/hostname etc/hosts etc/zram.conf etc/hostapd/hostapd.conf
 for f in "${SIS[@]}"; do
   mkdir -p "$R/$(dirname "$f")"
   cp -a "$CARD/$f" "$R/$(dirname "$f")/"
+  # a cópia do cartão pode estar sem os donos reais (no macaco é tudo do usuário): sistema é do root
+  case "$f" in
+    home/ark/*|usr/local/bin/b_swap.sh) chown -Rh 1000:1000 "$R/$f" ;;
+    *) chown -Rh 0:0 "$R/$f" ;;
+  esac
 done
 rm -f "$R/etc/systemd/system/multi-user.target.wants/emulationstation.service"
 # padrão de fábrica: processador e GPU em Automático (omni_cpuauto.py), overclock bloqueado
