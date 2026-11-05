@@ -4,6 +4,7 @@ Formas são triângulos (SDL_RenderGeometry) com cor por vértice: dá degradê,
 borda suave (uma faixa de 1 px que some no alfa) e brilho/sombra (a mesma
 faixa, larga) sem texturas. Texto com SDL2_ttf, ícones PNG com SDL2_image.
 """
+import omni_thumbs
 import ctypes as C
 import math
 import os
