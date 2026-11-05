@@ -176,3 +176,14 @@ github.com/OpenCloudGaming/OpenNOW-4Handhelds — cliente GeForce NOW (Rust + SD
 - Abre pelo handoff `game ports /roms/apps/OpenNOW.sh` (HUD, Automático e card 2 como qualquer port).
 - "FN no GeForce NOW": Sistema = atalhos FN do Omni; GeForce NOW = com `opennow-handheld` aberto, o omni_atalho não agarra o FN e ignora combinações com FN (o FN abre o menu da sessão). Conf: ~/.config/omni36os/gfn_fn.
 - Automático sem leitura de FPS (qualquer programa): teto no máximo sem overclock (1296/520), mesmo desbloqueado. No OpenNOW o HUD lê o FPS da janela, então o Automático age normalmente.
+
+## Idiomas (pt-BR e inglês)
+
+- Catálogo em `port/omni36os/omni_i18n.py`. Texto visível nunca fica literal no código: chave no catálogo com `pt-BR` e `en`, e `omni_i18n._("chave")`, com `.format(...)` para variáveis.
+- Constante de módulo guarda a chave e traduz no uso: o idioma muda sem reiniciar o launcher. O `omni_atalho.py` fica aberto, por isso usa `tr()`, que relê o idioma.
+- Sucesso ou falha de uma mensagem: `omni_i18n.is_failure(texto)`. Mensagem nova de erro precisa começar com um prefixo de `FAIL_PREFIXES`.
+- Scripts leem `/home/ark/.config/omni36os/idioma`: `usb_pendrive.sh` (`say2 "pt" "en"`), `port_test.sh` e `omni36os-start`. O `omni_ports_fix.py` reconhece os relatórios nos dois idiomas.
+- Primeiro boot: `ask_language` antes de `ask_name`.
+- Ficam em português: logs internos e dados do simulador (`OMNI_FAKE`).
+- Pendente: telas em imagem (`telas/gerar_telas.py`) só existem em português. As do initrd e do U-Boot aparecem antes de o idioma ser lido.
+- Testes: `tests/run.py` assume pt-BR. Com `OMNI_PREVIEW_LANG=en`, 4 testes falham por procurarem frases em português.

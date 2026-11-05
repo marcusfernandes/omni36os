@@ -5,6 +5,9 @@ Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a
 ## 1.15.28 (04/11/2026)
 
 - Internacionalização: opção de trocar o idioma entre Português (Brasil) e Inglês no menu Geral. Toda a interface se adapta ao idioma escolhido.
+- Tradução completa para inglês: mensagens, avisos de bateria, diálogos das ferramentas, relatório de teste de ports e modo pendrive seguem o idioma escolhido.
+- Primeiro boot pergunta o idioma antes do nome do jogador. Redefinir o sistema pergunta de novo.
+- Em inglês, mensagens de erro não aparecem mais como sucesso.
 
 ## 1.15.27 (02/11/2026)
 
