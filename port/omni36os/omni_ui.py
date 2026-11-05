@@ -1310,6 +1310,7 @@ class App:
                       if not FAKE and omni_update.can_go_back() else []),
                     subpage(A(omni_i18n._("sub_checkup"), "stethoscope", lambda: self.open_page("checkup")), "checkup"),
                     subpage(A(omni_i18n._("sub_sobre"), "help-circle", lambda: self.open_page("sobre")), "sobre"),
+                    tip(A(omni_i18n._("ui_card_ssh_mode"), "plug", self.ssh_mode_on), omni_i18n._("ui_build_ssh_mode_tip")),
                     A(omni_i18n._("menu_reset"), "rotate", self.ask_reset)]
         if cid == "atalhos":
             combos = D.get("at_combos")
@@ -2540,6 +2541,9 @@ class App:
     def music_screen(self, on):
         """Apaga ou acende a luz da tela (a música continua)."""
         self.music["off"] = not on
+        self.backlight(on)
+
+    def backlight(self, on):
         if FAKE:
             return
         for p in glob.glob("/sys/class/backlight/*/bl_power"):
@@ -2548,6 +2552,24 @@ class App:
                     f.write("0" if on else "4")
             except OSError:
                 pass
+
+    def ssh_mode_on(self):
+        self.ssh_off = True
+        self.combo = set()
+        self.combo_used = False
+        self.backlight(False)
+
+    def ssh_mode_wake(self):
+        self.ssh_off = False
+        self.combo_used = True
+        self.backlight(True)
+        self.toast = (omni_i18n._("ui_ssh_mode_off"), "ok", self.t + 2.5)
+
+    def ssh_button(self, b, down):
+        if b in (4, 6):
+            (self.combo.add if down else self.combo.discard)(b)
+            if {4, 6} <= self.combo:
+                self.ssh_mode_wake()
 
     def music_input(self, cmd):
         m, pl = self.music, self.music["player"]
@@ -4515,6 +4537,8 @@ class App:
                 self.held[d] = now + 0.09
 
     def direction(self, d, on, now):
+        if getattr(self, "ssh_off", False):
+            return
         if on and d not in self.held:
             self.handle(d)
             self.held[d] = now + 0.35
@@ -4522,6 +4546,9 @@ class App:
             self.held.pop(d, None)
 
     def button(self, b, down, now):
+        if getattr(self, "ssh_off", False):
+            self.ssh_button(b, down)
+            return
         # SDL: 0 A (direita no R36S), 1 B (baixo), 4 back, 6 start, 9 L1, 10 R1, 11-14 direcional
         dpad = {11: "up", 12: "down", 13: "left", 14: "right"}
         if b in dpad:
