@@ -13,8 +13,8 @@
 # O primeiro boot continua o do dArkOSen (expande a imagem), com a tela certa do Omni36OS antes.
 set -euo pipefail
 
-BASE=/home/jamersonferreira/Apps/Omni36OS
-ORIG="$BASE/dArkOSen_R36_10312026.img"
+BASE=$(cd "$(dirname "$(readlink -f "$0")")/../.." && pwd)   # a pasta que contém o repositório
+ORIG=${ORIG:-$BASE/dArkOSen_R36_10312026.img}
 REPO="$BASE/omni36os"
 CARD="$BASE/cartao/ROOTFS"
 TELAS="$BASE/telas/out"

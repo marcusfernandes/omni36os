@@ -188,3 +188,8 @@ github.com/OpenCloudGaming/OpenNOW-4Handhelds — cliente GeForce NOW (Rust + SD
 - Pendente: telas em imagem (`telas/gerar_telas.py`) só existem em português. As do initrd e do U-Boot aparecem antes de o idioma ser lido.
 - Testes: `tests/run.py` assume pt-BR. Com `OMNI_PREVIEW_LANG=en`, 4 testes falham por procurarem frases em português.
 - Versão nova: `NOVIDADES.en.md` é gerado de `omni_help` (`NOVIDADES` + `NOVIDADES_EN`) por `scripts/novidades_en.py`. O console baixa esse arquivo para mostrar em inglês as novidades antes de atualizar.
+
+## Imagem no macaco
+
+- O projeto mora em `/srv/IA/jamerson/apps/Omni/Omni36OS`. O `gerar-imagem.sh` acha a pasta pela própria localização; `ORIG=...` troca a imagem base.
+- Rodar lá: `sudo imagem/gerar-imagem.sh`. Base: `dArkOSen_R36_10312026.img`, 9.406.775.296 bytes, sha256 `e1a90ba3...11e4`.
