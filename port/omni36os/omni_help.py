@@ -4,6 +4,9 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ('1.15.31', '06/11/2026', [
+        'Barra de status: ícone de âncora enquanto a internet chega pela ancoragem USB do celular.',
+    ]),
     ('1.15.30', '06/11/2026', [
         'Ancoragem USB: mais celulares Android reconhecidos, com a nova opção Ancoragem celular no card Rede.',
     ]),
@@ -673,6 +676,7 @@ The R36S community, which documents models, screens, clones, and repairs and mak
 
 # Reviewed English release-note editions; entry order matches NOVIDADES above.
 NOVIDADES_EN = {
+    '1.15.31': ['Status bar: anchor icon while the internet comes through USB phone tethering.'],
     '1.15.30': ['USB tethering: more Android phones recognized, with the new Phone tethering option in the Network card.'],
     '1.15.29': ["What's new before updating: the screen now follows the console language.", 'Runtimes: fixed the download error when space runs out or the file does not match.'],
     '1.15.28': ['Full English translation: messages, battery warnings, tool dialogs, port test reports and USB drive mode follow the chosen language.', 'First boot asks for the language before the player name. Reset the system asks again.', 'In English, error messages no longer appear as success.'],
