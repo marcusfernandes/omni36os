@@ -97,7 +97,7 @@ Os atalhos se personalizam em Controles > Atalhos. O manual completo está no pr
 
 - `port/omni36os/`: o launcher, que vai para `/opt/omni36os` no console. `omni_ui.py` é a interface, `gfx.py` o desenho em SDL2 via ctypes, `omni.py` o núcleo do sistema, e há um módulo por app (`omni_musica.py`, `omni_video.py`, `omni_teclado.py`).
 - `imagem/gerar-imagem.sh`: monta a imagem de distribuição a partir da imagem original do dArkOSen. Tira o ES, o RetroArch e os emuladores e instala o Omni36OS e os arquivos de sistema.
-- **Emuladores (opcional):** `sudo EMULADORES=1 imagem/gerar-imagem.sh` gera `Omni36OS-<versão>-emu.img.xz`, que mantém o RetroArch (e os emuladores de `EMU_KEEP`) e as pastas de `EMU_SYSTEMS`. No console, Ferramentas > Emuladores põe na biblioteca, depois dos ports, um sistema por lista (X e Y trocam). A imagem padrão continua só de ports.
+- **Emuladores (opcional):** `sudo EMULADORES=1 imagem/gerar-imagem.sh` gera `Omni36OS-<versão>-emu.img.xz`, que mantém o RetroArch (e os emuladores de `EMU_KEEP`) e as pastas de `EMU_SYSTEMS`. Sem a cópia do cartão do autor, `sudo SRC=<imagem oficial>.img DARK=<dArkOSen>.img imagem/gerar-imagem-emu.sh` monta a mesma variante a partir da imagem oficial (Releases) e do dArkOSen. No console, Ferramentas > Emuladores põe na biblioteca, depois dos ports, um sistema por lista (X e Y trocam). A imagem padrão continua só de ports.
 - `tests/`: testes automáticos (`python3 tests/run.py`).
 - **Simulador no PC:** `cd port/omni36os && OMNI_FAKE=1 OMNI_WINDOWED=1 python3 omni_ui.py`. Enter é A, Backspace é B, as setas são o direcional e F12 faz a captura de tela.
 - Referência do projeto (pastas, módulos, rotina, imagem e release): [docs/REFERENCIA.md](docs/REFERENCIA.md).
