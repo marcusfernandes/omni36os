@@ -1484,6 +1484,7 @@ TRANSLATIONS = {
     'tx_governor': {"pt-BR": 'Governador: {name}', "en": 'Governor: {name}'},
     'tx_asound_restored': {"pt-BR": '.asoundrc restaurado do backup do sistema', "en": '.asoundrc restored from the system backup'},
     'tx_audio_out': {"pt-BR": 'Saída de áudio: {route}', "en": 'Audio output: {route}'},
+    'tx_r36s_only': {"pt-BR": 'Indisponível neste console: só funciona no R36S.', "en": 'Not available on this console: R36S only.'},
     'tx_no_screen_test': {"pt-BR": 'Erro: o teste de tela não está instalado nesta imagem. Use L1 + R1 ao ligar.', "en": 'Error: the screen test is not installed on this image. Hold L1 + R1 at power-on.'},
     'tx_rebooting_dtb': {"pt-BR": 'Reiniciando no modo de busca de DTB...', "en": 'Restarting in DTB search mode...'},
     'tx_port_not_found_path': {"pt-BR": 'Port não encontrado: {path}', "en": 'Port not found: {path}'},

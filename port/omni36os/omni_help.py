@@ -4,6 +4,10 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ('1.17.0', '06/11/2026', [
+        'R36Max e outros clones (720x720): imagem nova a partir do dArkOS4Clone (imagem/gerar-imagem-clone.sh), com emuladores. O menu e as telas de 640x480 aparecem centrados na tela do aparelho.',
+        'Clones: Trocar DTB, overclock e modo pendrive ficam indisponíveis (mexiam no DTB do R36S); o teste de tela do primeiro boot não roda.',
+    ]),
     ('1.16.1', '06/11/2026', [
         'Emuladores: o aviso de RetroArch faltando agora confere o programa de verdade (/opt/retroarch), e não só o atalho que a imagem só de ports mantém.',
     ]),
@@ -683,6 +687,7 @@ The R36S community, which documents models, screens, clones, and repairs and mak
 
 # Reviewed English release-note editions; entry order matches NOVIDADES above.
 NOVIDADES_EN = {
+    '1.17.0': ['R36Max and other clones (720x720): new image built from dArkOS4Clone (imagem/gerar-imagem-clone.sh), with emulators. The 640x480 menu and screens are centered on the device screen.', 'Clones: Change DTB, overclock and USB drive mode are unavailable (they edited the R36S DTB); the first-boot screen test does not run.'],
     '1.16.1': ['Emulators: the missing RetroArch warning now checks the actual program (/opt/retroarch), not just the shortcut kept by the ports-only image.'],
     '1.16.0': ['Emulators (optional): Tools > Emulators shows in the library, after the ports, the RetroArch systems with games on the card. X and Y switch systems; the Ports card warns about missing BIOS.', 'Image with emulators: sudo EMULADORES=1 imagem/gerar-imagem.sh builds Omni36OS-<version>-emu.img.xz, with RetroArch and the option already on. The default image stays ports-only.'],
     '1.15.31': ['Status bar: anchor icon while the internet comes through USB phone tethering.'],

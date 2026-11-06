@@ -1,0 +1,42 @@
+#!/bin/bash
+# Desenha uma tela do Omni36OS no framebuffer: omni36os-tela <boas-vindas|desligando|reiniciando|carregando>
+# Escreve os pixels crus (BGRA 640x480, gerados no PC) direto em /dev/fb0, na página visível.
+# Não usa mmap: o ffmpeg -f fbdev falha (mmap EINVAL) depois que o launcher/GPU usou a tela.
+# Tela que não é 640x480 (R36Max e outros clones, 720x720): a tela de 640x480 vai centrada, com
+# bordas pretas, numa cópia do tamanho da tela feita uma vez (ffmpeg) e guardada em $CACHE.
+DIR=/opt/omni36os-telas
+RAW="$DIR/$1.raw"
+# boas-vindas com o nome do jogador, gravada pelo Omni36OS quando o nome muda
+[ "$1" = boas-vindas ] && [ -f /home/ark/.config/omni36os/boas-vindas.raw ] && RAW=/home/ark/.config/omni36os/boas-vindas.raw
+LOG=/var/log/omni36os-tela.log
+FB=/sys/class/graphics/fb0
+CACHE=/var/cache/omni36os-telas
+
+printf '\033[?25l\033c\033[?25l' > /dev/tty1 2>/dev/null
+echo 0 > /sys/class/graphics/fbcon/cursor_blink 2>/dev/null
+
+BPP=$(cat $FB/bits_per_pixel 2>/dev/null)
+STRIDE=$(cat $FB/stride 2>/dev/null)
+PANY=$(cut -d, -f2 $FB/pan 2>/dev/null)
+MODE=$(head -1 $FB/modes 2>/dev/null | sed 's/.*://; s/p.*//')      # 720x720
+FW=${MODE%x*}; FH=${MODE#*x}
+if [ -f "$RAW" ] && [ "$BPP" = 32 ] && [ -n "$STRIDE" ] && [ "$STRIDE" != 2560 ] && [ -n "$FW" ] && [ -n "$FH" ]; then
+  OUT="$CACHE/${FW}x${FH}-$(basename "$(dirname "$RAW")")-$1.raw"
+  if [ ! -s "$OUT" ] || [ "$RAW" -nt "$OUT" ]; then
+    mkdir -p "$CACHE"
+    ffmpeg -nostdin -loglevel error -y -f rawvideo -pix_fmt bgra -s 640x480 -i "$RAW" \
+      -vf "scale=w='min($FW,640*$FH/480)':h=-2,pad=$((STRIDE / 4)):$FH:(ow-iw)/2:(oh-ih)/2:black" \
+      -pix_fmt bgra -f rawvideo "$OUT.tmp" 2>>"$LOG" && mv "$OUT.tmp" "$OUT"
+  fi
+  [ -s "$OUT" ] && RAW="$OUT"
+fi
+if [ -f "$RAW" ] && [ "$BPP" = 32 ] && [ -n "$STRIDE" ] && [ $(( $(stat -c %s "$RAW") % STRIDE )) = 0 ]; then
+  # pula as linhas até a página que está na tela (double buffer)
+  dd if="$RAW" of=/dev/fb0 bs="$STRIDE" seek="${PANY:-0}" conv=notrunc status=none 2>>"$LOG"
+  RC=$?
+else
+  PIX=bgra; [ "$BPP" = 16 ] && PIX=rgb565le
+  ffmpeg -nostdin -loglevel error -i "$DIR/$1.png" -pix_fmt "$PIX" -f fbdev /dev/fb0 2>>"$LOG"
+  RC=$?
+fi
+echo "$(date +%T) $1: bpp=$BPP stride=$STRIDE mode=$MODE pan=$PANY rc=$RC" >> "$LOG"

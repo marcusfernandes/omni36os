@@ -184,6 +184,15 @@ def ensure_dtb_catalog():
     return f"catálogo de DTB {name}: {added} novos, {changed} atualizados"
 
 
+R36S_DTB = "/boot/rk3326-r36s-linux.dtb"
+
+
+def is_r36s_boot():
+    """Cartão com o DTB do R36S (dArkOSen). Nos clones do arkos4clone (R36Max etc.) o DTB tem outro
+    nome e a tela não é 640x480: busca de tela, Trocar DTB, overclock e pendrive não se aplicam."""
+    return os.path.exists(R36S_DTB)
+
+
 def model_variant(model):
     """Variante do aparelho pelo modelo do DTB em uso (r36_devices.ini do dArkOSen); None se o
     modelo não está lá. A tela sozinha não diz: o teste de tela pode ter trazido o painel de outro DTB."""
@@ -1358,6 +1367,8 @@ def usb_set_partition(args):
 
 def usb_on(_args=None):
     """Liga o modo pendrive. A rede USB usa a mesma porta: se estiver ligada, sai antes, sozinha."""
+    if not is_r36s_boot():          # o modo pendrive edita o DTB do R36S
+        return omni_i18n._("tx_r36s_only")
     if usb_net_active():
         import omni_sistema
         omni_sistema.usbnet_stop()
@@ -1371,6 +1382,8 @@ def usb_off(_args=None):
 def dtb_retest(_args=None):
     """Ferramentas > Trocar DTB: o mesmo teste de tela do L1 + R1 ao ligar. Marca o pedido no /boot
     (o omni36os-painel.service roda o teste no boot seguinte) e reinicia."""
+    if not is_r36s_boot():
+        return omni_i18n._("tx_r36s_only")
     if not os.path.exists("/etc/systemd/system/omni36os-painel.service") and \
             not os.path.exists("/lib/systemd/system/omni36os-painel.service"):
         return omni_i18n._("tx_no_screen_test")

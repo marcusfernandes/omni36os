@@ -606,6 +606,8 @@ def by_buttons():
 
 
 if __name__ == "__main__":
+    if not os.path.exists(f"{BOOT}/rk3326-r36s-linux.dtb"):   # clone (arkos4clone): o DTB é do aparelho
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "--botoes":
         sys.exit(by_buttons() or 0)
     if len(sys.argv) > 1 and sys.argv[1] == "--listar":     # diagnóstico, não muda nada

@@ -1,5 +1,10 @@
 # Omni36OS release notes
 
+## 1.17.0 (06/11/2026)
+
+- R36Max and other clones (720x720): new image built from dArkOS4Clone (imagem/gerar-imagem-clone.sh), with emulators. The 640x480 menu and screens are centered on the device screen.
+- Clones: Change DTB, overclock and USB drive mode are unavailable (they edited the R36S DTB); the first-boot screen test does not run.
+
 ## 1.16.1 (06/11/2026)
 
 - Emulators: the missing RetroArch warning now checks the actual program (/opt/retroarch), not just the shortcut kept by the ports-only image.

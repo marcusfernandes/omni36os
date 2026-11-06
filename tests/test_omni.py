@@ -509,5 +509,41 @@ class TelaCerta(unittest.TestCase):
         self.assertTrue(self.op.needed())
 
 
+class Clone(unittest.TestCase):
+    """R36Max e outros clones (arkos4clone): sem o DTB do R36S, nada mexe em DTB; tela 720x720."""
+    def setUp(self):
+        self.orig = omni.R36S_DTB
+        omni.R36S_DTB = "/caminho/que/nao/existe.dtb"
+
+    def tearDown(self):
+        omni.R36S_DTB = self.orig
+
+    def test_sem_dtb_do_r36s_nao_e_r36s(self):
+        self.assertFalse(omni.is_r36s_boot())
+        with tempfile.NamedTemporaryFile() as f:
+            omni.R36S_DTB = f.name
+            self.assertTrue(omni.is_r36s_boot())
+
+    def test_trocar_dtb_e_pendrive_indisponiveis(self):
+        import omni_i18n
+        msg = omni_i18n._("tx_r36s_only")
+        self.assertEqual(omni.dtb_retest(), msg)
+        self.assertEqual(omni.usb_on(), msg)
+
+    def test_tamanho_da_tela(self):
+        from unittest import mock
+        import gfx
+        with mock.patch("builtins.open", mock.mock_open(read_data="U:720x720p-60\n")):
+            self.assertEqual(gfx.native_size(), (720, 720))
+        with mock.patch("builtins.open", side_effect=OSError):
+            self.assertIsNone(gfx.native_size())
+
+    def test_script_de_tela_dos_clones(self):
+        sh = os.path.join(ROOT, "imagem", "clone", "omni36os-tela")
+        self.assertEqual(subprocess.run(["bash", "-n", sh]).returncode, 0)
+        sh = os.path.join(ROOT, "imagem", "gerar-imagem-clone.sh")
+        self.assertEqual(subprocess.run(["bash", "-n", sh]).returncode, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -86,6 +86,7 @@ SDL_CreateRGBSurfaceWithFormatFrom = _f(sdl, "SDL_CreateRGBSurfaceWithFormatFrom
 
 INIT_VIDEO, INIT_GAMECONTROLLER = 0x20, 0x2000
 WINDOW_FULLSCREEN, WINDOW_SHOWN = 0x1, 0x4
+WINDOW_FULLSCREEN_DESKTOP = 0x1001
 RENDERER_ACCELERATED, RENDERER_PRESENTVSYNC = 0x2, 0x4
 BLEND = 1
 PIXELFORMAT_RGB24 = 0x17101803
@@ -95,6 +96,16 @@ TEXTUREACCESS_STREAMING = 1
 
 W, H = 640, 480
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def native_size():
+    """(largura, altura) da tela pelo modo do framebuffer ("U:720x720p-60"); None se não der para ler."""
+    try:
+        with open("/sys/class/graphics/fb0/modes") as f:
+            w, h = f.readline().split(":")[-1].split("p")[0].split("x")
+        return int(w), int(h)
+    except (OSError, ValueError):
+        return None
 
 
 def mix(a, b, t):
@@ -115,7 +126,11 @@ class Gfx:
         if SDL_Init(INIT_VIDEO | INIT_GAMECONTROLLER) != 0:
             raise RuntimeError(SDL_GetError().decode())
         SDL_SetHint(b"SDL_RENDER_SCALE_QUALITY", b"1")
-        flags = WINDOW_SHOWN | (0 if os.environ.get("OMNI_WINDOWED") else WINDOW_FULLSCREEN)
+        full = WINDOW_FULLSCREEN
+        size = None if os.environ.get("OMNI_FAKE") == "1" else native_size()
+        if size and size[0] != W:          # R36Max e outros clones (720x720): 640x480 escalado, centrado
+            full = WINDOW_FULLSCREEN_DESKTOP
+        flags = WINDOW_SHOWN | (0 if os.environ.get("OMNI_WINDOWED") else full)
         self.win = SDL_CreateWindow(title.encode(), 0, 0, W, H, flags)
         if not self.win:
             raise RuntimeError(SDL_GetError().decode())

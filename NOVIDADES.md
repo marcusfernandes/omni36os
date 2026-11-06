@@ -2,6 +2,11 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.17.0 (06/11/2026)
+
+- R36Max e outros clones (720x720): imagem nova a partir do dArkOS4Clone (imagem/gerar-imagem-clone.sh), com emuladores. O menu e as telas de 640x480 aparecem centrados na tela do aparelho.
+- Clones: Trocar DTB, overclock e modo pendrive ficam indisponíveis (mexiam no DTB do R36S); o teste de tela do primeiro boot não roda.
+
 ## 1.16.1 (06/11/2026)
 
 - Emuladores: o aviso de RetroArch faltando agora confere o programa de verdade (/opt/retroarch), e não só o atalho que a imagem só de ports mantém.
