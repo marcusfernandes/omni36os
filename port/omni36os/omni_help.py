@@ -4,6 +4,9 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ('1.16.1', '06/11/2026', [
+        'Emuladores: o aviso de RetroArch faltando agora confere o programa de verdade (/opt/retroarch), e não só o atalho que a imagem só de ports mantém.',
+    ]),
     ('1.16.0', '06/11/2026', [
         'Emuladores (opcional): Ferramentas > Emuladores mostra na biblioteca, depois dos ports, os sistemas do RetroArch com jogos no cartão. X e Y trocam de sistema; o card Ports avisa BIOS faltando.',
         'Imagem com emuladores: sudo EMULADORES=1 imagem/gerar-imagem.sh gera Omni36OS-<versão>-emu.img.xz, com o RetroArch e a opção já ligada. A imagem padrão continua só de ports.',
@@ -680,6 +683,7 @@ The R36S community, which documents models, screens, clones, and repairs and mak
 
 # Reviewed English release-note editions; entry order matches NOVIDADES above.
 NOVIDADES_EN = {
+    '1.16.1': ['Emulators: the missing RetroArch warning now checks the actual program (/opt/retroarch), not just the shortcut kept by the ports-only image.'],
     '1.16.0': ['Emulators (optional): Tools > Emulators shows in the library, after the ports, the RetroArch systems with games on the card. X and Y switch systems; the Ports card warns about missing BIOS.', 'Image with emulators: sudo EMULADORES=1 imagem/gerar-imagem.sh builds Omni36OS-<version>-emu.img.xz, with RetroArch and the option already on. The default image stays ports-only.'],
     '1.15.31': ['Status bar: anchor icon while the internet comes through USB phone tethering.'],
     '1.15.30': ['USB tethering: more Android phones recognized, with the new Phone tethering option in the Network card.'],

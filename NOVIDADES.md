@@ -2,6 +2,10 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.16.1 (06/11/2026)
+
+- Emuladores: o aviso de RetroArch faltando agora confere o programa de verdade (/opt/retroarch), e não só o atalho que a imagem só de ports mantém.
+
 ## 1.16.0 (06/11/2026)
 
 - Emuladores (opcional): Ferramentas > Emuladores mostra na biblioteca, depois dos ports, os sistemas do RetroArch com jogos no cartão. X e Y trocam de sistema; o card Ports avisa BIOS faltando.

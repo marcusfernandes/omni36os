@@ -1,5 +1,9 @@
 # Omni36OS release notes
 
+## 1.16.1 (06/11/2026)
+
+- Emulators: the missing RetroArch warning now checks the actual program (/opt/retroarch), not just the shortcut kept by the ports-only image.
+
 ## 1.16.0 (06/11/2026)
 
 - Emulators (optional): Tools > Emulators shows in the library, after the ports, the RetroArch systems with games on the card. X and Y switch systems; the Ports card warns about missing BIOS.

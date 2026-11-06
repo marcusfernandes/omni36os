@@ -26,7 +26,7 @@ EMULADORES = "/tmp/omni36os-emuladores" if os.environ.get("OMNI_FAKE") == "1" el
     f"{omni.HOME}/.config/omni36os/emuladores"          # "ligados": a biblioteca mostra os emuladores
 # sistemas do ES que não são jogos (ou têm card próprio)
 SKIP = {"omni36os", "sab", "tools", "options", "retropie", "settings", "kodi", "imageviewer"}
-RETROARCH = ("/usr/local/bin/retroarch", "/opt/retroarch/bin/retroarch", "/opt/retroarch")
+RETROARCH = ("/opt/retroarch/bin/retroarch",)   # o binário: /usr/local/bin/retroarch é só o script que chama ele
 PORTS_DEFAULT = {"name": "ports", "fullname": "Ports", "ext": ".sh .SH",
                  "command": "sudo perfmax %GOVERNOR% %ROM%; nice -n -19 %ROM%; sudo perfnorm"}
 # pastas e arquivos que moram nas pastas de jogos e não são jogos
