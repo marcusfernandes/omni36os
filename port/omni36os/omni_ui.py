@@ -1390,6 +1390,7 @@ class App:
             return out
         if cid == "rede":
             on = getattr(self, "fake_wifi", True) if FAKE else omni_sistema.wifi_on()
+            tether = getattr(self, "fake_tether", True) if FAKE else omni_sistema.ancoragem_on()
             return [tip(A(omni_i18n._("ui_build_wifi_off" if on else "ui_build_wifi_on"), "wifi-off" if on else "wifi",
                           lambda: self.wifi_toggle(not on)),
                         omni_i18n._("ui_tip_wifi_off" if on else "ui_tip_wifi_on")),
@@ -1400,6 +1401,9 @@ class App:
                     tip(A(omni_i18n._("ui_build_network_disconnect"), "plug-connected-x", lambda: self.wifi_run(omni_sistema.wifi_disconnect if not FAKE else
                                                                     (lambda: omni_i18n._("ui_usb_net_disconnected")), omni_i18n._("ui_usb_net_disconnect_busy"))),
                         omni_i18n._("ui_tip_disconnect")),
+                    tip(A(omni_i18n._("ui_tether_on" if tether else "ui_tether_off"), "usb",
+                          lambda: self.tether_toggle(not tether)),
+                        omni_i18n._("ui_tether_tip")),
                     tip(subpage(A(omni_i18n._("ui_usb_network"), "network", lambda: self.open_page("usbrede")), "usbrede"),
                         omni_i18n._("ui_usb_net_intro_tip")),
                     recheck]
@@ -2098,6 +2102,13 @@ class App:
         self.wifi_run((lambda: omni_i18n._("msg_wifi_on" if on else "msg_wifi_off")) if FAKE else
                       (lambda: omni_sistema.wifi_set(on)),
                       omni_i18n._("ui_wifi_turning_on" if on else "ui_wifi_turning_off"))
+
+    def tether_toggle(self, on):
+        if FAKE:
+            self.fake_tether = on
+        self.wifi_run((lambda: omni_i18n._("msg_tether_on" if on else "msg_tether_off")) if FAKE else
+                      (lambda: omni_sistema.ancoragem_set(on)),
+                      omni_i18n._("ui_tether_busy"))
 
     def wifi_connect(self, rede, senha=None):
         self.wifi_run((lambda: omni_i18n._("ui_wifi_connected").format(network=rede)) if FAKE else

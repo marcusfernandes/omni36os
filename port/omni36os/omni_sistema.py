@@ -135,6 +135,18 @@ def wifi_set(on):
     return omni_i18n._("msg_wifi_on")
 
 
+def ancoragem_on():
+    """Recepção da ancoragem USB: é o autoconnect do perfil omni-ancoragem."""
+    code, out = sh("nmcli", "-g", "connection.autoconnect", "connection", "show", "omni-ancoragem")
+    return code == 0 and out == "yes"
+
+
+def ancoragem_set(on):
+    sh("nmcli", "connection", "modify", "omni-ancoragem", "connection.autoconnect", "yes" if on else "no")
+    sh("nmcli", "connection", "up" if on else "down", "omni-ancoragem")
+    return omni_i18n._("msg_tether_on" if on else "msg_tether_off")
+
+
 def wifi_current():
     """(rede, sinal %) da conexão ativa, ou (None, 0)."""
     for ln in sh("nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL", "device", "wifi")[1].splitlines():

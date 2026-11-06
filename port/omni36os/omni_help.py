@@ -260,7 +260,7 @@ Cartão em outro console, com outra tela (tela preta ou imagem errada): quando a
 
 # Rede
 Data, hora e fuso se acertam sozinhos: na primeira vez que o console pega internet depois de ligar, o Omni36OS descobre o fuso pela conexão, acerta a hora, grava no relógio do console e desliga o serviço de hora até o próximo boot.
-"Ligar o Wi-Fi" liga e desliga o adaptador, "Procurar redes" liga o Wi-Fi se ele estiver desligado e lista as redes por perto (com cadeado pede a senha no teclado; START confirma), "Redes salvas" conecta de novo ou esquece uma, "Desconectar" sai da rede atual. O painel mostra a rede, o sinal e o IP do console, e se atualiza sozinho. Na pílula de estado, o ícone do Wi-Fi aparece riscado sem adaptador ou com o rádio desligado, apagado quando está ligado sem rede e, conectado, com as ondas da força do sinal.
+"Ligar o Wi-Fi" liga e desliga o adaptador, "Procurar redes" liga o Wi-Fi se ele estiver desligado e lista as redes por perto (com cadeado pede a senha no teclado; START confirma), "Redes salvas" conecta de novo ou esquece uma, "Desconectar" sai da rede atual, "Ancoragem celular" liga ou desliga a internet do celular conectado por USB. O painel mostra a rede, o sinal e o IP do console, e se atualiza sozinho. Na pílula de estado, o ícone do Wi-Fi aparece riscado sem adaptador ou com o rádio desligado, apagado quando está ligado sem rede e, conectado, com as ondas da força do sinal.
 "Rede pelo cabo USB": o console vira uma placa de rede no cabo.
 - Modo universal: o console dá o IP ao PC. No PC: ssh omni@10.44.44.1.
 - Internet pelo PC: o PC compartilha a internet pelo cabo e o console recebe o IP dele.
@@ -481,7 +481,7 @@ Card used in another console with a different screen (black screen or wrong imag
 
 # Network
 Date, time, and time zone are set automatically: the first time the console gets internet after startup, Omni36OS determines the time zone from the connection, sets the time, writes it to the console clock, and stops the time service until the next boot.
-“Turn Wi-Fi on” enables or disables the adapter; “Scan for networks” turns Wi-Fi on if it is off and lists nearby networks (a lock means a password is required; enter it with the keyboard and press START to confirm); “Saved networks” reconnects or forgets one; “Disconnect” leaves the current network. The panel shows the network, signal, and console IP and refreshes automatically. In the status pill, the Wi-Fi icon is crossed out when there is no adapter or the radio is off, dim when on but not connected, and shows signal-strength waves when connected.
+“Turn Wi-Fi on” enables or disables the adapter; “Scan for networks” turns Wi-Fi on if it is off and lists nearby networks (a lock means a password is required; enter it with the keyboard and press START to confirm); “Saved networks” reconnects or forgets one; “Disconnect” leaves the current network; “Phone tethering” turns the internet of a USB-connected phone on or off. The panel shows the network, signal, and console IP and refreshes automatically. In the status pill, the Wi-Fi icon is crossed out when there is no adapter or the radio is off, dim when on but not connected, and shows signal-strength waves when connected.
 “USB cable network”: the console becomes a network adapter over the cable.
 - Universal mode: the console gives the PC an IP. On the PC: ssh omni@10.44.44.1.
 - Internet via PC: the PC shares its internet over the cable and the console receives its IP.
