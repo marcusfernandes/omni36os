@@ -1,0 +1,2 @@
+# Ancoragem USB de celulares Android (RNDIS como EF/04/01)
+ACTION=="add", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_interface", ATTR{bInterfaceClass}=="ef", ATTR{bInterfaceSubClass}=="04", ATTR{bInterfaceProtocol}=="01", RUN+="/usr/local/sbin/omni-ancoragem-bind.sh $env{PRODUCT}"

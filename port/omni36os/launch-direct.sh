@@ -16,6 +16,9 @@
 OMNI_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 cd "$OMNI_DIR"
 
+# Ancoragem USB de celulares Android (ancoragem/README.md)
+sudo "$OMNI_DIR/ancoragem/instalar.sh" >/dev/null 2>&1 &
+
 # Verificar se estamos em modo launcher shell (omnilaut)
 OMNILAUT="false"
 if grep -q "omnilaut=true" /proc/cmdline 2>/dev/null; then
