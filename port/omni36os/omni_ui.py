@@ -288,6 +288,16 @@ def wifi_state():
     return {"wifi": True, "conectado": up, "sinal": sinal if up else 0}
 
 
+def ancoragem_ativa():
+    """Internet pela ancoragem USB do celular: interface de um destes drivers, com link e IPv4.
+    O modo Rede pelo celular (g_ether) não entra: ali o console é o aparelho USB."""
+    for n in os.listdir("/sys/class/net"):
+        drv = os.path.basename(os.path.realpath(f"/sys/class/net/{n}/device/driver"))
+        if drv in ("rndis_host", "cdc_ether", "cdc_ncm") and \
+                omni.read_text(f"/sys/class/net/{n}/carrier", "0") == "1" and ipv4(n):
+            return True
+    return False
+
 
 class Data:
     def status(self):
@@ -300,6 +310,7 @@ class Data:
             "carregando": omni.read_text("/sys/class/power_supply/battery/status") in ("Charging", "Full"),
             "temp": int(t) // 1000 if t.isdigit() else 0,
             **wifi_state(),
+            "ancoragem": ancoragem_ativa(),
             "gov": omni.get_preferred_governor(),
             "cpu_max": omni.get_cpu_max(),
         }
@@ -4628,6 +4639,9 @@ class App:
         vtxt = f"{vol}%" if vol is not None else ""
         w = (24 + g.measure("SemiBold", 13, vtxt)[0] + 12 if vtxt else 0) + 46 + g.measure("SemiBold", 13, bat)[0] + 36 + g.measure("SemiBold", 13, temp)[0] + 22 + \
             g.measure("SemiBold", 13, hora)[0] + 30
+        ancora = s.get("ancoragem") or getattr(self, "fake_tether", False)
+        if ancora:
+            w += 26
         x = W - 22 - w
         g.rrect(x, 16, w, 34, 17, GLASS_HI)
         cx = x + 14
@@ -4640,6 +4654,9 @@ class App:
             wico, wc = ("wifi-1" if sig < 35 else "wifi-2" if sig < 65 else "wifi"), TEXT
         g.icon(wico, cx, 24, 18, wc)
         cx += 26
+        if ancora:                        # internet pela ancoragem USB do celular
+            g.icon("anchor", cx, 24, 18, TEXT)
+            cx += 26
         if vtxt:                                  # volume do som
             vc = TEXT if vol else FAINT
             g.icon("volume", cx, 24, 18, vc)
