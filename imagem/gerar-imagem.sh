@@ -1,7 +1,12 @@
 #!/bin/bash
 # Gera a imagem de distribuição do Omni36OS a partir da imagem original do dArkOSen.
 #
-#   sudo imagem/gerar-imagem.sh            -> output/Omni36OS-<versão>.img.xz
+#   sudo imagem/gerar-imagem.sh                -> output/Omni36OS-<versão>.img.xz (só ports)
+#   sudo EMULADORES=1 imagem/gerar-imagem.sh   -> output/Omni36OS-<versão>-emu.img.xz
+#
+# Variante com emuladores (EMULADORES=1): o RetroArch (núcleos e configurações) e os emuladores avulsos
+# de EMU_KEEP ficam; o roms.tar leva também as pastas de EMU_SYSTEMS (e a bios), e a opção
+# Ferramentas > Emuladores já vem ligada. Os ports continuam primeiro na biblioteca.
 #
 # 1. Copia a imagem original (ela não é tocada) e monta as partições.
 # 2. Tira o que não é de um sistema só de ports: EmulationStation, RetroArch e núcleos,
@@ -20,7 +25,13 @@ CARD="$BASE/cartao/ROOTFS"
 TELAS="$BASE/telas/out"
 VER=$(cat "$REPO/port/omni36os/VERSION")
 OUT="$BASE/output"
+EMULADORES=${EMULADORES:-0}
+# emuladores avulsos (/opt) e sistemas (pastas do EASYROMS) que ficam na variante com emuladores
+EMU_KEEP=${EMU_KEEP:-"retroarch mupen64plus ppsspp ppsspp-2021 drastic advanceddrastic"}
+EMU_SYSTEMS=${EMU_SYSTEMS:-"nes fds snes gb gbc gba genesis megadrive mastersystem gamegear segacd sega32x \
+  pcengine psx n64 psp nds arcade fbneo mame2003 neogeo atari2600 ngp ngpc wonderswan wonderswancolor"}
 IMG="$OUT/Omni36OS-$VER.img"
+[ "$EMULADORES" = 1 ] && IMG="$OUT/Omni36OS-$VER-emu.img"
 MNT=/mnt/omni36os-imagem
 
 [ "$(id -u)" = 0 ] || { echo "Rode com sudo."; exit 1; }
@@ -36,23 +47,43 @@ mount -o compress=zlib:1 "${LOOP}p2" "$MNT/root"
 R="$MNT/root"; B="$MNT/boot"
 [ -f "$R/etc/systemd/system/emulationstation.service" ] && [ -f "$B/firstboot.sh" ] || { echo "Imagem inesperada."; exit 1; }
 
-echo "== tirando ES, RetroArch e emuladores"
+# mantido na variante com emuladores?
+emu_keep() { [ "$EMULADORES" = 1 ] && [[ " $EMU_KEEP " == *" $1 "* ]]; }
+
+if [ "$EMULADORES" = 1 ]; then
+  echo "== tirando ES e os emuladores fora de EMU_KEEP ($EMU_KEEP)"
+else
+  echo "== tirando ES, RetroArch e emuladores"
+fi
 rm -rf "$R/usr/bin/emulationstation"
 for d in kodi scummvm duckstation ppsspp ppsspp-2021 advanceddrastic drastic flycastsa retroarch bigpemu \
          mednafen dingux openmsx gzdoom lzdoom hypseus-singe solarus yabasanshiro applewin ti99sim \
          mupen64plus mvem ecwolf gametank OpenBor fake08 linapple xroar piemu; do
-  rm -rf "${R:?}/opt/$d"
+  emu_keep "$d" || rm -rf "${R:?}/opt/$d"
 done
-rm -rf "$R/usr/local/bin/retrorun" "$R/usr/local/bin/retrorun32" "$R/usr/local/bin/freej2me_files"
+emu_keep retroarch || rm -rf "$R/usr/local/bin/retrorun" "$R/usr/local/bin/retrorun32"
+rm -rf "$R/usr/local/bin/freej2me_files"
 H="$R/home/ark"
-rm -rf "$H/.config/retroarch" "$H/.config/retroarch32" "$H/.config/duckstation" "$H/.config/gzdoom" \
-       "$H/.config/lzdoom" "$H/.config/mupen64plus" "$H/.kodi" "$H/.mednafen" "$H/.update" "$H/.benchmark_data"
+emu_keep retroarch || rm -rf "$H/.config/retroarch" "$H/.config/retroarch32"
+emu_keep mupen64plus || rm -rf "$H/.config/mupen64plus"
+rm -rf "$H/.config/duckstation" "$H/.config/gzdoom" \
+       "$H/.config/lzdoom" "$H/.kodi" "$H/.mednafen" "$H/.update" "$H/.benchmark_data"
 # o primeiro boot faz "cd /tempthemes" e copia "." para /roms/themes: a pasta fica, vazia
 find "$R/tempthemes" -mindepth 1 -delete
 
 echo "== refazendo o roms.tar (só ports, PortMaster e backup)"
 T=$(mktemp -d)
 tar -xf "$R/roms.tar" -C "$T" roms/ports roms/backup roms/tools/PortMaster roms/tools/PortMaster.sh
+if [ "$EMULADORES" = 1 ]; then
+  # só as pastas de EMU_SYSTEMS que existem no roms.tar original (uma leitura para listar, outra para extrair)
+  mapfile -t TEM < <(tar -tf "$R/roms.tar" | awk -F/ 'NF > 2 && $1 == "roms" { print $1 "/" $2 }' | sort -u)
+  QUERO=()
+  for s in $EMU_SYSTEMS bios; do
+    [[ " ${TEM[*]} " == *" roms/$s "* ]] && QUERO+=("roms/$s")
+  done
+  [ ${#QUERO[@]} -gt 0 ] && tar -xf "$R/roms.tar" -C "$T" "${QUERO[@]}"
+  echo "   pastas de sistemas: ${#QUERO[@]} (${QUERO[*]#roms/})"
+fi
 mkdir -p "$T/roms/themes" "$T/roms/bios"
 # runtimes do PortMaster já no cartão (lista em port/omni36os/runtimes.txt): os ports que pedem um
 # deles abrem sem baixar nada. A pasta $RUNTIMES (fora do repositório) é posta em dia aqui, pelo
@@ -117,7 +148,12 @@ mkdir -p "$R/etc/omni36os"
 echo 1 > "$R/etc/omni36os/cpu_auto"
 echo 1 > "$R/etc/omni36os/gpu_auto"
 rm -f "$R/etc/omni36os/overclock"
-touch "$R/etc/omni36os/botoes-iniciais"   # 1º boot: A, B, X e Y no padrão (omni.ensure_default_buttons)
+touch "$R/etc/omni36os/botoes-iniciais"
+if [ "$EMULADORES" = 1 ]; then                # biblioteca com os sistemas dos emuladores (omni_games.py)
+  mkdir -p "$H/.config/omni36os"
+  echo ligados > "$H/.config/omni36os/emuladores"
+  chown -R 1000:1000 "$H/.config/omni36os"
+fi   # 1º boot: A, B, X e Y no padrão (omni.ensure_default_buttons)
 # botão de power com o menu de energia já ligado (como o set_power_button faz no console)
 P="$R/usr/local/bin/pause.sh"
 grep -q "Omni36OS: botão de power" "$P" || cp -a "$P" "$P.omni36os-orig"

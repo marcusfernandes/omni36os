@@ -227,6 +227,14 @@ FAKE_GAMES = [
         {"path": "/roms2/ports/Hollow Knight.sh", "name": "Hollow Knight", "size": 900000000}]},
 ]
 
+FAKE_EMU = [      # simulador com Ferramentas > Emuladores ligado
+    {"name": "snes", "full": "Super Nintendo", "path": "/roms/snes", "n_unknown": 0, "unknown": [], "games": [
+        {"path": "/roms/snes/Super Mario World.sfc", "name": "Super Mario World", "size": 524288, "fav": 1,
+         "desc": "Mario e Yoshi atravessam a Dinosaur Land para salvar a princesa.", "plays": 4, "time": 5400},
+        {"path": "/roms2/snes/Chrono Trigger.sfc", "name": "Chrono Trigger", "size": 4194304}]},
+    {"name": "gba", "full": "Game Boy Advance", "path": "/roms/gba", "n_unknown": 0, "unknown": [], "games": [
+        {"path": "/roms/gba/Pokemon Emerald.gba", "name": "Pokémon Emerald", "size": 16777216}]},
+]
 FAKE_PORTS = [{"dir": "/roms2/ports", "label": "/roms2/ports (cartão de jogos)", "es": True,
                "ports": ["/roms2/ports/Daytona USA.sh", "/roms2/ports/NFSU1.sh", "/roms2/ports/Undertale.sh"]}]
 GAMMAS = [0.6, 0.8, 0.9, 1.0, 1.1, 1.2, 1.4, 1.6]
@@ -354,6 +362,8 @@ class Data:
     def get(self, what):
         if what == "idioma":
             return omni_i18n.get_lang()
+        if what == "emuladores":
+            return "ligados" if emulators_on() else "desligados"
         if what == "gfn_fn":
             return omni_gfn.fn_mode() if not FAKE else self.__dict__.get("fake_gfn", "sistema")
         if what.startswith("m_"):         # Aplicativos > Músicas (o mesmo arquivo no simulador e no console)
@@ -412,6 +422,9 @@ class Data:
             return omni.get_atalhos()[what[3:]]
 
     def set(self, what, value):
+        if what == "emuladores":
+            set_emulators(value == "ligados")
+            return "ok"
         if what == "gfn_fn":
             if FAKE:
                 self.fake_gfn = value
@@ -584,6 +597,18 @@ def put_flag(path, value):
         os.chmod(path, 0o666)
     except OSError:
         pass
+def emulators_on():
+    """Ferramentas > Emuladores (omni_games.EMULADORES; o simulador não carrega o omni_games)."""
+    return flag("/tmp/omni36os-emuladores") == "ligados" if FAKE else omni_games.emulators_on()
+
+
+def set_emulators(on):
+    if FAKE:
+        put_flag("/tmp/omni36os-emuladores", "ligados" if on else "desligados")
+    else:
+        omni_games.set_emulators(on)
+
+
 BUSCA = "/tmp/omni36os-busca" if FAKE else "/home/ark/.config/omni36os/busca"   # "desligada": sem busca automática
 
 
@@ -896,7 +921,17 @@ class App:
         if cid == "ports":
             idx = self.games()
             n = sum(len(s["games"]) for s in idx)
-            return {"nivel": "ok", "acoes": [], "achados": [("ok", omni_i18n._("ui_library_count").format(count=n))]}
+            out = [("ok", omni_i18n._("ui_library_count").format(count=n))]
+            if not FAKE and omni_games.emulators_on():
+                if not omni_games.emulators_installed():
+                    out.append(("aviso", omni_i18n._("ui_emulators_missing")))
+                for s, missing, odd in omni_games.bios_check(idx):
+                    if missing:
+                        out.append(("aviso", omni_i18n._("ui_bios_missing").format(system=s["full"], files=", ".join(missing))))
+                    if odd:
+                        out.append(("info", omni_i18n._("ui_bios_odd").format(system=s["full"], files=", ".join(odd))))
+            nivel = "aviso" if any(l == "aviso" for l, _ in out) else "ok"
+            return {"nivel": nivel, "acoes": [], "achados": out}
         if cid == "backup":
             return self._backup()
         if cid == "ferramentas":
@@ -1202,7 +1237,7 @@ class App:
 
     def games(self, force=False):
         if FAKE:
-            self.games_idx = FAKE_GAMES
+            self.games_idx = FAKE_GAMES + (FAKE_EMU if emulators_on() else [])
         elif force or not getattr(self, "games_idx", None):
             self.games_idx = omni_games.index(force)
         return self.games_idx
@@ -1391,7 +1426,11 @@ class App:
                        omni_i18n._("ui_build_refresh_ports_tip")),
                    tip(Choice(omni_i18n._("ui_card_option_search_auto"), "photo-search", "busca", ["ligada", "desligada"],
                               {"ligada": omni_i18n._("ui_settings_on"), "desligada": omni_i18n._("ui_settings_off")}),
-                       omni_i18n._("ui_search_auto_tip"))]
+                       omni_i18n._("ui_search_auto_tip")),
+                   tip(Choice(omni_i18n._("ui_card_option_emulators"), "device-gamepad-2", "emuladores",
+                              ["desligados", "ligados"],
+                              {"ligados": omni_i18n._("ui_settings_on"), "desligados": omni_i18n._("ui_settings_off")}),
+                       omni_i18n._("ui_emulators_tip"))]
             out += [tip(A(t["name"], "device-gamepad-2" if "PortMaster" in t["name"] else "folder",
                           lambda t=t: self.ask_tool(t)),
                         f"{t.get('desc', '')} {omni_i18n._('ui_tip_tool_suffix')}".strip())
@@ -3342,27 +3381,41 @@ class App:
     # --- biblioteca (tela inicial) ---
 
     def lib_lists(self):
-        """[(título, ícone, [(sistema, jogo)])]: uma lista só, com todos os ports em ordem de nome."""
-        pairs = [(s, g) for s in self.games() for g in s["games"]]
-        pairs.sort(key=lambda p: (not p[1].get("fav"), p[1]["name"].lower()))   # favoritos primeiro
-        return [("Ports", "device-gamepad-2", pairs)] if pairs else []
+        """[(título, ícone, [(sistema, jogo)])]: os ports primeiro e, com Emuladores ligado, uma lista
+        por sistema que tiver jogos. Cada lista em ordem de nome, com os favoritos no topo."""
+        out = []
+        for s in self.games():
+            pairs = sorted(((s, g) for g in s["games"]), key=lambda p: (not p[1].get("fav"), p[1]["name"].lower()))
+            if pairs:
+                out.append(("Ports" if s["name"] == "ports" else s["full"], "device-gamepad-2", pairs))
+        return out
+
+    def lib_info(self, s, game):
+        """Ficha do jogo: ports pela internet/pasta info (meta); emuladores pelo gamelist do ES."""
+        if s["name"] == "ports":
+            return self.meta(game["name"], game.get("path", ""))
+        cover = game.get("cover")
+        return {"capa": cover} if cover and os.path.exists(cover) else None
 
     def select_last_played(self):
         """Ao abrir Ports, o destaque fica no último port jogado (o de "Última vez" mais nova)."""
         lists = self.lib_lists()
         if not lists:
             return
-        games = lists[0][2]
         try:
             with open(omni_games.LAST) as f:
                 path = f.read().strip()
         except (OSError, NameError):     # simulador: sem omni_games
             path = ""
-        best = next((i for i, (_s, g) in enumerate(games) if path and g["path"] == path), None)
-        if best is None:                  # sem registro próprio: a "Última vez" do ES
-            best = max(range(len(games)), key=lambda i: games[i][1].get("last") or "", default=None)
-            if best is not None and not games[best][1].get("last"):
-                best = None
+        for k, (_t, _i, games) in enumerate(lists):
+            best = next((i for i, (_s, g) in enumerate(games) if path and g["path"] == path), None)
+            if best is not None:
+                self.lib.update(sys=k, game=best, top=0.0)
+                return
+        games = lists[0][2]               # sem registro próprio: a "Última vez" do ES
+        best = max(range(len(games)), key=lambda i: games[i][1].get("last") or "", default=None)
+        if best is not None and not games[best][1].get("last"):
+            best = None
         if best is not None:
             self.lib.update(sys=0, game=best, top=0.0)
 
@@ -3374,8 +3427,12 @@ class App:
             return
         if not lists:
             return
-        lb["sys"] = 0
-        games = lists[0][2]
+        lb["sys"] = min(lb.get("sys", 0), len(lists) - 1)
+        if cmd in ("x", "y") and len(lists) > 1:     # X / Y: sistema anterior / seguinte
+            lb["sys"] = (lb["sys"] + (1 if cmd == "y" else -1)) % len(lists)
+            lb.update(game=0, top=0.0)
+            return
+        games = lists[lb["sys"]][2]
         if cmd in ("up", "down"):
             lb["game"] = (lb["game"] + (1 if cmd == "down" else -1)) % len(games)
         elif cmd in ("left", "right"):     # página de 10 (para nas pontas)
@@ -3422,8 +3479,8 @@ class App:
                    W / 2, 232, MUTED, "c")
             self.draw_footer([("B", omni_i18n._("ui_hint_back"), TEXT)])
             return
-        title, icon, games = lists[0]
-        lb["sys"] = 0
+        lb["sys"] = min(lb.get("sys", 0), len(lists) - 1)
+        title, icon, games = lists[lb["sys"]]
         lb["game"] = min(lb["game"], len(games) - 1)
         rh, bot_y = 30, H - 44
         # jogos (esquerda)
@@ -3462,7 +3519,8 @@ class App:
             g.rrect(gx + gw - 5, by, 3, bh, 2, alpha(a1, 220))
         # ficha do jogo (direita): capa e dados da Steam + o que o console sabe
         s, game = games[lb["game"]]
-        info = self.meta(game["name"], game.get("path", ""))
+        port = s["name"] == "ports"
+        info = self.lib_info(s, game)
         px, py, pw, ph = gx + gw + 14, 50, W - (gx + gw + 14) - 16, bot_y - 50
         g.rrect(px, py, pw, ph, 18, alpha(GLASS, 14 * fade))
         cw_, ch_ = pw - 24, round((pw - 24) * 215 / 460)
@@ -3470,7 +3528,7 @@ class App:
         g.rrect(px + 12, py + 12, cw_, ch_, 12, ink(12))
         if not (cover and g.picture(cover, px + 12, py + 12, cw_, ch_, 255 * fade)):
             g.icon("device-gamepad-2", px + 12 + cw_ / 2 - 24, py + 12 + ch_ / 2 - 30, 48, FAINT)
-            if self.searching(game["name"]) and ((info or {}).get("descricao") or game.get("desc")):
+            if port and self.searching(game["name"]) and ((info or {}).get("descricao") or game.get("desc")):
                 g.text("Regular", 11, omni_i18n._("ui_card_search_image"), px + 12 + cw_ / 2, py + 12 + ch_ / 2 + 30, MUTED, "c")
         y = py + ch_ + 22
         name = (info or {}).get("nome") or game["name"]
@@ -3484,7 +3542,7 @@ class App:
         if (info or {}).get("generos"):
             g.text("Regular", 11, info["generos"], px + 14, y + 2, MUTED)
             y += 18
-        desc = (info or {}).get("descricao") or game.get("desc") or (
+        desc = (info or {}).get("descricao") or game.get("desc") or (omni_i18n._("ui_library_no_desc") if not port else
             (omni_i18n._("ui_searching_description") if cover else omni_i18n._("ui_searching_image_description"))
             if self.searching(game["name"]) else
             omni_i18n._("ui_description_not_found") if self.meta_cache.get(game["name"], (None,))[0] is not None else
@@ -3512,9 +3570,11 @@ class App:
                 local.pop(1)                  # sem espaço: fica o cartão e o mais útil (o fim)
                 ln = " · ".join(local)
             g.text("Medium", 11, ln, px + 14, py + ph - 24, FAINT)
-        self.draw_footer([("A", omni_i18n._("ui_hint_play_game"), TEXT), ("LR", omni_i18n._("ui_hint_page"), MUTED),
-                          ("L1 / R1", omni_i18n._("ui_hint_letter_page"), MUTED),
-                          ("B", omni_i18n._("ui_back"), MUTED)])
+        hints = [("A", omni_i18n._("ui_hint_play_game"), TEXT), ("LR", omni_i18n._("ui_hint_page"), MUTED),
+                 ("L1 / R1", omni_i18n._("ui_hint_letter_page"), MUTED)]
+        if len(lists) > 1:
+            hints.append(("X / Y", omni_i18n._("ui_hint_system").format(n=lb["sys"] + 1, total=len(lists)), MUTED))
+        self.draw_footer(hints + [("B", omni_i18n._("ui_back"), MUTED)])
 
     def power_menu(self, button=False):
         """Botão de power (Cancelar vem primeiro e apertar o power
@@ -4474,6 +4534,9 @@ class App:
                 self.status = D.status()
             if it.key == "tema":
                 self.g.flush()
+            if it.key == "emuladores":    # a biblioteca relê os sistemas
+                self.games_idx = None
+                self.lib.update(sys=0, game=0, top=0.0)
             if it.key == "fonte":         # a busca espera o jogador sair da página: trocar várias
                 self.source_dirty = res   # vezes seguidas não relê os cartões a cada toque
             if it.key == "inverter":          # o próprio Omni36OS passa a usar a troca na hora

@@ -2,6 +2,11 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.16.0 (06/11/2026)
+
+- Emuladores (opcional): Ferramentas > Emuladores mostra na biblioteca, depois dos ports, os sistemas do RetroArch com jogos no cartão. X e Y trocam de sistema; o card Ports avisa BIOS faltando.
+- Imagem com emuladores: sudo EMULADORES=1 imagem/gerar-imagem.sh gera Omni36OS-<versão>-emu.img.xz, com o RetroArch e a opção já ligada. A imagem padrão continua só de ports.
+
 ## 1.15.31 (06/11/2026)
 
 - Barra de status: ícone de âncora enquanto a internet chega pela ancoragem USB do celular.

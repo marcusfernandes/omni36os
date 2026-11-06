@@ -1,5 +1,10 @@
 # Omni36OS release notes
 
+## 1.16.0 (06/11/2026)
+
+- Emulators (optional): Tools > Emulators shows in the library, after the ports, the RetroArch systems with games on the card. X and Y switch systems; the Ports card warns about missing BIOS.
+- Image with emulators: sudo EMULADORES=1 imagem/gerar-imagem.sh builds Omni36OS-<version>-emu.img.xz, with RetroArch and the option already on. The default image stays ports-only.
+
 ## 1.15.31 (06/11/2026)
 
 - Status bar: anchor icon while the internet comes through USB phone tethering.

@@ -18,10 +18,15 @@ ES_SYSTEMS = omni.ES_SYSTEMS
 ES_SETTINGS = f"{omni.HOME}/.emulationstation/es_settings.cfg"
 CACHE = f"{omni.HOME}/.config/omni36os/jogos.json"
 LAST = f"{omni.HOME}/.config/omni36os/ultimo_port"
-CACHE_VER = 3              # 3: só ports (antes lia todos os sistemas do ES)
-# O Omni36OS é só de ports: a biblioteca lê apenas /roms/ports e /roms2/ports (Origem dos jogos).
-# Pastas de emuladores que sobraram no cartão não são varridas nem listadas.
+CACHE_VER = 4              # 4: ports sempre; os outros sistemas do ES com a opção Emuladores
+# O Omni36OS é de ports: a biblioteca lê /roms/ports e /roms2/ports (Origem dos jogos). Com a opção
+# Emuladores ligada (Ferramentas), entram também os sistemas do es_systems.cfg que tiverem jogos.
 ONLY = "ports"
+EMULADORES = "/tmp/omni36os-emuladores" if os.environ.get("OMNI_FAKE") == "1" else \
+    f"{omni.HOME}/.config/omni36os/emuladores"          # "ligados": a biblioteca mostra os emuladores
+# sistemas do ES que não são jogos (ou têm card próprio)
+SKIP = {"omni36os", "sab", "tools", "options", "retropie", "settings", "kodi", "imageviewer"}
+RETROARCH = ("/usr/local/bin/retroarch", "/opt/retroarch/bin/retroarch", "/opt/retroarch")
 PORTS_DEFAULT = {"name": "ports", "fullname": "Ports", "ext": ".sh .SH",
                  "command": "sudo perfmax %GOVERNOR% %ROM%; nice -n -19 %ROM%; sudo perfnorm"}
 # pastas e arquivos que moram nas pastas de jogos e não são jogos
@@ -44,17 +49,37 @@ def settings():
     return dict(re.findall(r'<string name="([^"]+)" value="([^"]*)"', text))
 
 
+def emulators_on():
+    return omni.read_text(EMULADORES, "").strip() == "ligados"
+
+
+def set_emulators(on):
+    omni.write_text(EMULADORES, ("ligados" if on else "desligados") + "\n")
+    try:
+        os.chmod(EMULADORES, 0o666)
+    except OSError:
+        pass
+
+
+def emulators_installed():
+    """RetroArch no sistema: a imagem só de ports não traz (gerar-imagem.sh sem EMULADORES=1)."""
+    return any(os.path.exists(p) for p in RETROARCH)
+
+
 def systems():
     root = _xml(ES_SYSTEMS)
     out = []
-    found = [s for s in (root.findall("system") if root is not None else [])
-             if (s.findtext("name") or "").strip().lower() == ONLY]
+    every = root.findall("system") if root is not None else []
+    found = [s for s in every if (s.findtext("name") or "").strip().lower() == ONLY]
     if not found:                 # sem o es_systems do dArkOSen: a entrada padrão dos ports
         s = ET.Element("system")
         for k, v in PORTS_DEFAULT.items():
             ET.SubElement(s, "extension" if k == "ext" else k).text = v
         ET.SubElement(s, "path").text = "/roms/ports"
         found = [s]
+    if emulators_on():
+        found += [s for s in every if (s.findtext("name") or "").strip().lower() not in SKIP | {ONLY}
+                  and (s.findtext("name") or "").strip()]
     seen = set()
     for s in found:
         name = (s.findtext("name") or "").strip()
@@ -269,7 +294,7 @@ def index(force=False):
             os.replace(CACHE + ".tmp", CACHE)
         except OSError:
             pass
-    out.sort(key=lambda d: d["full"].lower())
+    out.sort(key=lambda d: (d["name"] != ONLY, d["full"].lower()))   # Ports sempre primeiro
     return out
 
 

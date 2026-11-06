@@ -4,6 +4,10 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ('1.16.0', '06/11/2026', [
+        'Emuladores (opcional): Ferramentas > Emuladores mostra na biblioteca, depois dos ports, os sistemas do RetroArch com jogos no cartão. X e Y trocam de sistema; o card Ports avisa BIOS faltando.',
+        'Imagem com emuladores: sudo EMULADORES=1 imagem/gerar-imagem.sh gera Omni36OS-<versão>-emu.img.xz, com o RetroArch e a opção já ligada. A imagem padrão continua só de ports.',
+    ]),
     ('1.15.31', '06/11/2026', [
         'Barra de status: ícone de âncora enquanto a internet chega pela ancoragem USB do celular.',
     ]),
@@ -676,6 +680,7 @@ The R36S community, which documents models, screens, clones, and repairs and mak
 
 # Reviewed English release-note editions; entry order matches NOVIDADES above.
 NOVIDADES_EN = {
+    '1.16.0': ['Emulators (optional): Tools > Emulators shows in the library, after the ports, the RetroArch systems with games on the card. X and Y switch systems; the Ports card warns about missing BIOS.', 'Image with emulators: sudo EMULADORES=1 imagem/gerar-imagem.sh builds Omni36OS-<version>-emu.img.xz, with RetroArch and the option already on. The default image stays ports-only.'],
     '1.15.31': ['Status bar: anchor icon while the internet comes through USB phone tethering.'],
     '1.15.30': ['USB tethering: more Android phones recognized, with the new Phone tethering option in the Network card.'],
     '1.15.29': ["What's new before updating: the screen now follows the console language.", 'Runtimes: fixed the download error when space runs out or the file does not match.'],

@@ -167,6 +167,15 @@ sudo imagem/gerar-imagem.sh        # -> ~/Apps/Omni36OS/output/Omni36OS-<VERSION
 - Identidade visual: cards e páginas com vidro, pílula de estado no topo, ícones Tabler, fonte Poppins.
 - Mostrar no simulador antes de mexer no console/imagem/cartão quando a mudança for visual e o usuário pedir.
 
+## Emuladores (opcional)
+
+- Ferramentas > Emuladores (`omni_games.EMULADORES` = `~/.config/omni36os/emuladores`, "ligados"/"desligados"; padrão desligado). Ligado, `omni_games.systems()` inclui os sistemas do `es_systems.cfg` (menos `SKIP`) e o `index()` põe Ports primeiro; só aparecem sistemas com pasta e jogos.
+- Biblioteca: uma lista por sistema (`lib_lists`), X/Y trocam de sistema; ficha dos emuladores vem do gamelist (sem busca na internet). Jogar usa o handoff `game\t<sistema>\t<rom>` com o comando do `es_systems.cfg` (emulador, core e governador do ES).
+- Card Ports avisa RetroArch ausente (`emulators_installed`) e BIOS faltando (`bios_check`).
+- Imagem: `sudo EMULADORES=1 imagem/gerar-imagem.sh` → `Omni36OS-<versão>-emu.img.xz`. `EMU_KEEP` (pastas em /opt que ficam) e `EMU_SYSTEMS` (pastas do roms.tar) mudam por variável de ambiente; grava a opção já ligada.
+- A atualização pelo GitHub (`omni_update.REPO`) não instala o RetroArch: console com a imagem só de ports precisa da imagem com emuladores.
+- A validar no aparelho: menu do RetroArch e saída (SELECT + START do Omni e hotkeys do RetroArch), HUD e botão de power com o RetroArch aberto, e o `fn-menu-watcher` (a limpeza o mascara).
+
 ## GeForce NOW (OpenNOW-4Handhelds)
 
 github.com/OpenCloudGaming/OpenNOW-4Handhelds — cliente GeForce NOW (Rust + SDL2, vídeo pela Rockchip MPP, libs no zip).

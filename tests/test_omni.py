@@ -332,6 +332,77 @@ class Atualizacao(unittest.TestCase):
         self.assertFalse(os.path.exists(self.u.PENDING))
 
 
+class Emuladores(unittest.TestCase):
+    """Biblioteca: só ports por padrão; com Ferramentas > Emuladores, os sistemas do ES entram depois dos ports."""
+
+    ES = """<systemList>
+  <system><name>ports</name><fullname>Ports</fullname><path>/roms/ports/</path><extension>.sh</extension>
+    <command>%ROM%</command></system>
+  <system><name>snes</name><fullname>Super Nintendo</fullname><path>/roms/snes/</path><extension>.sfc .zip</extension>
+    <command>sudo perfmax %GOVERNOR% %ROM%; /usr/local/bin/%EMULATOR% -L /home/ark/.config/%EMULATOR%/cores/%CORE%_libretro.so %ROM%</command>
+    <emulators><emulator name="retroarch"><cores><core default="true">snes9x</core><core>snes9x2010</core></cores></emulator></emulators>
+  </system>
+  <system><name>tools</name><fullname>Tools</fullname><path>/roms/tools/</path><extension>.sh</extension></system>
+  <system><name>kodi</name><fullname>Kodi</fullname><path>/opt/kodi/</path><extension>.sh</extension></system>
+</systemList>"""
+
+    def setUp(self):
+        import omni_games
+        self.g = omni_games
+        self.d = tempfile.mkdtemp()
+        es = os.path.join(self.d, "es_systems.cfg")
+        with open(es, "w") as f:
+            f.write(self.ES)
+        self.old = (omni_games.ES_SYSTEMS, omni_games.EMULADORES, omni_games.ES_SETTINGS, omni_games.CACHE)
+        omni_games.ES_SYSTEMS = es
+        omni_games.EMULADORES = os.path.join(self.d, "emuladores")
+        omni_games.ES_SETTINGS = os.path.join(self.d, "es_settings.cfg")
+        omni_games.CACHE = os.path.join(self.d, "jogos.json")
+        self.roots = omni.game_roots
+        omni.game_roots = lambda: ["/roms"]
+
+    def tearDown(self):
+        (self.g.ES_SYSTEMS, self.g.EMULADORES, self.g.ES_SETTINGS, self.g.CACHE) = self.old
+        omni.game_roots = self.roots
+        shutil.rmtree(self.d)
+
+    def test_desligado_so_ports(self):
+        self.assertFalse(self.g.emulators_on())
+        self.assertEqual([s["name"] for s in self.g.systems()], ["ports"])
+
+    def test_ligado_traz_sistemas_sem_os_de_ferramentas(self):
+        self.g.set_emulators(True)
+        self.assertTrue(self.g.emulators_on())
+        self.assertEqual([s["name"] for s in self.g.systems()], ["ports", "snes"])
+        self.g.set_emulators(False)
+        self.assertEqual([s["name"] for s in self.g.systems()], ["ports"])
+
+    def test_comando_do_emulador(self):
+        self.g.set_emulators(True)
+        real = self.g.index
+        self.g.index = lambda force=False: []
+        try:
+            cmd = self.g.command("snes", "/roms/snes/Super Mario World.sfc")
+        finally:
+            self.g.index = real
+        self.assertIn("/usr/local/bin/retroarch -L /home/ark/.config/retroarch/cores/snes9x_libretro.so", cmd)
+        self.assertIn("'/roms/snes/Super Mario World.sfc'", cmd)
+
+    def test_ports_primeiro_na_biblioteca(self):
+        base = os.path.join(self.d, "roms")
+        for sysname, game in (("ports", "Celeste.sh"), ("snes", "Chrono Trigger.sfc")):
+            os.makedirs(os.path.join(base, sysname))
+            open(os.path.join(base, sysname, game), "w").close()
+        real = self.g.systems
+        self.g.systems = lambda: [
+            {"name": n, "full": f, "path": os.path.join(base, n), "ext": [e], "command": "", "emulators": []}
+            for n, f, e in (("snes", "Super Nintendo", ".sfc"), ("ports", "Ports", ".sh"))]
+        try:
+            self.assertEqual([s["name"] for s in self.g.index(force=True)], ["ports", "snes"])
+        finally:
+            self.g.systems = real
+
+
 class Scripts(unittest.TestCase):
     def test_sintaxe_dos_sh(self):
         for n in sorted(os.listdir(PORT)):
