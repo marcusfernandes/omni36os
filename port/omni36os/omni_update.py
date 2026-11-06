@@ -20,7 +20,7 @@ import time
 import urllib.request
 import omni_i18n
 
-REPO = "mpjsilva/omni36os"
+REPO = "marcusfernandes/omni36os"
 TAG = re.compile(r"^omni-v(\d+)\.(\d+)\.(\d+)$")
 OMNI = os.path.dirname(os.path.abspath(__file__))
 NEW, PREV = OMNI + ".new", OMNI + ".prev"

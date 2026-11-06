@@ -9,7 +9,7 @@ O que mudou em cada versão: `NOVIDADES.md` (e `omni_help.NOVIDADES`, que é o q
 Sistema **só de ports** para o R36S (Rockchip RK3326, 1 GB, tela 640×480), em português, feito sobre o
 **dArkOSen** (djparentx). O EmulationStation e o
 RetroArch saem; no lugar entra um launcher próprio em Python + SDL2 (via ctypes, sem pygame).
-Repositório público: https://github.com/mpjsilva/omni36os (GPL-3.0). Autor dos commits: `mpjsilva`.
+Repositório público: https://github.com/mpjsilva/omni36os (GPL-3.0). Autor dos commits: `mpjsilva`. Este fork (com emuladores opcionais): https://github.com/marcusfernandes/omni36os; o `omni_update.REPO` aponta para ele, então as atualizações pelo GitHub vêm das tags `omni-vX.Y.Z` daqui.
 
 ## Pastas no PC (pirulito)
 
