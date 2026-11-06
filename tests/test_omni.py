@@ -541,8 +541,15 @@ class Clone(unittest.TestCase):
     def test_script_de_tela_dos_clones(self):
         sh = os.path.join(ROOT, "imagem", "clone", "omni36os-tela")
         self.assertEqual(subprocess.run(["bash", "-n", sh]).returncode, 0)
+        for f in ("omni36os-turbo", "omni36os-diag"):
+            sh = os.path.join(ROOT, "imagem", "clone", f)
+            self.assertEqual(subprocess.run(["bash", "-n", sh]).returncode, 0)
         sh = os.path.join(ROOT, "imagem", "gerar-imagem-clone.sh")
         self.assertEqual(subprocess.run(["bash", "-n", sh]).returncode, 0)
+        with open(sh) as f:
+            gen = f.read()
+        for cedo in ("sysinit.target.wants/omni36os-turbo", "system/omni36os-boas-vindas", "welcome-message.service.d"):
+            self.assertNotIn(cedo, gen)
 
 
 if __name__ == "__main__":

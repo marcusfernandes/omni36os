@@ -1,5 +1,9 @@
 # Omni36OS release notes
 
+## 1.17.1 (06/11/2026)
+
+- Clones: the R36Max hung before the first-boot setup. The image no longer runs the CPU/GPU/memory boost or the welcome screen early in boot, and writes /boot/omni36os-diag.txt (boot diagnostics) during the first 3 minutes.
+
 ## 1.17.0 (06/11/2026)
 
 - R36Max and other clones (720x720): new image built from dArkOS4Clone (imagem/gerar-imagem-clone.sh), with emulators. The 640x480 menu and screens are centered on the device screen.

@@ -1,0 +1,11 @@
+[Unit]
+Description=Omni36OS: diagnóstico do boot nos clones (/boot/omni36os-diag.txt)
+DefaultDependencies=no
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/omni36os-diag
+
+[Install]
+WantedBy=sysinit.target

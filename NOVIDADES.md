@@ -2,6 +2,10 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.17.1 (06/11/2026)
+
+- Clones: o boot travava antes do primeiro boot no R36Max. A imagem não roda mais o turbo de CPU/GPU/memória nem a tela de boas-vindas no começo do boot, e grava /boot/omni36os-diag.txt (diagnóstico do boot) nos 3 primeiros minutos.
+
 ## 1.17.0 (06/11/2026)
 
 - R36Max e outros clones (720x720): imagem nova a partir do dArkOS4Clone (imagem/gerar-imagem-clone.sh), com emuladores. O menu e as telas de 640x480 aparecem centrados na tela do aparelho.

@@ -4,6 +4,9 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ('1.17.1', '06/11/2026', [
+        'Clones: o boot travava antes do primeiro boot no R36Max. A imagem não roda mais o turbo de CPU/GPU/memória nem a tela de boas-vindas no começo do boot, e grava /boot/omni36os-diag.txt (diagnóstico do boot) nos 3 primeiros minutos.',
+    ]),
     ('1.17.0', '06/11/2026', [
         'R36Max e outros clones (720x720): imagem nova a partir do dArkOS4Clone (imagem/gerar-imagem-clone.sh), com emuladores. O menu e as telas de 640x480 aparecem centrados na tela do aparelho.',
         'Clones: Trocar DTB, overclock e modo pendrive ficam indisponíveis (mexiam no DTB do R36S); o teste de tela do primeiro boot não roda.',
@@ -687,6 +690,7 @@ The R36S community, which documents models, screens, clones, and repairs and mak
 
 # Reviewed English release-note editions; entry order matches NOVIDADES above.
 NOVIDADES_EN = {
+    '1.17.1': ['Clones: the R36Max hung before the first-boot setup. The image no longer runs the CPU/GPU/memory boost or the welcome screen early in boot, and writes /boot/omni36os-diag.txt (boot diagnostics) during the first 3 minutes.'],
     '1.17.0': ['R36Max and other clones (720x720): new image built from dArkOS4Clone (imagem/gerar-imagem-clone.sh), with emulators. The 640x480 menu and screens are centered on the device screen.', 'Clones: Change DTB, overclock and USB drive mode are unavailable (they edited the R36S DTB); the first-boot screen test does not run.'],
     '1.16.1': ['Emulators: the missing RetroArch warning now checks the actual program (/opt/retroarch), not just the shortcut kept by the ports-only image.'],
     '1.16.0': ['Emulators (optional): Tools > Emulators shows in the library, after the ports, the RetroArch systems with games on the card. X and Y switch systems; the Ports card warns about missing BIOS.', 'Image with emulators: sudo EMULADORES=1 imagem/gerar-imagem.sh builds Omni36OS-<version>-emu.img.xz, with RetroArch and the option already on. The default image stays ports-only.'],

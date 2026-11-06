@@ -49,6 +49,9 @@ rsync -a --delete --exclude __pycache__ --exclude imagens --exclude logs "$REPO/
 chmod +x "$R"/opt/omni36os/*.sh "$R/opt/omni36os/omni36os-start"
 chown -R 1000:1000 "$R/opt/omni36os"
 
+# Fora também o que a oficial roda cedo no boot (omni36os-turbo e omni36os-boas-vindas no sysinit,
+# boas-vindas no welcome-message): no R36Max o boot travava antes do firstboot. O omni36os-turbo
+# dos clones (só CPU) fica para o desligar; o omni36os-diag grava /boot/omni36os-diag.txt.
 # arquivos de sistema da imagem oficial (lista fechada). Fora: firstboot.service (o do clone roda o
 # clone.sh a cada boot), omni36os-painel (teste de tela do R36S), perfmax/perfnorm/finish.sh/pause.sh
 # (os do clone são outros: recebem só as mudanças do Omni36OS, abaixo), o USB do boot.ini do R36S.
@@ -56,22 +59,19 @@ SIS=(etc/hostname etc/hosts etc/hostapd/hostapd.conf
      etc/NetworkManager/conf.d/omni36os-usb0.conf etc/NetworkManager/dispatcher.d/90-omni36os-remoto
      etc/omni36os etc/sysctl.d/90-omni36os.conf etc/samba/smb.conf
      etc/systemd/system/omni36os-atalho.service etc/systemd/system/omni36os-launcher.service
-     etc/systemd/system/omni36os-tela-saida.service etc/systemd/system/omni36os-boas-vindas.service
+     etc/systemd/system/omni36os-tela-saida.service
      etc/systemd/system/omni36os-hora.service etc/systemd/system/omni36os-wifi-boot.service
-     etc/systemd/system/omni36os-turbo.service
      etc/systemd/system/multi-user.target.wants/omni36os-atalho.service
      etc/systemd/system/multi-user.target.wants/omni36os-launcher.service
      etc/systemd/system/multi-user.target.wants/omni36os-tela-saida.service
      etc/systemd/system/multi-user.target.wants/omni36os-wifi-boot.service
-     etc/systemd/system/sysinit.target.wants/omni36os-turbo.service
-     etc/systemd/system/sysinit.target.wants/omni36os-boas-vindas.service
-     etc/systemd/system/welcome-message.service.d etc/systemd/system/nmbd.service.d
+     etc/systemd/system/nmbd.service.d
      etc/systemd/system/remote-autostart.service.d
      etc/systemd/system/remote-autostart.service
      etc/systemd/system/multi-user.target.wants/remote-autostart.service
      etc/update-motd.d/00-header etc/update-motd.d/10-help-text
      usr/local/bin/omni36os-hora usr/local/bin/omni36os-volume usr/local/bin/omni36os-wifi-boot
-     usr/local/bin/omni36os-turbo usr/local/bin/BaRT_QuickMode.sh usr/local/bin/arkos_ap_mode.sh
+     usr/local/bin/BaRT_QuickMode.sh usr/local/bin/arkos_ap_mode.sh
      usr/local/bin/b_swap.sh usr/local/bin/Scan_SD1p3.sh usr/local/bin/Scan_SD2.sh
      usr/local/bin/wifi_enable.sh usr/local/bin/wifi_disable.sh usr/local/bin/zram_autostart.sh
      usr/share/plymouth/themes/text.plymouth opt/omni36os-telas)
@@ -88,6 +88,10 @@ done
 rm -f "$R/etc/omni36os/overclock"
 install -m755 -o0 -g0 "$REPO/port/omni36os/omni36os-start" "$R/usr/local/bin/omni36os-start"
 install -m755 -o0 -g0 "$REPO/imagem/clone/omni36os-tela" "$R/usr/local/bin/omni36os-tela"
+install -m755 -o0 -g0 "$REPO/imagem/clone/omni36os-turbo" "$R/usr/local/bin/omni36os-turbo"
+install -m755 -o0 -g0 "$REPO/imagem/clone/omni36os-diag" "$R/usr/local/bin/omni36os-diag"
+install -m644 -o0 -g0 "$REPO/imagem/clone/omni36os-diag.service" "$R/etc/systemd/system/omni36os-diag.service"
+ln -sf /etc/systemd/system/omni36os-diag.service "$R/etc/systemd/system/sysinit.target.wants/omni36os-diag.service"
 
 echo "== launcher no lugar do EmulationStation"
 rm -f "$R/etc/systemd/system/multi-user.target.wants/emulationstation.service"

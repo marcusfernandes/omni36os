@@ -1,0 +1,5 @@
+#!/bin/bash
+# Omni36OS nos clones (arkos4clone): só o processador no máximo ao reiniciar ou desligar.
+# A memória (dmc) e a GPU ficam com o clone: trocar o governador delas cedo no boot travava o R36Max.
+for f in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor; do echo performance > "$f"; done
+exit 0
