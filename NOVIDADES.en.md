@@ -1,5 +1,9 @@
 # Omni36OS release notes
 
+## 1.15.30 (06/11/2026)
+
+- USB tethering: more Android phones recognized, with the new Phone tethering option in the Network card.
+
 ## 1.15.29 (05/11/2026)
 
 - What's new before updating: the screen now follows the console language.

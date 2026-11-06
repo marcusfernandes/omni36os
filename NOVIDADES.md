@@ -2,6 +2,10 @@
 
 Histórico completo. Dentro do console (Geral > Sobre > Novidades) aparece só a versão em uso.
 
+## 1.15.30 (06/11/2026)
+
+- Ancoragem USB: mais celulares Android reconhecidos, com a nova opção Ancoragem celular no card Rede.
+
 ## 1.15.29 (05/11/2026)
 
 - Novidades antes de atualizar: a tela agora segue o idioma do console.

@@ -9,9 +9,18 @@ B=/usr/local/sbin/omni-ancoragem-bind.sh
 C=/etc/NetworkManager/system-connections/omni-ancoragem.nmconnection
 N=/etc/NetworkManager/conf.d/omni36os-usb0.conf
 
-if ! cmp -s "$D/cdc_ether.ko" "$M"; then
-    mkdir -p "${M%/*}"
-    cp "$D/cdc_ether.ko" "$M"
+# O módulo só vale para o kernel de onde saiu: outro build com o mesmo nome pode ter structs diferentes.
+# Sem ele, só a classe EF/04/01 fica de fora; as demais usam os módulos originais.
+O=/lib/modules/4.4.189/kernel/drivers/net/usb/cdc_ether.ko
+if [ "$(md5sum "$O" 2>/dev/null | cut -d' ' -f1)" = 4102f89016d3347164790db1222e1349 ]; then
+    if ! cmp -s "$D/cdc_ether.ko" "$M"; then
+        mkdir -p "${M%/*}"
+        cp "$D/cdc_ether.ko" "$M"
+        /sbin/depmod -a 4.4.189
+        /sbin/modprobe -r rndis_host cdc_ether 2>/dev/null   # em uso: vale no próximo boot
+    fi
+elif [ -f "$M" ]; then
+    rm -f "$M"
     /sbin/depmod -a 4.4.189
 fi
 cmp -s "$D/omni-ancoragem-bind.sh" "$B" || install -m755 "$D/omni-ancoragem-bind.sh" "$B"

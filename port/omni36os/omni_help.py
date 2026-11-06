@@ -4,6 +4,9 @@ Linhas que começam com "# " viram títulos no leitor."""
 
 # A versão em uso vem do arquivo VERSION. Aqui fica só ela; o histórico completo está no NOVIDADES.md.
 NOVIDADES = [
+    ('1.15.30', '06/11/2026', [
+        'Ancoragem USB: mais celulares Android reconhecidos, com a nova opção Ancoragem celular no card Rede.',
+    ]),
     ('1.15.29', '05/11/2026', [
         'Novidades antes de atualizar: a tela agora segue o idioma do console.',
         'Runtimes: corrigido o erro ao baixar quando falta espaço ou o arquivo vem diferente.',
@@ -670,6 +673,7 @@ The R36S community, which documents models, screens, clones, and repairs and mak
 
 # Reviewed English release-note editions; entry order matches NOVIDADES above.
 NOVIDADES_EN = {
+    '1.15.30': ['USB tethering: more Android phones recognized, with the new Phone tethering option in the Network card.'],
     '1.15.29': ["What's new before updating: the screen now follows the console language.", 'Runtimes: fixed the download error when space runs out or the file does not match.'],
     '1.15.28': ['Full English translation: messages, battery warnings, tool dialogs, port test reports and USB drive mode follow the chosen language.', 'First boot asks for the language before the player name. Reset the system asks again.', 'In English, error messages no longer appear as success.'],
     '1.15.27': ['Wi-Fi: the adapter is no longer powered off after 10 minutes without a network (the base Wi-Fi monitor disabled the radio and removed the driver, preventing Wi-Fi from reconnecting automatically).', 'Ports copied on a PC with the card in a reader now appear in the library without using Refresh Ports.', 'One-time system cleanup, with an on-screen menu: removes services, packages, documentation, and languages not used by a ports-only system (frees about 700 MB more).', "Credits: special thanks to h1ghland3r for testing the project and reporting bugs. Credit links are navigable: ↑↓ move focus and A opens the QR code (mpjsilva's GitHub and h1ghland3r's links)."],

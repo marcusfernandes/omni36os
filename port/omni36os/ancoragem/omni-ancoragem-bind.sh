@@ -3,5 +3,5 @@
 # $1 = PRODUCT do udev (vid/pid/bcd)
 vid=$(echo "$1" | cut -d/ -f1); pid=$(echo "$1" | cut -d/ -f2)
 /sbin/modprobe rndis_host || exit 1
-echo "$vid $pid 0 1630 0042" > /sys/bus/usb/drivers/rndis_host/new_id 2>/dev/null
+echo "$vid $pid ef 1630 0042" > /sys/bus/usb/drivers/rndis_host/new_id 2>/dev/null
 exit 0
